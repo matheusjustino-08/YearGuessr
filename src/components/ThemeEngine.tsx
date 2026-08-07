@@ -45,18 +45,18 @@ export function ThemeEngine({ children }: { children: React.ReactNode }) {
   // Handle Era Themes
   useEffect(() => {
     const era = themeOverride && themeOverride !== 'auto' ? themeOverride : getEraTheme(currentYear);
+    const root = document.documentElement;
+    const body = document.body;
     
-    if (era !== previousEra.current) {
-      document.documentElement.classList.remove(previousEra.current);
-      document.documentElement.classList.add(era);
-      
-      setActiveEra(era);
-      previousEra.current = era;
-      
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(30);
-      }
-    }
+    ERAS.forEach(e => {
+      root.classList.remove(e, ERA_BACKGROUND_CLASSES[e]);
+      body?.classList.remove(ERA_BACKGROUND_CLASSES[e]);
+    });
+
+    root.classList.add(era, ERA_BACKGROUND_CLASSES[era]);
+    body?.classList.add(ERA_BACKGROUND_CLASSES[era]);
+    setActiveEra(era);
+    previousEra.current = era;
   }, [currentYear, themeOverride]);
 
   // Handle Light / Dark / System Mode
@@ -79,15 +79,9 @@ export function ThemeEngine({ children }: { children: React.ReactNode }) {
     }
   }, [colorMode]);
 
-  useEffect(() => {
-    const initialEra = themeOverride && themeOverride !== 'auto' ? themeOverride : getEraTheme(currentYear);
-    setActiveEra(initialEra);
-    document.documentElement.classList.add(initialEra);
-  }, [currentYear, themeOverride]);
-
   return (
     <>
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
         {ERAS.map((era) => (
           <div
             key={era}
@@ -130,9 +124,7 @@ export function ThemeEngine({ children }: { children: React.ReactNode }) {
           </div>
         ))}
       </div>
-      <div className="relative z-10 min-h-screen flex flex-col justify-between">
-        {children}
-      </div>
+      {children}
     </>
   );
 }

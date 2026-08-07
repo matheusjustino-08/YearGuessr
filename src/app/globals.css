@@ -153,8 +153,12 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    @apply transition-colors duration-700 ease-in-out;
+  }
   body {
-    @apply bg-background text-foreground transition-all duration-700 ease-in-out;
+    @apply text-foreground transition-all duration-700 ease-in-out;
+    background: transparent !important;
   }
 
   /* Universal Cursor Pointer & Click Polish */
