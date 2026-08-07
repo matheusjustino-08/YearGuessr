@@ -24,14 +24,14 @@ export default function NotFound() {
         <div className="relative z-10 max-w-lg w-full space-y-6 p-8 sm:p-10 rounded-3xl bg-card/60 border border-border/70 backdrop-blur-2xl shadow-2xl animate-in zoom-in-95 duration-300">
           
           {/* Mascot Image with Baked Soft Alpha Gradient */}
-          <div className="relative w-44 h-44 sm:w-52 sm:h-52 mx-auto drop-shadow-2xl -mt-6 -mb-2">
-            <Image
+          <div className="relative w-48 h-48 sm:w-60 sm:h-60 mx-auto drop-shadow-2xl overflow-hidden flex items-center justify-center -mt-4 -mb-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src="/mascot-shrug.png"
               alt="YearGuessr Mascot 404"
-              fill
-              className="object-contain animate-in fade-in slide-in-from-bottom-6 duration-700"
-              priority
+              className="w-full h-full object-contain animate-in fade-in slide-in-from-bottom-5 duration-700"
             />
+            <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-card via-card/80 to-transparent pointer-events-none" />
           </div>
 
           {/* Badge & Typography */}
