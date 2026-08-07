@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check, Layers } from 'lucide-react';
+import { ChevronDown, Check, Sparkles, Layers, Flame, Crown, Cog, Film, Sun, Disc, Zap, Square } from 'lucide-react';
 
 export interface SelectOption {
   value: string;
@@ -15,16 +15,58 @@ interface CustomSelectProps {
   placeholder?: string;
 }
 
-const ERA_PREVIEW_CLASSES: Record<string, string> = {
-  'auto': 'bg-gradient-to-r from-amber-500 via-pink-500 to-sky-500 ring-2 ring-amber-400/50 shadow-xs animate-pulse',
-  'era-neutral': 'bg-gradient-to-r from-zinc-900 to-zinc-100 border border-zinc-400 shadow-xs',
-  'era-medieval': 'bg-gradient-to-r from-amber-700 via-orange-800 to-amber-900 border border-amber-500/60 shadow-xs',
-  'era-renaissance': 'bg-gradient-to-r from-yellow-400 via-amber-500 to-amber-600 border border-yellow-300/60 shadow-xs',
-  'era-industrial': 'bg-gradient-to-r from-slate-400 via-zinc-500 to-zinc-700 border border-slate-300/60 shadow-xs',
-  'era-early20th': 'bg-gradient-to-r from-stone-300 via-stone-400 to-stone-600 border border-stone-400/60 shadow-xs',
-  'era-golden': 'bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 border border-amber-300/60 shadow-xs',
-  'era-retro': 'bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 border border-pink-400/60 shadow-xs',
-  'era-modern': 'bg-gradient-to-r from-sky-400 via-blue-500 to-purple-500 border border-sky-300/60 shadow-xs',
+interface ThemeMeta {
+  color1: string;
+  color2: string;
+  icon: React.ReactNode;
+}
+
+const THEME_META: Record<string, ThemeMeta> = {
+  'auto': {
+    color1: '#f59e0b',
+    color2: '#38bdf8',
+    icon: <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+  },
+  'era-neutral': {
+    color1: '#090b10',
+    color2: '#ffffff',
+    icon: <Square className="w-3.5 h-3.5 text-sky-400 fill-sky-400/20" />
+  },
+  'era-medieval': {
+    color1: '#b45309',
+    color2: '#78350f',
+    icon: <Flame className="w-3.5 h-3.5 text-amber-500" />
+  },
+  'era-renaissance': {
+    color1: '#eab308',
+    color2: '#b45309',
+    icon: <Crown className="w-3.5 h-3.5 text-yellow-400" />
+  },
+  'era-industrial': {
+    color1: '#64748b',
+    color2: '#334155',
+    icon: <Cog className="w-3.5 h-3.5 text-slate-400" />
+  },
+  'era-early20th': {
+    color1: '#a8a29e',
+    color2: '#57534e',
+    icon: <Film className="w-3.5 h-3.5 text-stone-400" />
+  },
+  'era-golden': {
+    color1: '#f59e0b',
+    color2: '#ea580c',
+    icon: <Sun className="w-3.5 h-3.5 text-amber-400" />
+  },
+  'era-retro': {
+    color1: '#ec4899',
+    color2: '#06b6d4',
+    icon: <Disc className="w-3.5 h-3.5 text-pink-400" />
+  },
+  'era-modern': {
+    color1: '#38bdf8',
+    color2: '#8b5cf6',
+    icon: <Zap className="w-3.5 h-3.5 text-sky-400" />
+  },
 };
 
 export function CustomSelect({ value, onChange, options, placeholder = 'Selecionar...' }: CustomSelectProps) {
@@ -48,6 +90,8 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Selecion
     setIsOpen(false);
   };
 
+  const selectedMeta = selectedOption ? THEME_META[selectedOption.value] : null;
+
   return (
     <div className="relative w-full" ref={containerRef}>
       {/* Trigger Button */}
@@ -61,8 +105,14 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Selecion
         }`}
       >
         <div className="flex items-center gap-3 min-w-0">
-          {selectedOption && ERA_PREVIEW_CLASSES[selectedOption.value] ? (
-            <span className={`w-4 h-4 rounded-full shrink-0 shadow-xs ${ERA_PREVIEW_CLASSES[selectedOption.value]}`} />
+          {selectedMeta ? (
+            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-muted/60 border border-border/50 shrink-0">
+              <div className="flex items-center w-5 h-3 rounded-md overflow-hidden border border-border/60 shadow-xs">
+                <span className="w-1/2 h-full" style={{ backgroundColor: selectedMeta.color1 }} />
+                <span className="w-1/2 h-full" style={{ backgroundColor: selectedMeta.color2 }} />
+              </div>
+              {selectedMeta.icon}
+            </div>
           ) : (
             <div className="p-1.5 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
               <Layers className="w-4 h-4" />
@@ -79,23 +129,31 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Selecion
 
       {/* Floating Glassmorphic Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 z-50 p-2 rounded-2xl bg-card/98 border border-border/80 backdrop-blur-2xl shadow-2xl animate-in zoom-in-95 fade-in duration-200 max-h-72 overflow-y-auto space-y-1 divide-y divide-border/20">
+        <div className="absolute top-full left-0 right-0 mt-2 z-50 p-2 rounded-2xl bg-card/98 border border-border/80 backdrop-blur-2xl shadow-2xl animate-in zoom-in-95 fade-in duration-200 max-h-72 overflow-y-auto space-y-1.5 divide-y divide-border/20">
           {options.map((opt) => {
             const isSelected = opt.value === value;
-            const previewClass = ERA_PREVIEW_CLASSES[opt.value] || 'bg-primary';
+            const meta = THEME_META[opt.value];
             return (
               <button
                 key={opt.value}
                 type="button"
                 onClick={() => handleSelect(opt.value)}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
                   isSelected
                     ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 border border-primary/40'
-                    : 'text-foreground hover:bg-primary/10 hover:text-primary hover:translate-x-1'
+                    : 'text-foreground hover:bg-primary/10 hover:text-primary'
                 }`}
               >
                 <div className="flex items-center gap-3 truncate min-w-0">
-                  <span className={`w-3.5 h-3.5 rounded-full shrink-0 shadow-xs ${previewClass} ${isSelected ? 'ring-2 ring-white/80' : ''}`} />
+                  {meta && (
+                    <div className="flex items-center gap-1.5 p-1 rounded-lg bg-black/20 border border-white/10 shrink-0">
+                      <div className="flex items-center w-5 h-3.5 rounded-sm overflow-hidden border border-white/20 shadow-xs">
+                        <span className="w-1/2 h-full" style={{ backgroundColor: meta.color1 }} />
+                        <span className="w-1/2 h-full" style={{ backgroundColor: meta.color2 }} />
+                      </div>
+                      {meta.icon}
+                    </div>
+                  )}
                   <span className="truncate tracking-tight">{opt.label}</span>
                 </div>
                 {isSelected && <Check className="w-4 h-4 shrink-0 ml-2 text-current" />}
