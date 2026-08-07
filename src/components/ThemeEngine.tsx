@@ -87,7 +87,7 @@ export function ThemeEngine({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <div className="fixed inset-0 -z-50 pointer-events-none overflow-hidden">
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         {ERAS.map((era) => (
           <div
             key={era}
@@ -130,7 +130,9 @@ export function ThemeEngine({ children }: { children: React.ReactNode }) {
           </div>
         ))}
       </div>
-      {children}
+      <div className="relative z-10 min-h-screen flex flex-col justify-between">
+        {children}
+      </div>
     </>
   );
 }
