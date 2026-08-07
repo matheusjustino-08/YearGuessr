@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// We need a Service Role client to bypass RLS and update rows belonging to a different user ID
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
+  return createClient(url, key);
+}
 
 export async function POST(request: Request) {
   try {
@@ -15,6 +15,8 @@ export async function POST(request: Request) {
     if (!guestId || !newUserId) {
       return NextResponse.json({ error: 'Missing IDs' }, { status: 400 });
     }
+
+    const supabaseAdmin = getSupabaseAdmin();
 
     // Update all matches from the guest to the new authenticated user
     const { data, error } = await supabaseAdmin
