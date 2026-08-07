@@ -50,7 +50,7 @@ export function Footer() {
 
             {/* Sales & Media Page Link */}
             <Link
-              href="/anuncie"
+              href="/advertise"
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold font-mono bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-600 dark:text-amber-400 transition-all duration-200 active:scale-95 shadow-xs"
             >
               <Sparkles className="w-3.5 h-3.5 shrink-0 text-amber-500" />

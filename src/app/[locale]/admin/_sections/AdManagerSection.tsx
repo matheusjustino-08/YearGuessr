@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Pencil, X, Check, RefreshCw, Eye, MousePointerClick, TrendingUp, Share2, Copy } from 'lucide-react';
+import { Pencil, X, Check, RefreshCw, Eye, MousePointerClick, TrendingUp, Share2, Copy, Inbox, Mail, MessageSquare, Trash2, Calendar } from 'lucide-react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { resolveImageUrl, isConvertibleUrl } from '@/lib/resolveImageUrl';
 import { CustomSelect } from '@/components/CustomSelect';
@@ -19,6 +19,16 @@ interface Ad {
   texto_botao?: string;
   visualizacoes?: number;
   cliques?: number;
+  created_at?: string;
+}
+
+interface Proposal {
+  id: string;
+  nome: string;
+  email: string;
+  pacote?: string;
+  mensagem?: string;
+  data_desejada?: string;
   created_at?: string;
 }
 
@@ -200,6 +210,7 @@ function AdForm({ data, onChange, onSubmit, submitLabel, saving }: {
 
 export function AdManagerSection({ supabase }: Props) {
   const [ads, setAds] = useState<Ad[]>([]);
+  const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [newAd, setNewAd] = useState<AdFormData>({ ...EMPTY_AD });
@@ -243,11 +254,60 @@ export function AdManagerSection({ supabase }: Props) {
     }
   };
 
-  useEffect(() => { loadAds(); }, []);
+  const loadProposals = async () => {
+    let list: Proposal[] = [];
+    try {
+      const { data } = await supabase.from('anuncios_propostas').select('*').order('created_at', { ascending: false });
+      if (data && data.length > 0) list = data;
+    } catch {
+      // Ignore if table missing
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const localProposals: Proposal[] = JSON.parse(localStorage.getItem('yearguessr_advertiser_proposals') || '[]');
+        // Merge without duplicates by id or timestamp
+        const combined = [...list];
+        for (const lp of localProposals) {
+          if (!combined.some(item => item.id === lp.id || item.created_at === lp.created_at)) {
+            combined.push(lp);
+          }
+        }
+        list = combined;
+      } catch {
+        // Fallback
+      }
+    }
+
+    setProposals(list);
+  };
+
+  useEffect(() => {
+    loadAds();
+    loadProposals();
+  }, []);
 
   const showMsg = (txt: string) => {
     setMsg(txt);
     setTimeout(() => setMsg(''), 4000);
+  };
+
+  const handleDeleteProposal = async (id: string) => {
+    if (!confirm('Deseja remover esta proposta da lista?')) return;
+    setProposals(prev => prev.filter(p => p.id !== id));
+    if (typeof window !== 'undefined') {
+      try {
+        const existing: Proposal[] = JSON.parse(localStorage.getItem('yearguessr_advertiser_proposals') || '[]');
+        localStorage.setItem('yearguessr_advertiser_proposals', JSON.stringify(existing.filter(p => p.id !== id)));
+      } catch {
+        // Ignore
+      }
+    }
+    try {
+      await supabase.from('anuncios_propostas').delete().eq('id', id);
+    } catch {
+      // Ignore
+    }
   };
 
   const handleToggle = async (id: string, currentAtivo: boolean) => {
@@ -333,7 +393,6 @@ export function AdManagerSection({ supabase }: Props) {
         localStorage.setItem(`yearguessr_ad_pos_${editingAd.id}`, pos);
       }
 
-      // Update local state array immediately for instant UI feedback
       const updatedAd = { ...editingAd, posicao: pos, mostrar_botao: showBtn, texto_botao: textBtn };
       setAds(prev => prev.map(a => a.id === editingAd.id ? updatedAd : a));
 
@@ -396,12 +455,96 @@ Gerado por YearGuessr Analytics`;
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {msg && (
         <div className={`p-3 rounded-xl text-sm font-medium border ${msg.startsWith('Erro') ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-green-500/10 text-green-600 border-green-500/20'}`}>
           {msg}
         </div>
       )}
+
+      {/* PROPOSALS INBOX SECTION */}
+      <div className="p-5 sm:p-6 rounded-2xl border-2 border-amber-500/30 bg-amber-500/5 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-black text-foreground flex items-center gap-2">
+            <Inbox className="w-4 h-4 text-amber-500" />
+            <span>Propostas de Anunciantes Recebidas ({proposals.length})</span>
+          </h3>
+          <button
+            type="button"
+            onClick={loadProposals}
+            className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {proposals.length === 0 ? (
+          <p className="text-xs text-muted-foreground">Nenhuma proposta recebida ainda.</p>
+        ) : (
+          <div className="space-y-3">
+            {proposals.map(prop => (
+              <div key={prop.id} className="p-4 rounded-xl bg-card border border-border/60 space-y-2 shadow-xs">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                      {prop.pacote || 'Contato Geral'}
+                    </span>
+                    <h4 className="text-xs font-black text-foreground pt-1">{prop.nome}</h4>
+                    <p className="text-[11px] font-mono text-muted-foreground">{prop.email}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] font-mono text-muted-foreground">
+                      {prop.created_at ? new Date(prop.created_at).toLocaleDateString('pt-BR') : 'Hoje'}
+                    </span>
+                  </div>
+                </div>
+
+                {prop.data_desejada && (
+                  <p className="text-[11px] font-mono text-emerald-500 font-bold flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    <span>Data Desejada: {new Date(prop.data_desejada + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
+                  </p>
+                )}
+
+                {prop.mensagem && (
+                  <p className="text-xs text-foreground/90 bg-muted/30 p-2.5 rounded-lg border border-border/40 leading-relaxed">
+                    &ldquo;{prop.mensagem}&rdquo;
+                  </p>
+                )}
+
+                <div className="flex items-center gap-2 pt-1">
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent(`Olá ${prop.nome}! Vi sua proposta no YearGuessr para o pacote ${prop.pacote || 'Mídia'}.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-1 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] flex items-center gap-1 cursor-pointer"
+                  >
+                    <MessageSquare className="w-3 h-3" />
+                    <span>Responder no WhatsApp</span>
+                  </a>
+
+                  <a
+                    href={`mailto:${prop.email}?subject=Proposta%20YearGuessr%20-${encodeURIComponent(prop.nome)}`}
+                    className="py-1 px-2.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-[10px] flex items-center gap-1 cursor-pointer"
+                  >
+                    <Mail className="w-3 h-3" />
+                    <span>Responder por E-mail</span>
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteProposal(prop.id)}
+                    className="py-1 px-2 rounded-lg text-rose-500 hover:bg-rose-500/10 text-[10px] font-bold ml-auto cursor-pointer flex items-center gap-1"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span>Remover</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Create Form */}
       <div className="p-5 rounded-2xl border border-border/60 bg-muted/20 space-y-4">
