@@ -82,10 +82,10 @@ function AdForm({ data, onChange, onSubmit, submitLabel }: {
       </div>
 
       <div>
-        <label className={labelCls}>URL da Imagem do Anúncio (Ocupa 100% da caixa da diretriz)</label>
+        <label className={labelCls}>URL da Imagem do Anúncio (SVG, PNG, WebP, JPG, GIF)</label>
         <input
           type="url"
-          placeholder="https://i.imgur.com/banner.png ou link do Google Drive"
+          placeholder="https://i.imgur.com/banner.svg (ou png, webp, drive...)"
           className={inputCls + ' font-mono text-xs'}
           value={data.imagem_url}
           onChange={e => onChange({ ...data, imagem_url: e.target.value })}
@@ -93,7 +93,7 @@ function AdForm({ data, onChange, onSubmit, submitLabel }: {
         {data.imagem_url && isConvertibleUrl(data.imagem_url) && (
           <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
             <RefreshCw className="w-3 h-3" />
-            Link do Google Drive detectado — será convertido automaticamente.
+            Link especial detectado — será convertido automaticamente.
           </p>
         )}
         {data.imagem_url && (
@@ -102,12 +102,12 @@ function AdForm({ data, onChange, onSubmit, submitLabel }: {
             <img
               src={resolveImageUrl(data.imagem_url)}
               alt="Preview"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain p-1"
               onError={e => { (e.target as HTMLImageElement).style.opacity = '0.3'; }}
             />
           </div>
         )}
-        <p className="text-[11px] text-muted-foreground mt-1">Suporta Imgur, Unsplash, Wikimedia e Google Drive.</p>
+        <p className="text-[11px] text-muted-foreground mt-1">Aceita SVG, PNG, WebP, JPG, GIF e Data URIs de qualquer servidor (Imgur, Google Drive, Dropbox, Cloudinary, etc.).</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
