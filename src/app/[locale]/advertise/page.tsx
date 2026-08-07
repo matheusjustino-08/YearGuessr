@@ -7,6 +7,7 @@ import {
   Megaphone, Calendar, Sparkles, Award, ArrowLeft, Check, X,
   ChevronRight, HelpCircle, CheckCircle2, Zap, MessageSquare, Send
 } from 'lucide-react';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 
 export default function AdvertiseSalesPage() {
@@ -118,7 +119,17 @@ export default function AdvertiseSalesPage() {
         </div>
 
         {/* HERO SECTION */}
-        <div className="text-center space-y-6 max-w-3xl mx-auto pt-4 relative">
+        <div className="text-center space-y-6 max-w-3xl mx-auto pt-4 relative flex flex-col items-center">
+          <div className="relative w-40 h-40 sm:w-48 sm:h-48 shrink-0 drop-shadow-xl -mb-2">
+            <Image
+              src="/mascot-shrug.png"
+              alt="YearGuessr Mascot"
+              fill
+              className="object-contain animate-in zoom-in duration-500"
+              priority
+            />
+          </div>
+
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs font-bold font-mono tracking-wide uppercase shadow-xs">
             <Sparkles className="w-3.5 h-3.5" />
             <span>{tSales('badge')}</span>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { Megaphone, MessageSquare, Mail, X, Check, FileText, Send, Sparkles } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
@@ -70,8 +71,13 @@ export function AdvertiseModal({ trigger }: { trigger?: React.ReactNode }) {
 
         {/* Modal Header */}
         <div className="flex items-center gap-3 pb-4 border-b border-border/40">
-          <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-500">
-            <Megaphone className="w-6 h-6" />
+          <div className="relative w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 overflow-hidden shrink-0">
+            <Image
+              src="/mascot-shrug.png"
+              alt="YearGuessr Mascot"
+              fill
+              className="object-cover object-top scale-110"
+            />
           </div>
           <div>
             <h2 className="text-xl font-bold tracking-tight">{tAd('modal_title')}</h2>

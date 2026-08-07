@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { generateScoreCardBlob } from '@/lib/score-card-canvas';
 import { createClient } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
+import Image from 'next/image';
 import { Share2, RefreshCw, Trophy, Target, CheckCircle2, Flame, ArrowRight, Sparkles } from 'lucide-react';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 
@@ -145,13 +146,14 @@ export function ResultScreen() {
       )}
 
       {/* Main Status Header */}
-      <div className="space-y-2 relative z-10">
-        <div className="inline-flex p-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary">
-          {isWin ? (
-            <Trophy className="w-8 h-8 text-amber-500 animate-bounce" />
-          ) : (
-            <Target className="w-8 h-8 text-destructive" />
-          )}
+      <div className="space-y-2 relative z-10 flex flex-col items-center">
+        <div className="relative w-28 h-28 shrink-0 drop-shadow-md -mb-2">
+          <Image
+            src="/mascot-shrug.png"
+            alt="YearGuessr Mascot"
+            fill
+            className="object-contain animate-in zoom-in duration-300"
+          />
         </div>
         <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground font-serif">
           {isWin ? tResult('won_title') : tResult('finished_title')}
