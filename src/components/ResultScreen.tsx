@@ -41,12 +41,17 @@ export function ResultScreen() {
 
   useEffect(() => {
     if (gameState === 'won' || gameState === 'finished') {
-      if (isWin) {
-        playWin();
-        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
-      } else {
-        playLose();
-        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(300);
+      try {
+        const canVibrate = typeof navigator !== 'undefined' && 'vibrate' in navigator && (navigator.userActivation ? navigator.userActivation.hasBeenActive : false);
+        if (isWin) {
+          playWin();
+          if (canVibrate) navigator.vibrate([100, 50, 100, 50, 200]);
+        } else {
+          playLose();
+          if (canVibrate) navigator.vibrate(300);
+        }
+      } catch {
+        // Ignore user activation restriction
       }
     }
   }, [gameState, isWin, playWin, playLose]);

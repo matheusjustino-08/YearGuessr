@@ -57,7 +57,16 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" href="/logo-icon.png?v=99" />
       </head>
       <body className="min-h-screen flex flex-col justify-between">
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider 
+          messages={messages}
+          onError={(error) => {
+            if (error.code === 'MISSING_MESSAGE') return;
+            console.error(error);
+          }}
+          getMessageFallback={({ key, namespace }) => {
+            return `${namespace ? `${namespace}.` : ''}${key}`;
+          }}
+        >
           <ThemeEngine>
             <Navbar />
             {children}
