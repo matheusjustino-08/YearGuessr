@@ -35,10 +35,12 @@
     "switch_to_practice": "Ir al Modo Entrenamiento"
   },
   "result": {
-    "won_title": "¡En el Blanco! ¡Sensacional!",
-    "finished_title": "¡Fin del Juego!",
+    "won_title": "¡En o blanco! ¡Sensacional!",
+    "finished_title": "¡Adivinanza Registrada!",
+    "won_badge": "★ ¡Adivinanza Exacta!",
+    "finished_badge": "Desafío Completado",
     "correct_year": "El Año Correcto era",
-    "your_final_guess": "Tu Única Adivinanza",
+    "your_final_guess": "Tu Adivinanza",
     "total_score": "Puntuación",
     "distance_off": "Distancia",
     "share_button": "Compartir",

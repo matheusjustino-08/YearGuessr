@@ -36,9 +36,11 @@
   },
   "result": {
     "won_title": "Bullseye! Sensational!",
-    "finished_title": "Game Over!",
+    "finished_title": "Guess Registered!",
+    "won_badge": "★ Exact Guess!",
+    "finished_badge": "Challenge Completed",
     "correct_year": "The Correct Year was",
-    "your_final_guess": "Your Only Guess",
+    "your_final_guess": "Your Guess",
     "total_score": "Score",
     "distance_off": "Distance",
     "share_button": "Share",

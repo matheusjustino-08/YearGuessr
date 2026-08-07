@@ -25,7 +25,7 @@ export function ResultScreen() {
   const supabase = createClient();
   const { playWin, playLose } = useAudioEngine();
 
-  const isWin = gameState === 'won';
+  const isWin = gameState === 'won' || lastDistance === 0 || (lastScore !== null && lastScore >= 950);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -148,19 +148,23 @@ export function ResultScreen() {
       {/* Main Status Header */}
       <div className="space-y-2 relative z-10 flex flex-col items-center">
         <div className="relative w-32 h-32 shrink-0 drop-shadow-xl -mb-1">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="/mascot-shrug.png"
             alt="YearGuessr Mascot"
-            fill
-            className="object-contain animate-in fade-in slide-in-from-bottom-4 duration-500 [mask-image:linear-gradient(to_bottom,black_65%,transparent_100%)]"
+            className="w-full h-full object-contain animate-in fade-in slide-in-from-bottom-4 duration-500"
+            style={{
+              WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 96%)',
+              maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 96%)',
+            }}
           />
         </div>
 
         <div className="space-y-1">
           <span className={`inline-block px-3 py-1 rounded-full text-[11px] font-mono font-black uppercase tracking-wider ${
-            isWin ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/30' : 'bg-rose-500/10 text-rose-500 border border-rose-500/30'
+            isWin ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/30' : 'bg-amber-500/10 text-amber-500 border border-amber-500/30'
           }`}>
-            {isWin ? '★ Palpite Exato!' : 'Desafio Finalizado'}
+            {isWin ? tResult('won_badge') : tResult('finished_badge')}
           </span>
           <h2 className={`text-2xl sm:text-3xl font-black tracking-tight ${isWin ? 'text-emerald-500 dark:text-emerald-400' : 'text-foreground'}`}>
             {isWin ? tResult('won_title') : tResult('finished_title')}
