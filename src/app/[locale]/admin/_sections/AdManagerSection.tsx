@@ -323,11 +323,19 @@ export function AdManagerSection({ supabase }: Props) {
     setSaving(true);
     setModalError('');
     try {
+      const pos = editingAd.posicao || 'ambos';
+      const showBtn = editingAd.mostrar_botao;
+      const textBtn = editingAd.texto_botao || 'Acessar';
+
       if (typeof window !== 'undefined') {
-        localStorage.setItem(`yearguessr_ad_showbtn_${editingAd.id}`, String(editingAd.mostrar_botao));
-        localStorage.setItem(`yearguessr_ad_textbtn_${editingAd.id}`, editingAd.texto_botao || 'Acessar');
-        localStorage.setItem(`yearguessr_ad_pos_${editingAd.id}`, editingAd.posicao || 'ambos');
+        localStorage.setItem(`yearguessr_ad_showbtn_${editingAd.id}`, String(showBtn));
+        localStorage.setItem(`yearguessr_ad_textbtn_${editingAd.id}`, textBtn);
+        localStorage.setItem(`yearguessr_ad_pos_${editingAd.id}`, pos);
       }
+
+      // Update local state array immediately for instant UI feedback
+      const updatedAd = { ...editingAd, posicao: pos, mostrar_botao: showBtn, texto_botao: textBtn };
+      setAds(prev => prev.map(a => a.id === editingAd.id ? updatedAd : a));
 
       const corePayload = {
         titulo: editingAd.titulo,
@@ -343,9 +351,9 @@ export function AdManagerSection({ supabase }: Props) {
 
       try {
         await supabase.from('anuncios').update({
-          posicao: editingAd.posicao || 'ambos',
-          mostrar_botao: editingAd.mostrar_botao,
-          texto_botao: editingAd.texto_botao || 'Acessar',
+          posicao: pos,
+          mostrar_botao: showBtn,
+          texto_botao: textBtn,
         }).eq('id', editingAd.id);
       } catch {
         // Silently fall back to localStorage
