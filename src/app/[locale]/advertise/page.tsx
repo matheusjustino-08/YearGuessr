@@ -104,7 +104,7 @@ export default function AdvertiseSalesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
+    <div className="min-h-screen bg-transparent text-foreground flex flex-col font-sans">
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-8 space-y-16">
         
         {/* Navigation Breadcrumb */}
