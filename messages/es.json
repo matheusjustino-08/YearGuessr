@@ -147,5 +147,23 @@
   "kofi": {
     "support_btn": "Apoyar en Ko-fi",
     "support_desc": "¡Ayuda a mantener YearGuessr en línea y sin anuncios molestos!"
+  },
+  "sales_page": {
+    "badge": "Medios & Patrocinios 2026",
+    "hero_title": "Anuncie y Conecte su Marca en YearGuessr",
+    "hero_desc": "Conecte su empresa con miles de jugadores apasionados por la historia, cultura y nostalgia. Compre un tema exclusivo, patrocine un Desafío Diario completo por 1 día o publique banners dinámicos.",
+    "check_availability_title": "Consultar Disponibilidad de Fecha para Desafío Diario Patrocinado",
+    "check_availability_desc": "¡Elija un día en el calendario para que TODOS los jugadores del mundo respondan preguntas con la historia e imágenes de su marca!",
+    "available_badge": "Fecha Disponible",
+    "reserved_badge": "Fecha Reservada",
+    "reserve_btn": "Reservar Esta Fecha por WhatsApp",
+    "pkg_banners_title": "1. Banners Dinámicos",
+    "pkg_banners_desc": "Banners destacados (300x50 y 728x90) con informes de impresiones, clics y tasa de conversión (CTR %) en tiempo real.",
+    "pkg_theme_title": "2. Patrocinio de Tema Exclusivo",
+    "pkg_theme_desc": "Cree o patrocine una categoría exclusiva (ej: Cine, Marcas Famosas, Fútbol, Tecnología) directamente en el filtro del juego.",
+    "pkg_daily_title": "3. Desafío Diario de 1 Día Completo",
+    "pkg_daily_desc": "¡Su marca es el tema oficial del día! El 100% de los usuarios que jueguen en esa fecha responderán a sus desafíos.",
+    "pkg_master_title": "4. Patrocinador Master Anual",
+    "pkg_master_desc": "Cobertura 360° en todo el sitio: Banner superior en el Ranking, banners laterales y logo en tarjetas compartibles."
   }
 }

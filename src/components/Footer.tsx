@@ -48,12 +48,21 @@ export function Footer() {
               <span>{tKofi('support_btn')}</span>
             </a>
 
+            {/* Sales & Media Page Link */}
+            <Link
+              href="/anuncie"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold font-mono bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-600 dark:text-amber-400 transition-all duration-200 active:scale-95 shadow-xs"
+            >
+              <Sparkles className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+              <span>Mídia Kit & Patrocínios</span>
+            </Link>
+
             {/* Advertise Modal Trigger */}
             <AdvertiseModal
               trigger={
                 <button
                   type="button"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold font-mono bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-600 dark:text-amber-400 transition-all duration-200 active:scale-95 shadow-xs cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold font-mono bg-muted/60 hover:bg-muted border border-border/60 text-muted-foreground hover:text-foreground transition-all duration-200 active:scale-95 shadow-xs cursor-pointer"
                 >
                   <Megaphone className="w-3.5 h-3.5 shrink-0 text-amber-500" />
                   <span>{tAd('advertise_btn')}</span>

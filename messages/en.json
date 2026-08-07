@@ -147,5 +147,23 @@
   "kofi": {
     "support_btn": "Support on Ko-fi",
     "support_desc": "Help keep YearGuessr running online ad-free!"
+  },
+  "sales_page": {
+    "badge": "Media & Sponsorships 2026",
+    "hero_title": "Advertise & Connect Your Brand on YearGuessr",
+    "hero_desc": "Connect your company with thousands of engaged players who love history, culture, and nostalgia. Buy an exclusive theme, sponsor a full Daily Challenge for a day, or run dynamic ad banners.",
+    "check_availability_title": "Check Date Availability for Sponsored Daily Challenge",
+    "check_availability_desc": "Pick a calendar date so EVERY player worldwide answers questions featuring your brand's history and images on that day!",
+    "available_badge": "Date Available",
+    "reserved_badge": "Date Reserved",
+    "reserve_btn": "Reserve This Date via WhatsApp",
+    "pkg_banners_title": "1. Dynamic Banners & Letreiros",
+    "pkg_banners_desc": "Featured banners (300x50 and 728x90) with real-time impression, click, and CTR % reports.",
+    "pkg_theme_title": "2. Exclusive Category Theme",
+    "pkg_theme_desc": "Create or sponsor an exclusive category (e.g. Cinema History, Famous Brands, Football, Tech) featured directly in the game filter.",
+    "pkg_daily_title": "3. Full 1-Day Daily Challenge",
+    "pkg_daily_desc": "Your brand becomes the official theme of the day! 100% of players who play on that date answer your challenges.",
+    "pkg_master_title": "4. Annual Master Sponsor",
+    "pkg_master_desc": "360° total website coverage: Top leaderboard banner, side banners, and brand logo on shareable score cards."
   }
 }

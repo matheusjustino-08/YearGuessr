@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
-import { Megaphone, MessageSquare, Mail, X, Check, FileText, Send } from 'lucide-react';
+import { Megaphone, MessageSquare, Mail, X, Check, FileText, Send, Sparkles } from 'lucide-react';
 
 export function AdvertiseModal({ trigger }: { trigger?: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -70,6 +70,16 @@ export function AdvertiseModal({ trigger }: { trigger?: React.ReactNode }) {
             <span>{tAd('btn_email')}</span>
           </a>
         </div>
+
+        {/* Link to Dedicated Sales Page */}
+        <a
+          href="/anuncie"
+          onClick={() => setIsOpen(false)}
+          className="flex items-center justify-between p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold text-xs hover:bg-amber-500 hover:text-black transition-all cursor-pointer group"
+        >
+          <span>Ver Página Completa de Mídia, Temas & Patrocínios ➔</span>
+          <Sparkles className="w-4 h-4 group-hover:scale-110 transition-transform" />
+        </a>
 
         {/* Guidelines & Dimensions Card */}
         <div className="p-4 rounded-2xl bg-muted/40 border border-border/60 space-y-3">
