@@ -24,11 +24,11 @@ export const metadata: Metadata = {
   description: "O jogo definitivo de adivinhação de anos históricos e imagens clássicas.",
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/logo-icon.svg', type: 'image/svg+xml' },
-      { url: '/logo-icon.png', type: 'image/png' },
+      { url: '/favicon.ico?v=2', sizes: 'any' },
+      { url: '/logo-icon.svg?v=2', type: 'image/svg+xml' },
+      { url: '/logo-icon.png?v=2', type: 'image/png' },
     ],
-    apple: '/logo-icon.png',
+    apple: '/logo-icon.png?v=2',
   },
 };
 

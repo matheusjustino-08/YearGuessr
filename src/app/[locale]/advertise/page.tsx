@@ -258,15 +258,15 @@ export default function AdvertiseSalesPage() {
                 <ul className="space-y-2 pt-2 text-xs font-medium">
                   <li className="flex items-center gap-2 text-foreground">
                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Letreiros 300x50px e Leaderboard 728x90px</span>
+                    <span>{tSales('pkg1_feature1')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Suporta SVG, PNG, WebP, JPG e GIF sem filtro</span>
+                    <span>{tSales('pkg1_feature2')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Painel Analytics com relatórios de CTR e cliques</span>
+                    <span>{tSales('pkg1_feature3')}</span>
                   </li>
                 </ul>
               </div>
@@ -295,15 +295,15 @@ export default function AdvertiseSalesPage() {
                 <ul className="space-y-2 pt-2 text-xs font-medium">
                   <li className="flex items-center gap-2 text-foreground">
                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Categoria com nome e selo da sua marca</span>
+                    <span>{tSales('pkg2_feature1')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Disponível no filtro de modos para todos os usuários</span>
+                    <span>{tSales('pkg2_feature2')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Perguntas e imagens personalizadas</span>
+                    <span>{tSales('pkg2_feature3')}</span>
                   </li>
                 </ul>
               </div>
@@ -332,15 +332,15 @@ export default function AdvertiseSalesPage() {
                 <ul className="space-y-2 pt-2 text-xs font-medium">
                   <li className="flex items-center gap-2 text-foreground">
                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>100% do tráfego do dia responde ao seu desafio</span>
+                    <span>{tSales('pkg3_feature1')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Exibição em destaque na tela inicial do jogo</span>
+                    <span>{tSales('pkg3_feature2')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Reserva exclusiva por data no calendário</span>
+                    <span>{tSales('pkg3_feature3')}</span>
                   </li>
                 </ul>
               </div>
@@ -369,15 +369,15 @@ export default function AdvertiseSalesPage() {
                 <ul className="space-y-2 pt-2 text-xs font-medium">
                   <li className="flex items-center gap-2 text-foreground">
                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Exclusividade no banner Leaderboard (728x90)</span>
+                    <span>{tSales('pkg4_feature1')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Presença no rodapé e no cartão de compartilhamento</span>
+                    <span>{tSales('pkg4_feature2')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Relatórios avançados mensais de performance</span>
+                    <span>{tSales('pkg4_feature3')}</span>
                   </li>
                 </ul>
               </div>
@@ -409,30 +409,30 @@ export default function AdvertiseSalesPage() {
             <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-2">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <HelpCircle className="w-4 h-4 text-amber-500 shrink-0" />
-                <span>Como funciona a reserva do Desafio Diário?</span>
+                <span>{tSales('faq1_q')}</span>
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Você escolhe uma data disponível no calendário. Naquele dia específico, 100% dos usuários que jogarem o Desafio Diário responderão a perguntas e verão imagens vinculadas à sua empresa ou tema escolhido.
+                {tSales('faq1_a')}
               </p>
             </div>
 
             <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-2">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <HelpCircle className="w-4 h-4 text-amber-500 shrink-0" />
-                <span>Quais formatos de anúncio são aceitos?</span>
+                <span>{tSales('faq2_q')}</span>
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Aceitamos arquivos SVG, PNG, WebP, JPG, GIF ou código SVG puro. Nossos banners exibem a imagem original sem nenhum filtro ou máscara sobreposta.
+                {tSales('faq2_a')}
               </p>
             </div>
 
             <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-2">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <HelpCircle className="w-4 h-4 text-amber-500 shrink-0" />
-                <span>Como acompanho os resultados da minha campanha?</span>
+                <span>{tSales('faq3_q')}</span>
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Fornecemos um link de relatório de desempenho com dados em tempo real de visualizações, cliques concretos e taxa de clique (CTR %). Todas as propostas são enviadas diretamente ao Painel de Administração.
+                {tSales('faq3_a')}
               </p>
             </div>
           </div>
@@ -489,8 +489,8 @@ export default function AdvertiseSalesPage() {
             {formSent ? (
               <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center space-y-2">
                 <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
-                <p className="text-sm font-bold text-foreground">Proposta Registrada com Sucesso!</p>
-                <p className="text-xs text-muted-foreground">Entraremos em contato com você pelo e-mail/WhatsApp informado em breve.</p>
+                <p className="text-sm font-bold text-foreground">{tSales('success_submitted_title')}</p>
+                <p className="text-xs text-muted-foreground">{tSales('success_submitted_desc')}</p>
               </div>
             ) : (
               <form onSubmit={handleFormSubmit} className="space-y-4">
@@ -536,7 +536,7 @@ export default function AdvertiseSalesPage() {
                   <label className="block text-[11px] font-mono font-bold uppercase text-muted-foreground mb-1">{tSales('form_details')}</label>
                   <textarea
                     rows={3}
-                    placeholder="Conte um pouco sobre sua marca ou a data que gostaria de patrocinar..."
+                    placeholder="Conte um pouco sobre sua marca..."
                     className="w-full p-2.5 rounded-xl border border-border/70 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40"
                     value={contactMessage}
                     onChange={e => setContactMessage(e.target.value)}
@@ -549,7 +549,7 @@ export default function AdvertiseSalesPage() {
                   className="w-full py-3 rounded-2xl bg-amber-500 text-black font-bold text-xs uppercase tracking-wider shadow-md hover:bg-amber-400 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
-                  <span>{sending ? 'Enviando Proposta...' : tSales('form_submit_btn')}</span>
+                  <span>{sending ? tSales('sending_proposal') : tSales('form_submit_btn')}</span>
                 </button>
               </form>
             )}
