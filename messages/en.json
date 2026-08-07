@@ -196,5 +196,20 @@
     "form_submit_btn": "Submit Proposal to Admin",
     "full_media_page_link": "View Full Media, Themes & Sponsorships Page",
     "media_kit_footer": "Media Kit & Sponsorships"
+  },
+  "admin": {
+    "title": "CMS Dashboard",
+    "subtitle": "Manage challenges, ads, and settings",
+    "no_permission": "Access Restricted: You do not have permission to access the admin panel.",
+    "sec_new_challenge": "New Challenge",
+    "sec_new_challenge_desc": "Register a new historical challenge",
+    "sec_published": "Published Challenges",
+    "sec_published_desc": "Edit categories, difficulty, and data of existing challenges",
+    "sec_categories": "Category Manager",
+    "sec_categories_desc": "Add, edit, and remove available categories for challenges",
+    "sec_ads": "Ads & Banners",
+    "sec_ads_desc": "Ad banners displayed in game (300x50 and 728x90)",
+    "sec_guidelines": "Difficulty Guidelines",
+    "sec_guidelines_desc": "Objective criteria to classify each challenge"
   }
 }

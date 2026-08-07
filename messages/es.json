@@ -196,5 +196,20 @@
     "form_submit_btn": "Enviar Propuesta al Administrador",
     "full_media_page_link": "Ver Página Completa de Medios, Temas & Patrocinios",
     "media_kit_footer": "Kit de Medios & Patrocinios"
+  },
+  "admin": {
+    "title": "Panel CMS",
+    "subtitle": "Gestione desafíos, anuncios y configuraciones del juego",
+    "no_permission": "Acceso Restringido: No tiene permiso para acceder al panel de administración.",
+    "sec_new_challenge": "Nuevo Desafío",
+    "sec_new_challenge_desc": "Registrar un nuevo desafío histórico",
+    "sec_published": "Desafíos Publicados",
+    "sec_published_desc": "Editar categorías, dificultad y datos de desafíos existentes",
+    "sec_categories": "Gestor de Categorías",
+    "sec_categories_desc": "Añadir, editar y eliminar categorías disponibles para los desafíos",
+    "sec_ads": "Anuncios & Banners",
+    "sec_ads_desc": "Banners publicitarios mostrados en el juego (300x50 y 728x90)",
+    "sec_guidelines": "Directrices de Dificultad",
+    "sec_guidelines_desc": "Criterios objetivos para clasificar cada desafío"
   }
 }

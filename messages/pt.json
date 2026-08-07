@@ -196,5 +196,20 @@
     "form_submit_btn": "Enviar Proposta ao Administrador",
     "full_media_page_link": "Ver Página Completa de Mídia, Temas & Patrocínios",
     "media_kit_footer": "Mídia Kit & Patrocínios"
+  },
+  "admin": {
+    "title": "Painel CMS",
+    "subtitle": "Gerencie desafios, anúncios e configurações do YearGuessr",
+    "no_permission": "Acesso Restrito: Você não tem permissão para acessar o painel de administração.",
+    "sec_new_challenge": "Novo Desafio",
+    "sec_new_challenge_desc": "Cadastrar um novo desafio histórico",
+    "sec_published": "Desafios Publicados",
+    "sec_published_desc": "Editar categorias, dificuldade e dados dos desafios existentes",
+    "sec_categories": "Gerenciador de Categorias",
+    "sec_categories_desc": "Adicionar, editar e remover categorias disponíveis para os desafios",
+    "sec_ads": "Anúncios e Letreiros",
+    "sec_ads_desc": "Letreiros publicitários exibidos no jogo (300x50 e 728x90)",
+    "sec_guidelines": "Diretrizes de Dificuldade",
+    "sec_guidelines_desc": "Critérios objetivos para classificar cada desafio"
   }
 }

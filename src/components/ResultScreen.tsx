@@ -111,10 +111,10 @@ export function ResultScreen() {
     });
   };
 
-  // Translation helpers with safe fallbacks
-  const dailyNoticeTitle = tGame.has('daily_completed_notice') ? tGame('daily_completed_notice') : 'Desafio Diário Concluído por Hoje!';
-  const dailyNoticeDesc = tGame.has('daily_completed_desc') ? tGame('daily_completed_desc') : 'Você já respondeu ao desafio diário de hoje. Volte amanhã ou continue jogando no Modo Treino!';
-  const switchToPracticeText = tGame.has('switch_to_practice') ? tGame('switch_to_practice') : 'Ir para Modo Treino';
+  // Translation helpers
+  const dailyNoticeTitle = tGame('daily_completed_notice');
+  const dailyNoticeDesc = tGame('daily_completed_desc');
+  const switchToPracticeText = tGame('switch_to_practice');
   const yearUnitLabel = activeLocale === 'es' 
     ? (lastDistance === 1 ? 'año' : 'años') 
     : activeLocale === 'en' 
