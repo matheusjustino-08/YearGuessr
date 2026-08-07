@@ -13,6 +13,7 @@ export function AdvertiseModal({ trigger }: { trigger?: React.ReactNode }) {
   
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const tAd = useTranslations('advertise');
+  const tSales = useTranslations('sales_page');
 
   useEffect(() => {
     setMounted(true);
@@ -105,7 +106,7 @@ export function AdvertiseModal({ trigger }: { trigger?: React.ReactNode }) {
           onClick={() => setIsOpen(false)}
           className="flex items-center justify-between p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold text-xs hover:bg-amber-500 hover:text-black transition-all cursor-pointer group"
         >
-          <span>Ver Página Completa de Mídia, Temas & Patrocínios ➔</span>
+          <span>{tSales('full_media_page_link')}</span>
           <Sparkles className="w-4 h-4 group-hover:scale-110 transition-transform" />
         </a>
 

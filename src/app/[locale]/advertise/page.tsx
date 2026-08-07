@@ -5,8 +5,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import Link from 'next/link';
 import { 
   Megaphone, Calendar, Sparkles, Award, ArrowLeft, Check, X,
-  Clock, ShieldCheck, ChevronRight, HelpCircle, Eye, MousePointerClick, 
-  TrendingUp, MessageSquare, Send, CheckCircle2, Zap
+  ChevronRight, HelpCircle, CheckCircle2, Zap, MessageSquare, Send
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -47,8 +46,8 @@ export default function AdvertiseSalesPage() {
     setCheckResult({
       available: isAvail,
       message: isAvail
-        ? `A data ${formatted} está DISPONÍVEL para reserva de Desafio Diário Patrocinado!`
-        : `A data ${formatted} já passou. Escolha uma data futura!`
+        ? `${formatted} — ${tSales('available_badge')}`
+        : `${formatted} — ${tSales('reserved_badge')}`
     });
   };
 
@@ -78,14 +77,12 @@ export default function AdvertiseSalesPage() {
       created_at: new Date().toISOString()
     };
 
-    // 1. Save in Supabase database table `anuncios_propostas`
     try {
       await supabase.from('anuncios_propostas').insert([proposalObj]);
     } catch {
       // Ignore if table not present
     }
 
-    // 2. Fallback in LocalStorage for admin dashboard
     if (typeof window !== 'undefined') {
       try {
         const existing = JSON.parse(localStorage.getItem('yearguessr_advertiser_proposals') || '[]');
@@ -120,7 +117,7 @@ export default function AdvertiseSalesPage() {
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-border/60 text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Voltar ao Jogo</span>
+            <span>{tSales('back_to_game')}</span>
           </Link>
         </div>
 
@@ -132,7 +129,7 @@ export default function AdvertiseSalesPage() {
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
-            Anuncie & Conecte sua Marca no <span className="text-amber-500">YearGuessr</span>
+            {tSales('hero_title')}
           </h1>
 
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
@@ -143,19 +140,19 @@ export default function AdvertiseSalesPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6">
             <div className="p-4 rounded-2xl bg-card/60 border border-border/60 text-center backdrop-blur-xl">
               <p className="text-2xl sm:text-3xl font-black font-mono text-primary">+50K</p>
-              <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold mt-1">Jogadas Mensais</p>
+              <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold mt-1">{tSales('stat_plays')}</p>
             </div>
             <div className="p-4 rounded-2xl bg-card/60 border border-border/60 text-center backdrop-blur-xl">
               <p className="text-2xl sm:text-3xl font-black font-mono text-emerald-500">100%</p>
-              <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold mt-1">Engajamento Real</p>
+              <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold mt-1">{tSales('stat_engagement')}</p>
             </div>
             <div className="p-4 rounded-2xl bg-card/60 border border-border/60 text-center backdrop-blur-xl">
               <p className="text-2xl sm:text-3xl font-black font-mono text-amber-500">300x50</p>
-              <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold mt-1">& 728x90 Banners</p>
+              <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold mt-1">{tSales('stat_banners')}</p>
             </div>
             <div className="p-4 rounded-2xl bg-card/60 border border-border/60 text-center backdrop-blur-xl">
               <p className="text-2xl sm:text-3xl font-black font-mono text-sky-500">SVG/PNG</p>
-              <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold mt-1">Suporte Completo</p>
+              <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold mt-1">{tSales('stat_svg')}</p>
             </div>
           </div>
         </div>
@@ -164,7 +161,7 @@ export default function AdvertiseSalesPage() {
         <section className="p-6 sm:p-10 rounded-3xl bg-card border-2 border-amber-500/40 shadow-2xl space-y-6 relative overflow-hidden">
           <div className="space-y-2 text-center max-w-2xl mx-auto">
             <span className="text-[10px] font-mono font-bold uppercase px-3 py-1 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20">
-              Ferramenta Exclusiva
+              {tSales('exclusive_tool')}
             </span>
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight">{tSales('check_availability_title')}</h2>
             <p className="text-xs sm:text-sm text-muted-foreground">{tSales('check_availability_desc')}</p>
@@ -174,7 +171,7 @@ export default function AdvertiseSalesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-mono font-bold uppercase text-muted-foreground mb-1.5">
-                  Selecione a Data Desejada
+                  {tSales('select_date_label')}
                 </label>
                 <input
                   type="date"
@@ -188,11 +185,11 @@ export default function AdvertiseSalesPage() {
 
               <div>
                 <label className="block text-xs font-mono font-bold uppercase text-muted-foreground mb-1.5">
-                  Tema da Empresa (Opcional)
+                  {tSales('company_theme_label')}
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: História do Cinema, Marcas, Tech..."
+                  placeholder="Ex: Cinema, Tech, Brands..."
                   className="w-full p-3 rounded-2xl border border-border/70 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40"
                   value={themeTopic}
                   onChange={e => setThemeTopic(e.target.value)}
@@ -205,7 +202,7 @@ export default function AdvertiseSalesPage() {
               className="w-full py-3.5 px-6 rounded-2xl bg-amber-500 text-black font-black text-sm uppercase tracking-wider hover:bg-amber-400 transition-all shadow-lg cursor-pointer flex items-center justify-center gap-2 active:scale-98"
             >
               <Calendar className="w-4 h-4" />
-              <span>Consultar Disponibilidade de Data</span>
+              <span>{tSales('check_availability_btn')}</span>
             </button>
           </form>
 
@@ -237,7 +234,7 @@ export default function AdvertiseSalesPage() {
                     }}
                     className="w-full sm:w-auto py-2.5 px-5 rounded-xl bg-card border border-border hover:bg-muted text-foreground font-bold text-xs transition-all cursor-pointer"
                   >
-                    Enviar Proposta Direta
+                    {tSales('send_direct_proposal')}
                   </button>
                 </div>
               )}
@@ -248,8 +245,8 @@ export default function AdvertiseSalesPage() {
         {/* 4 SPONSORSHIP PACKAGES */}
         <section className="space-y-8">
           <div className="text-center space-y-2">
-            <h2 className="text-2xl sm:text-4xl font-black tracking-tight">Formatos & Pacotes de Anúncio</h2>
-            <p className="text-xs sm:text-sm text-muted-foreground">Escolha o formato ideal para atingir seus objetivos de marca e conversão.</p>
+            <h2 className="text-2xl sm:text-4xl font-black tracking-tight">{tSales('formats_title')}</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">{tSales('formats_desc')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -285,7 +282,7 @@ export default function AdvertiseSalesPage() {
                   rel="noopener noreferrer"
                   className="w-full py-3 px-4 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500 hover:text-black font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span>Solicitar Cotação de Banners</span>
+                  <span>{tSales('quote_banners_btn')}</span>
                   <ChevronRight className="w-4 h-4" />
                 </a>
               </div>
@@ -322,7 +319,7 @@ export default function AdvertiseSalesPage() {
                   rel="noopener noreferrer"
                   className="w-full py-3 px-4 rounded-2xl bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/30 hover:bg-sky-500 hover:text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span>Patrocinar um Tema Exclusivo</span>
+                  <span>{tSales('sponsor_theme_btn')}</span>
                   <ChevronRight className="w-4 h-4" />
                 </a>
               </div>
@@ -330,10 +327,6 @@ export default function AdvertiseSalesPage() {
 
             {/* Package 3: Desafio Diário de 1 Dia */}
             <div className="p-6 sm:p-8 rounded-3xl bg-card/60 border-2 border-emerald-500/40 space-y-4 hover:border-emerald-500 transition-all shadow-xl flex flex-col justify-between relative overflow-hidden">
-              <span className="absolute top-4 right-4 text-[9px] font-mono font-bold uppercase px-2.5 py-1 rounded-full bg-emerald-500 text-black">
-                Mais Popular
-              </span>
-
               <div className="space-y-3">
                 <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 w-fit">
                   <Calendar className="w-6 h-6" />
@@ -364,7 +357,7 @@ export default function AdvertiseSalesPage() {
                   className="w-full py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer active:scale-95"
                 >
                   <MessageSquare className="w-4 h-4" />
-                  <span>Reservar Desafio Diário</span>
+                  <span>{tSales('reserve_daily_btn')}</span>
                 </a>
               </div>
             </div>
@@ -400,7 +393,7 @@ export default function AdvertiseSalesPage() {
                   rel="noopener noreferrer"
                   className="w-full py-3 px-4 rounded-2xl bg-card border border-border hover:bg-muted font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span>Falar com Gerente de Mídia</span>
+                  <span>{tSales('talk_media_btn')}</span>
                   <ChevronRight className="w-4 h-4" />
                 </a>
               </div>
@@ -412,14 +405,14 @@ export default function AdvertiseSalesPage() {
         {/* FAQ SECTION */}
         <section className="space-y-6 max-w-3xl mx-auto pt-4">
           <div className="text-center space-y-2">
-            <h2 className="text-2xl font-bold text-foreground">Perguntas Frequentes (FAQ)</h2>
-            <p className="text-xs text-muted-foreground">Tudo o que você precisa saber sobre como veicular sua marca.</p>
+            <h2 className="text-2xl font-bold text-foreground">{tSales('faq_title')}</h2>
+            <p className="text-xs text-muted-foreground">{tSales('faq_desc')}</p>
           </div>
 
           <div className="space-y-3">
             <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-2">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-amber-500" />
+                <HelpCircle className="w-4 h-4 text-amber-500 shrink-0" />
                 <span>Como funciona a reserva do Desafio Diário?</span>
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
@@ -429,7 +422,7 @@ export default function AdvertiseSalesPage() {
 
             <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-2">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-amber-500" />
+                <HelpCircle className="w-4 h-4 text-amber-500 shrink-0" />
                 <span>Quais formatos de anúncio são aceitos?</span>
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
@@ -439,11 +432,11 @@ export default function AdvertiseSalesPage() {
 
             <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-2">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-amber-500" />
+                <HelpCircle className="w-4 h-4 text-amber-500 shrink-0" />
                 <span>Como acompanho os resultados da minha campanha?</span>
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Fornecemos um link de relatório de desempenho com dados em tempo real de visualizações, cliques concretos e taxa de clique (CTR %). Todas as propostas são enviadas diretamente ao Painel de Administração e notificada via WhatsApp.
+                Fornecemos um link de relatório de desempenho com dados em tempo real de visualizações, cliques concretos e taxa de clique (CTR %). Todas as propostas são enviadas diretamente ao Painel de Administração.
               </p>
             </div>
           </div>
@@ -452,8 +445,8 @@ export default function AdvertiseSalesPage() {
         {/* BOTTOM CTA BANNER */}
         <section className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-amber-500/15 via-card to-emerald-500/15 border border-amber-500/30 text-center space-y-6 relative overflow-hidden">
           <div className="max-w-2xl mx-auto space-y-3">
-            <h2 className="text-2xl sm:text-4xl font-black text-foreground">Pronto para Conectar sua Marca ao YearGuessr?</h2>
-            <p className="text-xs sm:text-sm text-muted-foreground">Fale diretamente com nossa equipe via WhatsApp ou envie uma proposta por formulário.</p>
+            <h2 className="text-2xl sm:text-4xl font-black text-foreground">{tSales('ready_title')}</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">{tSales('ready_desc')}</p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
@@ -464,7 +457,7 @@ export default function AdvertiseSalesPage() {
               className="w-full sm:w-auto py-3.5 px-8 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
             >
               <MessageSquare className="w-4 h-4" />
-              <span>Falar no WhatsApp Agora</span>
+              <span>{tSales('talk_whatsapp_btn')}</span>
             </a>
 
             <button
@@ -472,7 +465,7 @@ export default function AdvertiseSalesPage() {
               onClick={() => setIsFormOpen(true)}
               className="w-full sm:w-auto py-3.5 px-8 rounded-2xl bg-card border border-border hover:bg-muted font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
             >
-              Enviar Formulário de Contato
+              {tSales('send_contact_form')}
             </button>
           </div>
         </section>
@@ -493,8 +486,8 @@ export default function AdvertiseSalesPage() {
 
             <div className="space-y-1">
               <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-500 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20">YearGuessr Mídia</span>
-              <h3 className="text-xl font-black text-foreground pt-1">Solicitar Proposta Comercial</h3>
-              <p className="text-xs text-muted-foreground">Preencha seus dados. A proposta será salva no Painel do Administrador!</p>
+              <h3 className="text-xl font-black text-foreground pt-1">{tSales('request_proposal_title')}</h3>
+              <p className="text-xs text-muted-foreground">{tSales('request_proposal_desc')}</p>
             </div>
 
             {formSent ? (
@@ -506,7 +499,7 @@ export default function AdvertiseSalesPage() {
             ) : (
               <form onSubmit={handleFormSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-[11px] font-mono font-bold uppercase text-muted-foreground mb-1">Seu Nome ou Empresa</label>
+                  <label className="block text-[11px] font-mono font-bold uppercase text-muted-foreground mb-1">{tSales('form_name')}</label>
                   <input
                     type="text"
                     required
@@ -518,7 +511,7 @@ export default function AdvertiseSalesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono font-bold uppercase text-muted-foreground mb-1">E-mail Comercial</label>
+                  <label className="block text-[11px] font-mono font-bold uppercase text-muted-foreground mb-1">{tSales('form_email')}</label>
                   <input
                     type="email"
                     required
@@ -530,7 +523,7 @@ export default function AdvertiseSalesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono font-bold uppercase text-muted-foreground mb-1">Pacote de Interesse</label>
+                  <label className="block text-[11px] font-mono font-bold uppercase text-muted-foreground mb-1">{tSales('form_package')}</label>
                   <select
                     className="w-full p-2.5 rounded-xl border border-border/70 bg-background text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/40"
                     value={selectedPkg}
@@ -544,7 +537,7 @@ export default function AdvertiseSalesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono font-bold uppercase text-muted-foreground mb-1">Detalhes do Projeto / Mensagem</label>
+                  <label className="block text-[11px] font-mono font-bold uppercase text-muted-foreground mb-1">{tSales('form_details')}</label>
                   <textarea
                     rows={3}
                     placeholder="Conte um pouco sobre sua marca ou a data que gostaria de patrocinar..."
@@ -560,7 +553,7 @@ export default function AdvertiseSalesPage() {
                   className="w-full py-3 rounded-2xl bg-amber-500 text-black font-bold text-xs uppercase tracking-wider shadow-md hover:bg-amber-400 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
-                  <span>{sending ? 'Enviando Proposta...' : 'Enviar Proposta ao Administrador'}</span>
+                  <span>{sending ? 'Enviando Proposta...' : tSales('form_submit_btn')}</span>
                 </button>
               </form>
             )}

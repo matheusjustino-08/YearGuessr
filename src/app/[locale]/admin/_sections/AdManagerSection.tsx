@@ -434,7 +434,7 @@ export function AdManagerSection({ supabase }: Props) {
     const views = ad.visualizacoes || 0;
     const clicks = ad.cliques || 0;
     const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : '0.0';
-    const reportText = `📊 RELATÓRIO DE DESEMPENHO - YEARGUESSR ADS
+    const reportText = `RELATÓRIO DE DESEMPENHO - YEARGUESSR ADS
 ----------------------------------------
 Campanha: ${ad.titulo}
 Formato: ${ad.formato}
