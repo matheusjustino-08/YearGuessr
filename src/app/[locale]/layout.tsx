@@ -22,13 +22,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "YearGuessr - Adivinhe o Ano da História",
   description: "O jogo definitivo de adivinhação de anos históricos e imagens clássicas.",
+  manifest: "/site.webmanifest",
   icons: {
     icon: [
-      { url: '/favicon.ico?v=2', sizes: 'any' },
-      { url: '/logo-icon.svg?v=2', type: 'image/svg+xml' },
-      { url: '/logo-icon.png?v=2', type: 'image/png' },
+      { url: '/favicon.ico?v=100', sizes: 'any' },
+      { url: '/favicon-32x32.png?v=100', type: 'image/png', sizes: '32x32' },
+      { url: '/favicon-16x16.png?v=100', type: 'image/png', sizes: '16x16' },
+      { url: '/android-chrome-192x192.png?v=100', type: 'image/png', sizes: '192x192' },
+      { url: '/android-chrome-512x512.png?v=100', type: 'image/png', sizes: '512x512' },
     ],
-    apple: '/logo-icon.png?v=2',
+    apple: '/apple-touch-icon.png?v=100',
   },
 };
 
@@ -52,9 +55,11 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        <link rel="icon" href="/favicon.ico?v=99" sizes="any" />
-        <link rel="shortcut icon" href="/favicon.ico?v=99" />
-        <link rel="apple-touch-icon" href="/logo-icon.png?v=99" />
+        <link rel="icon" href="/favicon.ico?v=100" sizes="any" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=100" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=100" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=100" />
+        <link rel="manifest" href="/site.webmanifest" />
       </head>
       <body className="min-h-screen flex flex-col justify-between">
         <NextIntlClientProvider 
