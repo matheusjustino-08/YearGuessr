@@ -57,7 +57,8 @@ export function CategoryFilter() {
   const getCategoryLabel = (cat: { id: string; label: string }) => {
     if (cat.id === 'all') return tCat('all');
     try {
-      if (tCat.has(cat.id)) return tCat(cat.id);
+      const res = tCat(cat.id);
+      if (res && !res.startsWith('categories.')) return res;
     } catch {
       // Fallback if key missing
     }

@@ -240,13 +240,23 @@ export function AuthModal() {
                   options={[
                     { 
                       value: 'auto', 
-                      label: tSettings.has('dynamic_era') ? tSettings('dynamic_era') : 'Dinâmico (Altera conforme o ano)' 
+                      label: (() => {
+                        try {
+                          const res = tSettings('dynamic_era');
+                          if (res && !res.startsWith('settings.')) return res;
+                        } catch {}
+                        return 'Dinâmico (Altera conforme o ano)';
+                      })()
                     },
                     { 
                       value: 'era-neutral', 
-                      label: tSettings.has('neutral_era') 
-                        ? tSettings('neutral_era') 
-                        : (locale === 'en' ? 'Neutral (No era theme changes)' : locale === 'es' ? 'Neutro (Sin cambios por era)' : 'Neutro (Sem alteração por era)') 
+                      label: (() => {
+                        try {
+                          const res = tSettings('neutral_era');
+                          if (res && !res.startsWith('settings.')) return res;
+                        } catch {}
+                        return locale === 'en' ? 'Neutral (No era theme changes)' : locale === 'es' ? 'Neutro (Sin cambios por era)' : 'Neutro (Sem alteração por era)';
+                      })()
                     },
                     { value: 'era-medieval', label: `${tEras('medieval')} (< 1500)` },
                     { value: 'era-renaissance', label: `${tEras('renaissance')} (1500 - 1799)` },

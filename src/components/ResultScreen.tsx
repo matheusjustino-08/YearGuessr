@@ -164,9 +164,16 @@ export function ResultScreen() {
           <span className={`inline-block px-3 py-1 rounded-full text-[11px] font-mono font-black uppercase tracking-wider ${
             isWin ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/30' : 'bg-amber-500/10 text-amber-500 border border-amber-500/30'
           }`}>
-            {isWin 
-              ? (tResult.has('won_badge') ? tResult('won_badge') : '★ Palpite Exato!') 
-              : (tResult.has('finished_badge') ? tResult('finished_badge') : 'Desafio Concluído')}
+            {(() => {
+              try {
+                const key = isWin ? 'won_badge' : 'finished_badge';
+                const text = tResult(key);
+                if (text && !text.startsWith('result.')) return text;
+              } catch {
+                // fallback
+              }
+              return isWin ? '★ Palpite Exato!' : 'Desafio Concluído';
+            })()}
           </span>
           <h2 className={`text-2xl sm:text-3xl font-black tracking-tight ${isWin ? 'text-emerald-500 dark:text-emerald-400' : 'text-foreground'}`}>
             {isWin ? tResult('won_title') : tResult('finished_title')}
