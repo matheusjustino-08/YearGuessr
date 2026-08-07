@@ -82,10 +82,10 @@ function AdForm({ data, onChange, onSubmit, submitLabel }: {
       </div>
 
       <div>
-        <label className={labelCls}>URL da Imagem do Anúncio (SVG, PNG, WebP, JPG, GIF)</label>
+        <label className={labelCls}>URL da Imagem ou Código SVG (SVG, PNG, WebP, JPG, GIF)</label>
         <input
-          type="url"
-          placeholder="https://i.imgur.com/banner.svg (ou png, webp, drive...)"
+          type="text"
+          placeholder="Cole o link da imagem (.svg, .png...) ou o código RAW <svg viewBox=...>"
           className={inputCls + ' font-mono text-xs'}
           value={data.imagem_url}
           onChange={e => onChange({ ...data, imagem_url: e.target.value })}
