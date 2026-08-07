@@ -227,7 +227,7 @@ export function SideBanners() {
       )}
 
       {/* Slot 2 (Right Banner Slot) */}
-      {adRight && adRight.id !== adLeft?.id ? (
+      {adRight && (adRight.id !== adLeft?.id || adRight.posicao === 'ambos' || (leftAds.length === 1 && rightAds.length === 1)) ? (
         <div className="h-[58px] relative overflow-hidden flex items-center justify-center">
           <AnimatePresence mode="wait">
             <motion.div
