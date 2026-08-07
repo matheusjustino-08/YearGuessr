@@ -88,6 +88,7 @@
     "dark": "Modo Escuro",
     "theme_era_label": "Tema Visual da Era (Travar Era)",
     "dynamic_era": "Dinâmico (Altera conforme o ano)",
+    "neutral_era": "Neutro (Sem alteração por era)",
     "username_label": "Apelido Público no Ranking",
     "username_placeholder": "Seu apelido histórico",
     "anonymous_label": "Modo Anônimo no Ranking",

@@ -88,6 +88,7 @@
     "dark": "Modo Oscuro",
     "theme_era_label": "Tema Visual de la Era (Fijar Era)",
     "dynamic_era": "Dinámico (Cambia según el año)",
+    "neutral_era": "Neutro (Sin cambios por era)",
     "username_label": "Apodo Público en la Clasificación",
     "username_placeholder": "Tu apodo histórico",
     "anonymous_label": "Modo Anónimo en Clasificación",

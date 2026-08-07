@@ -67,9 +67,18 @@ export default function AdminPage() {
   const tAdmin = useTranslations('admin');
   const supabase = createClient();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [stats, setStats] = useState({
+    totalPartidas: 0,
+    totalPerfis: 0,
+    totalDesafios: 0,
+    totalAnuncios: 0,
+    totalPropostas: 0,
+    totalViews: 0,
+    totalClicks: 0,
+  });
 
   useEffect(() => {
-    async function checkRole() {
+    async function checkRoleAndStats() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setIsAdmin(false);
@@ -80,9 +89,47 @@ export default function AdminPage() {
         .select('role')
         .eq('id', user.id)
         .single();
-      setIsAdmin(profile?.role === 'admin');
+      const userIsAdmin = profile?.role === 'admin';
+      setIsAdmin(userIsAdmin);
+
+      if (userIsAdmin) {
+        try {
+          const [
+            { count: countPartidas },
+            { count: countPerfis },
+            { count: countDesafios },
+            { data: dataAnuncios },
+            { count: countPropostas },
+          ] = await Promise.all([
+            supabase.from('partidas').select('*', { count: 'exact', head: true }),
+            supabase.from('perfis').select('*', { count: 'exact', head: true }),
+            supabase.from('desafios').select('*', { count: 'exact', head: true }),
+            supabase.from('anuncios').select('visualizacoes, cliques'),
+            supabase.from('anuncios_propostas').select('*', { count: 'exact', head: true }),
+          ]);
+
+          let views = 0;
+          let clicks = 0;
+          (dataAnuncios || []).forEach(ad => {
+            views += ad.visualizacoes || 0;
+            clicks += ad.cliques || 0;
+          });
+
+          setStats({
+            totalPartidas: countPartidas || 0,
+            totalPerfis: countPerfis || 0,
+            totalDesafios: countDesafios || 0,
+            totalAnuncios: (dataAnuncios || []).length,
+            totalPropostas: countPropostas || 0,
+            totalViews: views,
+            totalClicks: clicks,
+          });
+        } catch {
+          // Fallback stats silently
+        }
+      }
     }
-    checkRole();
+    checkRoleAndStats();
   }, [supabase]);
 
   if (isAdmin === null) {
@@ -106,16 +153,38 @@ export default function AdminPage() {
     );
   }
 
+  const ctr = stats.totalViews > 0 ? ((stats.totalClicks / stats.totalViews) * 100).toFixed(1) : '0.0';
+
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-8 pb-5 border-b border-border/40">
+      <div className="flex items-center gap-3 pb-5 border-b border-border/40">
         <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
           <Settings className="w-5 h-5" />
         </div>
         <div>
           <h1 className="text-lg font-bold tracking-tight">{tAdmin('title')}</h1>
           <p className="text-xs text-muted-foreground">{tAdmin('subtitle')}</p>
+        </div>
+      </div>
+
+      {/* Realtime KPI Analytics Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="p-4 rounded-2xl bg-card border border-border/60 shadow-xs space-y-1">
+          <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Partidas Jogadas</p>
+          <p className="text-2xl font-black font-mono text-primary">{stats.totalPartidas}</p>
+        </div>
+        <div className="p-4 rounded-2xl bg-card border border-border/60 shadow-xs space-y-1">
+          <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Jogadores Registrados</p>
+          <p className="text-2xl font-black font-mono text-amber-500">{stats.totalPerfis}</p>
+        </div>
+        <div className="p-4 rounded-2xl bg-card border border-border/60 shadow-xs space-y-1">
+          <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Views de Anúncios</p>
+          <p className="text-2xl font-black font-mono text-sky-500">{stats.totalViews} <span className="text-xs font-normal text-muted-foreground">({ctr}% CTR)</span></p>
+        </div>
+        <div className="p-4 rounded-2xl bg-card border border-border/60 shadow-xs space-y-1">
+          <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Propostas Recebidas</p>
+          <p className="text-2xl font-black font-mono text-emerald-500">{stats.totalPropostas}</p>
         </div>
       </div>
 

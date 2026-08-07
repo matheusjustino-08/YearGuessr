@@ -15,6 +15,7 @@ function getEraTheme(year: number) {
 }
 
 const ERAS = [
+  'era-neutral',
   'era-medieval',
   'era-renaissance',
   'era-industrial',
@@ -25,6 +26,7 @@ const ERAS = [
 ];
 
 const ERA_BACKGROUND_CLASSES: Record<string, string> = {
+  'era-neutral': 'bg-era-neutral',
   'era-medieval': 'bg-era-medieval',
   'era-renaissance': 'bg-era-renaissance',
   'era-industrial': 'bg-era-industrial',

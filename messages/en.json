@@ -88,6 +88,7 @@
     "dark": "Dark Mode",
     "theme_era_label": "Era Visual Theme (Lock Theme)",
     "dynamic_era": "Dynamic (Changes by year)",
+    "neutral_era": "Neutral (No era theme changes)",
     "username_label": "Public Leaderboard Username",
     "username_placeholder": "Your historic handle",
     "anonymous_label": "Anonymous Mode on Leaderboard",
