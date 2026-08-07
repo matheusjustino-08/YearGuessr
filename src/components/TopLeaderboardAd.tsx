@@ -6,47 +6,112 @@ import { AdvertiseModal } from './AdvertiseModal';
 import { Megaphone, Sparkles, ExternalLink, Award } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { resolveImageUrl } from '@/lib/resolveImageUrl';
+import { motion, AnimatePresence } from 'framer-motion';
+
+function SingleTopAdItem({ topAd, tAd, handleAdClick }: { topAd: any; tAd: any; handleAdClick: (ad: any) => void }) {
+  const imageUrl = topAd.imagem_url ? resolveImageUrl(topAd.imagem_url) : null;
+  const showBtn = !(topAd.mostrar_botao === false || topAd.mostrar_botao === 'false');
+  const btnText = topAd.texto_botao || tAd('visit_btn');
+
+  if (imageUrl) {
+    return (
+      <a
+        href={topAd.link_destino || 'https://wa.me/5511999999999'}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => handleAdClick(topAd)}
+        className="w-full h-16 sm:h-20 rounded-2xl border-2 border-amber-500/40 hover:border-amber-500 shadow-xl flex items-center justify-end transition-all duration-300 group cursor-pointer hover:scale-[1.01] overflow-hidden relative bg-card/90 block"
+      >
+        {/* FULL UNZOOMED BANNER IMAGE */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imageUrl}
+          alt={topAd.titulo || 'Anúncio Topo'}
+          className="absolute inset-0 w-full h-full object-contain p-1"
+        />
+
+        {showBtn && (
+          <span className="relative z-10 mr-4 px-4 py-2 rounded-full bg-amber-500 text-black font-bold text-xs font-mono shrink-0 group-hover:bg-amber-400 transition-colors flex items-center gap-1.5 shadow-lg">
+            <span>{btnText}</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </span>
+        )}
+      </a>
+    );
+  }
+
+  // Fallback text layout if no image is uploaded
+  return (
+    <a
+      href={topAd.link_destino || 'https://wa.me/5511999999999'}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => handleAdClick(topAd)}
+      className="w-full h-14 sm:h-16 px-4 rounded-2xl bg-card/90 border-2 border-amber-500/40 hover:border-amber-500 shadow-lg backdrop-blur-xl flex items-center justify-between transition-all duration-300 group cursor-pointer hover:scale-[1.01] text-card-foreground overflow-hidden block"
+    >
+      <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
+        <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/30 shrink-0 group-hover:scale-110 transition-transform">
+          <Award className="w-5 h-5" />
+        </div>
+        <div className="min-w-0 text-left flex-1">
+          <p className="text-xs sm:text-sm font-black uppercase tracking-tight text-foreground truncate group-hover:text-amber-500 transition-colors">
+            {topAd.titulo}
+          </p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{topAd.subtitulo || tAd('official_sponsor_full')}</p>
+        </div>
+      </div>
+
+      {showBtn && (
+        <span className="px-3 py-1.5 rounded-full bg-amber-500 text-black font-bold text-xs font-mono shrink-0 group-hover:bg-amber-400 transition-colors flex items-center gap-1 shadow-xs">
+          <span>{btnText}</span>
+          <ExternalLink className="w-3.5 h-3.5" />
+        </span>
+      )}
+    </a>
+  );
+}
 
 export function TopLeaderboardAd() {
   const tAd = useTranslations('advertise');
   const supabase = createClient();
-  const [topAd, setTopAd] = useState<any | null>(null);
+  const [topAds, setTopAds] = useState<any[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    const fetchTopAd = async () => {
+    const fetchTopAds = async () => {
       try {
         const { data, error } = await supabase
           .from('anuncios')
           .select('*')
           .eq('ativo', true)
           .eq('formato', '728x90')
-          .order('created_at', { ascending: false })
-          .limit(1);
+          .order('created_at', { ascending: false });
 
         if (!error && data && data.length > 0) {
-          const ad = data[0];
-          
-          if (typeof window !== 'undefined') {
-            const localBtnSetting = localStorage.getItem(`yearguessr_ad_showbtn_${ad.id}`);
-            if (localBtnSetting !== null) {
-              ad.mostrar_botao = localBtnSetting === 'true';
+          const processedData = data.map(ad => {
+            if (typeof window !== 'undefined') {
+              const localBtnSetting = localStorage.getItem(`yearguessr_ad_showbtn_${ad.id}`);
+              if (localBtnSetting !== null) {
+                ad.mostrar_botao = localBtnSetting === 'true';
+              }
+              const localTextSetting = localStorage.getItem(`yearguessr_ad_textbtn_${ad.id}`);
+              if (localTextSetting !== null) {
+                ad.texto_botao = localTextSetting;
+              }
             }
-            const localTextSetting = localStorage.getItem(`yearguessr_ad_textbtn_${ad.id}`);
-            if (localTextSetting !== null) {
-              ad.texto_botao = localTextSetting;
-            }
-          }
+            return ad;
+          });
 
-          setTopAd(ad);
+          setTopAds(processedData);
 
-          // Track view in background
+          // Track first view
           try {
             await supabase
               .from('anuncios')
-              .update({ visualizacoes: (ad.visualizacoes || 0) + 1 })
-              .eq('id', ad.id);
+              .update({ visualizacoes: (processedData[0].visualizacoes || 0) + 1 })
+              .eq('id', processedData[0].id);
           } catch {
-            // Ignore view error silently
+            // Ignore
           }
         }
       } catch {
@@ -54,8 +119,35 @@ export function TopLeaderboardAd() {
       }
     };
 
-    fetchTopAd();
+    fetchTopAds();
   }, [supabase]);
+
+  // Rotate Top Ads every 5.5 seconds if multiple active 728x90 ads exist
+  useEffect(() => {
+    if (topAds.length <= 1) return;
+
+    const timer = setInterval(() => {
+      setCurrentIndex(prev => {
+        const next = (prev + 1) % topAds.length;
+        trackView(topAds[next]);
+        return next;
+      });
+    }, 5500);
+
+    return () => clearInterval(timer);
+  }, [topAds]);
+
+  const trackView = async (ad: any) => {
+    if (!ad) return;
+    try {
+      await supabase
+        .from('anuncios')
+        .update({ visualizacoes: (ad.visualizacoes || 0) + 1 })
+        .eq('id', ad.id);
+    } catch {
+      // Ignore
+    }
+  };
 
   const handleAdClick = async (ad: any) => {
     try {
@@ -64,74 +156,30 @@ export function TopLeaderboardAd() {
         .update({ cliques: (ad.cliques || 0) + 1 })
         .eq('id', ad.id);
     } catch {
-      // Ignore click error silently
+      // Ignore
     }
   };
 
-  // If a 728x90 ad is active in Supabase, render it!
-  if (topAd) {
-    const imageUrl = topAd.imagem_url ? resolveImageUrl(topAd.imagem_url) : null;
-    const showBtn = !(topAd.mostrar_botao === false || topAd.mostrar_botao === 'false');
-    const btnText = topAd.texto_botao || tAd('visit_btn');
+  // Render rotating 728x90 top ads
+  if (topAds.length > 0) {
+    const currentAd = topAds[currentIndex % topAds.length];
 
-    if (imageUrl) {
-      return (
-        <div className="w-full max-w-4xl mx-auto mb-4">
-          <a
-            href={topAd.link_destino || 'https://wa.me/5511999999999'}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => handleAdClick(topAd)}
-            className="w-full h-16 sm:h-20 rounded-2xl border-2 border-amber-500/40 hover:border-amber-500 shadow-xl flex items-center justify-end transition-all duration-300 group cursor-pointer hover:scale-[1.01] overflow-hidden relative bg-card/90"
-          >
-            {/* FULL UNZOOMED BANNER IMAGE (OBJECT CONTAIN - NO ZOOM) */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={imageUrl}
-              alt={topAd.titulo || 'Anúncio Topo'}
-              className="absolute inset-0 w-full h-full object-contain p-1"
-            />
-
-            {showBtn && (
-              <span className="relative z-10 mr-4 px-4 py-2 rounded-full bg-amber-500 text-black font-bold text-xs font-mono shrink-0 group-hover:bg-amber-400 transition-colors flex items-center gap-1.5 shadow-lg">
-                <span>{btnText}</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </span>
-            )}
-          </a>
-        </div>
-      );
-    }
-
-    // Fallback text layout if no image is uploaded
     return (
       <div className="w-full max-w-4xl mx-auto mb-4">
-        <a
-          href={topAd.link_destino || 'https://wa.me/5511999999999'}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => handleAdClick(topAd)}
-          className="w-full h-14 sm:h-16 px-4 rounded-2xl bg-card/90 border-2 border-amber-500/40 hover:border-amber-500 shadow-lg backdrop-blur-xl flex items-center justify-between transition-all duration-300 group cursor-pointer hover:scale-[1.01] text-card-foreground overflow-hidden"
-        >
-          <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
-            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/30 shrink-0 group-hover:scale-110 transition-transform">
-              <Award className="w-5 h-5" />
-            </div>
-            <div className="min-w-0 text-left flex-1">
-              <p className="text-xs sm:text-sm font-black uppercase tracking-tight text-foreground truncate group-hover:text-amber-500 transition-colors">
-                {topAd.titulo}
-              </p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{topAd.subtitulo || tAd('official_sponsor_full')}</p>
-            </div>
-          </div>
-
-          {showBtn && (
-            <span className="px-3 py-1.5 rounded-full bg-amber-500 text-black font-bold text-xs font-mono shrink-0 group-hover:bg-amber-400 transition-colors flex items-center gap-1 shadow-xs">
-              <span>{btnText}</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </span>
-          )}
-        </a>
+        <div className="w-full h-16 sm:h-20 relative overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentAd.id + '-' + currentIndex}
+              initial={{ opacity: 0, x: 25 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -25 }}
+              transition={{ duration: 0.45, ease: 'easeInOut' }}
+              className="w-full h-full"
+            >
+              <SingleTopAdItem topAd={currentAd} tAd={tAd} handleAdClick={handleAdClick} />
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     );
   }
