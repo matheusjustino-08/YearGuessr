@@ -120,14 +120,17 @@ export default function AdvertiseSalesPage() {
 
         {/* HERO SECTION */}
         <div className="text-center space-y-6 max-w-3xl mx-auto pt-4 relative flex flex-col items-center">
-          <div className="relative w-44 h-44 sm:w-52 sm:h-52 shrink-0 drop-shadow-2xl -mb-4 overflow-hidden flex items-center justify-center">
+          <div className="relative w-40 h-40 sm:w-48 sm:h-48 shrink-0 drop-shadow-xl -mb-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/mascot-shrug.png"
               alt="YearGuessr Mascot"
               className="w-full h-full object-contain animate-in fade-in slide-in-from-bottom-5 duration-700"
+              style={{
+                WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 90%)',
+                maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 90%)',
+              }}
             />
-            <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
           </div>
 
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs font-bold font-mono tracking-wide uppercase shadow-xs">

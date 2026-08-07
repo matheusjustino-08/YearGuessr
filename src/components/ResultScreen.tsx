@@ -147,14 +147,17 @@ export function ResultScreen() {
 
       {/* Main Status Header */}
       <div className="space-y-2 relative z-10 flex flex-col items-center">
-        <div className="relative w-36 h-36 shrink-0 drop-shadow-2xl -mb-3 overflow-hidden flex items-center justify-center">
+        <div className="relative w-32 h-32 shrink-0 drop-shadow-xl -mb-1">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/mascot-shrug.png"
             alt="YearGuessr Mascot"
             className="w-full h-full object-contain animate-in fade-in slide-in-from-bottom-4 duration-500"
+            style={{
+              WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 90%)',
+              maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 90%)',
+            }}
           />
-          <div className="absolute bottom-0 inset-x-0 h-14 bg-gradient-to-t from-card via-card/80 to-transparent pointer-events-none" />
         </div>
 
         <div className="space-y-1">

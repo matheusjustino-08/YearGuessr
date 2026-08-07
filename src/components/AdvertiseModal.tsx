@@ -71,14 +71,17 @@ export function AdvertiseModal({ trigger }: { trigger?: React.ReactNode }) {
 
         {/* Modal Header */}
         <div className="flex items-center gap-3 pb-4 border-b border-border/40">
-          <div className="relative w-20 h-20 shrink-0 drop-shadow-md -my-3 overflow-hidden flex items-center justify-center">
+          <div className="relative w-20 h-20 shrink-0 drop-shadow-md -my-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/mascot-shrug.png"
               alt="YearGuessr Mascot"
               className="w-full h-full object-contain animate-in fade-in slide-in-from-bottom-3 duration-500"
+              style={{
+                WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 90%)',
+                maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 90%)',
+              }}
             />
-            <div className="absolute bottom-0 inset-x-0 h-8 bg-gradient-to-t from-card via-card/80 to-transparent pointer-events-none" />
           </div>
           <div>
             <h2 className="text-xl font-bold tracking-tight">{tAd('modal_title')}</h2>
