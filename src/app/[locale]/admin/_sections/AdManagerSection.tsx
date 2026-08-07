@@ -1,0 +1,563 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Pencil, X, Check, RefreshCw, Eye, MousePointerClick, TrendingUp, Share2, Copy } from 'lucide-react';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { resolveImageUrl, isConvertibleUrl } from '@/lib/resolveImageUrl';
+import { CustomSelect } from '@/components/CustomSelect';
+
+interface Ad {
+  id: string;
+  titulo: string;
+  subtitulo?: string;
+  link_destino?: string;
+  imagem_url?: string;
+  formato: string;
+  ativo: boolean;
+  mostrar_botao?: boolean;
+  texto_botao?: string;
+  visualizacoes?: number;
+  cliques?: number;
+  created_at?: string;
+}
+
+interface Props { supabase: SupabaseClient }
+
+interface AdFormData {
+  titulo: string;
+  subtitulo: string;
+  link_destino: string;
+  imagem_url: string;
+  formato: string;
+  ativo: boolean;
+  mostrar_botao: boolean;
+  texto_botao: string;
+}
+
+const inputCls = 'w-full p-2.5 rounded-xl border border-border/70 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all';
+const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-muted-foreground font-mono mb-1.5';
+
+const EMPTY_AD: AdFormData = {
+  titulo: '',
+  subtitulo: '',
+  link_destino: '',
+  imagem_url: '',
+  formato: '300x50',
+  ativo: true,
+  mostrar_botao: true,
+  texto_botao: 'Acessar',
+};
+
+// Defined outside the parent to prevent React from remounting on every render
+function AdForm({ data, onChange, onSubmit, submitLabel }: {
+  data: AdFormData;
+  onChange: (d: AdFormData) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  submitLabel: string;
+}) {
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className={labelCls}>Nome / Identificador do Anúncio (Interno / Análise)</label>
+          <input
+            type="text"
+            required
+            placeholder="Ex: Campanha Empresa XYZ - Março 2026"
+            className={inputCls}
+            value={data.titulo}
+            onChange={e => onChange({ ...data, titulo: e.target.value })}
+          />
+        </div>
+        <div>
+          <label className={labelCls}>Descrição Interna / Anotações do Cliente</label>
+          <input
+            type="text"
+            placeholder="Descrição ou dados do anunciante"
+            className={inputCls}
+            value={data.subtitulo}
+            onChange={e => onChange({ ...data, subtitulo: e.target.value })}
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className={labelCls}>URL da Imagem do Anúncio (Ocupa 100% da caixa da diretriz)</label>
+        <input
+          type="url"
+          placeholder="https://i.imgur.com/banner.png ou link do Google Drive"
+          className={inputCls + ' font-mono text-xs'}
+          value={data.imagem_url}
+          onChange={e => onChange({ ...data, imagem_url: e.target.value })}
+        />
+        {data.imagem_url && isConvertibleUrl(data.imagem_url) && (
+          <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
+            <RefreshCw className="w-3 h-3" />
+            Link do Google Drive detectado — será convertido automaticamente.
+          </p>
+        )}
+        {data.imagem_url && (
+          <div className="mt-2 rounded-xl overflow-hidden border border-border/40 h-16 flex items-center justify-center bg-muted/30 relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={resolveImageUrl(data.imagem_url)}
+              alt="Preview"
+              className="w-full h-full object-cover"
+              onError={e => { (e.target as HTMLImageElement).style.opacity = '0.3'; }}
+            />
+          </div>
+        )}
+        <p className="text-[11px] text-muted-foreground mt-1">Suporta Imgur, Unsplash, Wikimedia e Google Drive.</p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className={labelCls}>Link de Destino</label>
+          <input
+            type="text"
+            placeholder="https://wa.me/55... ou https://site.com"
+            className={inputCls}
+            value={data.link_destino}
+            onChange={e => onChange({ ...data, link_destino: e.target.value })}
+          />
+        </div>
+        <div>
+          <label className={labelCls}>Formato do Anúncio (Diretrizes)</label>
+          <CustomSelect
+            value={data.formato}
+            onChange={val => onChange({ ...data, formato: val })}
+            options={[
+              { value: '300x50', label: '300x50 — Letreiro Inferior (Diretriz)' },
+              { value: '728x90', label: '728x90 — Leaderboard Topo (Diretriz)' },
+            ]}
+          />
+        </div>
+      </div>
+
+      {/* Button Customization Controls */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border/30">
+        <div>
+          <label className={labelCls}>Exibir Botão de Ação (CTA)</label>
+          <button
+            type="button"
+            onClick={() => onChange({ ...data, mostrar_botao: !data.mostrar_botao })}
+            className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+              data.mostrar_botao
+                ? 'bg-primary/15 text-primary border-primary/40'
+                : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/40 font-black'
+            }`}
+          >
+            {data.mostrar_botao ? '✓ Botão Habilitado' : '✕ Botão Desabilitado (Sem Botão)'}
+          </button>
+        </div>
+
+        {data.mostrar_botao && (
+          <div>
+            <label className={labelCls}>Texto do Botão (Ex: Visitar, Acessar)</label>
+            <input
+              type="text"
+              placeholder="Ex: Acessar, Ver Oferta"
+              className={inputCls}
+              value={data.texto_botao}
+              onChange={e => onChange({ ...data, texto_botao: e.target.value })}
+            />
+          </div>
+        )}
+      </div>
+
+      <button
+        type="submit"
+        className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm cursor-pointer hover:bg-primary/90 transition-colors shadow-md active:scale-98"
+      >
+        {submitLabel}
+      </button>
+    </form>
+  );
+}
+
+export function AdManagerSection({ supabase }: Props) {
+  const [ads, setAds] = useState<Ad[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newAd, setNewAd] = useState<AdFormData>({ ...EMPTY_AD });
+  const [editingAd, setEditingAd] = useState<(Ad & AdFormData) | null>(null);
+  const [selectedReportAd, setSelectedReportAd] = useState<Ad | null>(null);
+  const [msg, setMsg] = useState('');
+
+  const loadAds = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('anuncios')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      
+      const processedData = (data || []).map(ad => {
+        if (typeof window !== 'undefined') {
+          const localBtnSetting = localStorage.getItem(`yearguessr_ad_showbtn_${ad.id}`);
+          if (localBtnSetting !== null) {
+            ad.mostrar_botao = localBtnSetting === 'true';
+          }
+          const localTextSetting = localStorage.getItem(`yearguessr_ad_textbtn_${ad.id}`);
+          if (localTextSetting !== null) {
+            ad.texto_botao = localTextSetting;
+          }
+        }
+        return ad;
+      });
+
+      setAds(processedData);
+    } catch (err: unknown) {
+      showMsg(`Erro ao carregar anúncios: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { loadAds(); }, []);
+
+  const showMsg = (txt: string) => {
+    setMsg(txt);
+    setTimeout(() => setMsg(''), 4000);
+  };
+
+  const handleToggle = async (id: string, currentAtivo: boolean) => {
+    try {
+      const { error } = await supabase.from('anuncios').update({ ativo: !currentAtivo }).eq('id', id);
+      if (error) throw error;
+      setAds(prev => prev.map(a => a.id === id ? { ...a, ativo: !a.ativo } : a));
+    } catch (err: unknown) {
+      showMsg(`Erro ao alterar status: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Deseja excluir este anúncio permanentemente?')) return;
+    try {
+      const { error } = await supabase.from('anuncios').delete().eq('id', id);
+      if (error) throw error;
+      setAds(prev => prev.filter(a => a.id !== id));
+      showMsg('Anúncio excluído.');
+    } catch (err: unknown) {
+      showMsg(`Erro ao excluir: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  };
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const payload: any = {
+        titulo: newAd.titulo,
+        subtitulo: newAd.subtitulo,
+        link_destino: newAd.link_destino,
+        imagem_url: newAd.imagem_url ? resolveImageUrl(newAd.imagem_url) : null,
+        formato: newAd.formato,
+        ativo: newAd.ativo,
+        mostrar_botao: newAd.mostrar_botao,
+        texto_botao: newAd.texto_botao || 'Acessar',
+      };
+
+      const { data, error } = await supabase.from('anuncios').insert([payload]).select();
+      if (error && error.message?.includes('column')) {
+        delete payload.mostrar_botao;
+        delete payload.texto_botao;
+        const res = await supabase.from('anuncios').insert([payload]).select();
+        if (res.error) throw res.error;
+        if (res.data && res.data[0]) {
+          localStorage.setItem(`yearguessr_ad_showbtn_${res.data[0].id}`, String(newAd.mostrar_botao));
+          localStorage.setItem(`yearguessr_ad_textbtn_${res.data[0].id}`, newAd.texto_botao || 'Acessar');
+        }
+      } else if (error) {
+        throw error;
+      } else if (data && data[0]) {
+        localStorage.setItem(`yearguessr_ad_showbtn_${data[0].id}`, String(newAd.mostrar_botao));
+        localStorage.setItem(`yearguessr_ad_textbtn_${data[0].id}`, newAd.texto_botao || 'Acessar');
+      }
+
+      showMsg('Anúncio criado com sucesso!');
+      setNewAd({ ...EMPTY_AD });
+      loadAds();
+    } catch (err: unknown) {
+      showMsg(`Erro ao criar anúncio: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAd) return;
+    try {
+      // Store in localStorage for 100% reliable offline/online persistence
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`yearguessr_ad_showbtn_${editingAd.id}`, String(editingAd.mostrar_botao));
+        localStorage.setItem(`yearguessr_ad_textbtn_${editingAd.id}`, editingAd.texto_botao || 'Acessar');
+      }
+
+      const payload: any = {
+        titulo: editingAd.titulo,
+        subtitulo: editingAd.subtitulo,
+        link_destino: editingAd.link_destino,
+        imagem_url: editingAd.imagem_url ? resolveImageUrl(editingAd.imagem_url) : null,
+        formato: editingAd.formato,
+        ativo: editingAd.ativo,
+        mostrar_botao: editingAd.mostrar_botao,
+        texto_botao: editingAd.texto_botao || 'Acessar',
+      };
+
+      let { error } = await supabase.from('anuncios').update(payload).eq('id', editingAd.id);
+      if (error && error.message?.includes('column')) {
+        delete payload.mostrar_botao;
+        delete payload.texto_botao;
+        const res = await supabase.from('anuncios').update(payload).eq('id', editingAd.id);
+        if (res.error) throw res.error;
+      } else if (error) {
+        throw error;
+      }
+
+      showMsg('Anúncio e preferências salvas com sucesso!');
+      setEditingAd(null);
+      loadAds();
+    } catch (err: unknown) {
+      showMsg(`Erro ao salvar: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  };
+
+  const copyReportToClipboard = (ad: Ad) => {
+    const views = ad.visualizacoes || 0;
+    const clicks = ad.cliques || 0;
+    const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : '0.0';
+    const reportText = `📊 RELATÓRIO DE DESEMPENHO - YEARGUESSR ADS
+----------------------------------------
+Campanha: ${ad.titulo}
+Formato: ${ad.formato}
+Status: ${ad.ativo ? 'Ativo' : 'Inativo'}
+Visualizações: ${views.toLocaleString('pt-BR')}
+Cliques: ${clicks.toLocaleString('pt-BR')}
+Taxa de Clique (CTR): ${ctr}%
+Link: ${ad.link_destino || 'N/A'}
+Data de Registro: ${ad.created_at ? new Date(ad.created_at).toLocaleDateString('pt-BR') : 'N/A'}
+----------------------------------------
+Gerado por YearGuessr Analytics`;
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(reportText);
+      showMsg('Relatório do anunciante copiado para a área de transferência!');
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {msg && (
+        <div className={`p-3 rounded-xl text-sm font-medium border ${msg.startsWith('Erro') ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-green-500/10 text-green-600 border-green-500/20'}`}>
+          {msg}
+        </div>
+      )}
+
+      {/* Create Form */}
+      <div className="p-5 rounded-2xl border border-border/60 bg-muted/20 space-y-4">
+        <h3 className="text-sm font-bold text-foreground">Novo Letreiro / Anúncio</h3>
+        <AdForm data={newAd} onChange={setNewAd} onSubmit={handleCreate} submitLabel="Criar Letreiro" />
+      </div>
+
+      {/* List & Live Analytics */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-foreground flex items-center justify-between">
+          <span>Letreiros Cadastrados ({ads.length})</span>
+        </h3>
+
+        {loading && <p className="text-xs text-muted-foreground">Carregando...</p>}
+
+        {!loading && ads.length === 0 && (
+          <p className="text-xs text-muted-foreground py-3">Nenhum anúncio cadastrado.</p>
+        )}
+
+        {ads.map(ad => {
+          const views = ad.visualizacoes || 0;
+          const clicks = ad.cliques || 0;
+          const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : '0.0';
+          const isButtonEnabled = !(ad.mostrar_botao === false || (ad.mostrar_botao as unknown) === 'false');
+
+          return (
+            <div key={ad.id} className="p-5 rounded-2xl border border-border/60 bg-card/60 space-y-4 shadow-sm">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1 space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-black truncate text-foreground">{ad.titulo}</p>
+                    <span className="text-[10px] font-mono font-bold text-muted-foreground border border-border/50 rounded px-2 py-0.5">{ad.formato}</span>
+                    {!isButtonEnabled ? (
+                      <span className="text-[10px] font-mono font-bold text-rose-500 border border-rose-500/30 rounded px-2 py-0.5 bg-rose-500/10">Sem Botão</span>
+                    ) : (
+                      <span className="text-[10px] font-mono font-bold text-emerald-500 border border-emerald-500/30 rounded px-2 py-0.5 bg-emerald-500/10">Com Botão ({ad.texto_botao || 'Acessar'})</span>
+                    )}
+                  </div>
+                  {ad.subtitulo && <p className="text-xs text-muted-foreground">{ad.subtitulo}</p>}
+                  {ad.link_destino && (
+                    <p className="text-[11px] font-mono text-primary truncate">{ad.link_destino}</p>
+                  )}
+                </div>
+
+                {ad.imagem_url && (
+                  <div className="w-20 h-10 rounded-xl overflow-hidden border border-border/40 bg-muted/30 shrink-0 shadow-xs">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={ad.imagem_url} alt={ad.titulo} className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+
+              {/* LIVE ANALYTICS CARDS */}
+              <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-muted/30 border border-border/40">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-sky-500/10 text-sky-500">
+                    <Eye className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-mono uppercase text-muted-foreground font-bold">Views</p>
+                    <p className="text-xs font-mono font-black text-foreground">{views.toLocaleString('pt-BR')}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-500">
+                    <MousePointerClick className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-mono uppercase text-muted-foreground font-bold">Cliques</p>
+                    <p className="text-xs font-mono font-black text-foreground">{clicks.toLocaleString('pt-BR')}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500">
+                    <TrendingUp className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-mono uppercase text-muted-foreground font-bold">CTR %</p>
+                    <p className="text-xs font-mono font-black text-emerald-500">{ctr}%</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-border/30">
+                <button
+                  type="button"
+                  onClick={() => handleToggle(ad.id, ad.ativo)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                    ad.ativo
+                      ? 'bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30'
+                      : 'bg-muted/60 text-muted-foreground border-border/50'
+                  }`}
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  {ad.ativo ? 'Ativo' : 'Inativo'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedReportAd(ad)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all cursor-pointer"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  Relatório do Anunciante
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setEditingAd({
+                    ...ad,
+                    subtitulo: ad.subtitulo || '',
+                    link_destino: ad.link_destino || '',
+                    imagem_url: ad.imagem_url || '',
+                    mostrar_botao: !(ad.mostrar_botao === false || (ad.mostrar_botao as unknown) === 'false'),
+                    texto_botao: ad.texto_botao || 'Acessar',
+                  })}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-border/60 bg-muted/30 hover:bg-muted text-foreground transition-all cursor-pointer"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                  Editar
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDelete(ad.id)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-rose-500/30 bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-all cursor-pointer ml-auto"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Excluir
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Edit Modal */}
+      {editingAd && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border border-border/80 p-6 rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-foreground">Editar Letreiro</h3>
+              <button
+                type="button"
+                onClick={() => setEditingAd(null)}
+                className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <AdForm data={editingAd} onChange={d => setEditingAd(prev => prev ? { ...prev, ...d } : null)} onSubmit={handleSaveEdit} submitLabel="Salvar Alterações" />
+          </div>
+        </div>
+      )}
+
+      {/* Advertiser Report Modal */}
+      {selectedReportAd && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-card border border-border/80 p-6 sm:p-8 rounded-3xl max-w-md w-full space-y-5 shadow-2xl relative">
+            <button
+              type="button"
+              onClick={() => setSelectedReportAd(null)}
+              className="absolute top-5 right-5 p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="space-y-1">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary px-2.5 py-1 rounded-md bg-primary/10 border border-primary/20">YearGuessr Analytics</span>
+              <h3 className="text-xl font-black text-foreground pt-1">{selectedReportAd.titulo}</h3>
+              <p className="text-xs text-muted-foreground">{selectedReportAd.subtitulo || 'Relatório de Desempenho Publicitário'}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="p-4 rounded-2xl bg-muted/40 border border-border/50 text-center">
+                <p className="text-[10px] font-mono font-bold uppercase text-muted-foreground">Visualizações</p>
+                <p className="text-2xl font-black font-mono text-foreground mt-1">{(selectedReportAd.visualizacoes || 0).toLocaleString('pt-BR')}</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-muted/40 border border-border/50 text-center">
+                <p className="text-[10px] font-mono font-bold uppercase text-muted-foreground">Cliques Concretos</p>
+                <p className="text-2xl font-black font-mono text-amber-500 mt-1">{(selectedReportAd.cliques || 0).toLocaleString('pt-BR')}</p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center">
+              <p className="text-[10px] font-mono font-bold uppercase text-emerald-600 dark:text-emerald-400">Taxa de Conversão (CTR %)</p>
+              <p className="text-3xl font-black font-mono text-emerald-500 mt-0.5">
+                {(selectedReportAd.visualizacoes || 0) > 0 ? (((selectedReportAd.cliques || 0) / (selectedReportAd.visualizacoes || 1)) * 100).toFixed(1) : '0.0'}%
+              </p>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => copyReportToClipboard(selectedReportAd)}
+                className="w-full py-3 px-4 rounded-2xl bg-primary text-primary-foreground font-bold text-xs uppercase tracking-wider shadow-md hover:bg-primary/90 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              >
+                <Copy className="w-4 h-4" />
+                <span>Copiar Relatório para Anunciante</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

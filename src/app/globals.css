@@ -1,0 +1,494 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground transition-all duration-700 ease-in-out;
+  }
+
+  /* Universal Cursor Pointer & Click Polish */
+  button, 
+  a, 
+  input[type="button"], 
+  input[type="submit"], 
+  input[type="reset"], 
+  input[type="range"],
+  [role="button"] {
+    cursor: pointer !important;
+  }
+  
+  button:disabled,
+  input:disabled,
+  a.disabled {
+    cursor: not-allowed !important;
+  }
+
+  /* Custom Sleek Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(150, 150, 150, 0.3);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(150, 150, 150, 0.6);
+  }
+
+  /* Custom Date Picker Styling */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8) sepia(1) saturate(5) hue-rotate(15deg);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.1);
+  }
+
+  /* Custom Range Slider Thumb Styling (Floating inside padded track) */
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 3px solid var(--background);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.25);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 3px solid var(--background);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  
+  /* ========================================================
+     ERA THEMES: LIGHT & DARK DYNAMIC VISUALS
+     ======================================================== */
+  
+  /* Medieval Era (< 1500) */
+  .bg-era-medieval {
+    background-color: #120e0e;
+    background-image: radial-gradient(circle at 50% 30%, rgba(160, 70, 20, 0.3) 0%, rgba(15, 10, 8, 0.98) 100%);
+  }
+  html.light .bg-era-medieval {
+    background-color: #f7f0e1;
+    background-image: radial-gradient(circle at 50% 30%, rgba(217, 119, 6, 0.15) 0%, rgba(247, 240, 225, 1) 100%);
+  }
+
+  html.era-medieval body {
+    --background: #120e0e;
+    --foreground: #f59e0b;
+    --primary: #d97706;
+    --card: rgba(26, 20, 18, 0.9);
+    --border: rgba(217, 119, 6, 0.3);
+  }
+  html.light.era-medieval body {
+    --background: #f7f0e1;
+    --foreground: #451a03;
+    --primary: #b45309;
+    --card: rgba(255, 250, 240, 0.95);
+    --border: rgba(180, 83, 9, 0.25);
+  }
+
+  /* Renaissance Era (1500 - 1799) */
+  .bg-era-renaissance {
+    background-color: #1a1610;
+    background-image: radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.3) 0%, rgba(20, 16, 10, 0.98) 100%);
+  }
+  html.light .bg-era-renaissance {
+    background-color: #f9f4e6;
+    background-image: radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.2) 0%, rgba(249, 244, 230, 1) 100%);
+  }
+
+  html.era-renaissance body {
+    --background: #1a1610;
+    --foreground: #fbbf24;
+    --primary: #d97706;
+    --card: rgba(30, 24, 16, 0.9);
+    --border: rgba(212, 175, 55, 0.3);
+  }
+  html.light.era-renaissance body {
+    --background: #f9f4e6;
+    --foreground: #3b2a1a;
+    --primary: #d97706;
+    --card: rgba(255, 252, 245, 0.95);
+    --border: rgba(212, 175, 55, 0.3);
+  }
+
+  /* Industrial Era (1800 - 1899) */
+  .bg-era-industrial {
+    background-color: #181a1c;
+    background-image: radial-gradient(ellipse at center, rgba(100, 90, 80, 0.35) 0%, rgba(15, 15, 15, 0.98) 100%);
+  }
+  html.light .bg-era-industrial {
+    background-color: #e2e8f0;
+    background-image: radial-gradient(ellipse at center, rgba(203, 213, 225, 0.5) 0%, rgba(226, 232, 240, 1) 100%);
+  }
+
+  html.era-industrial body {
+    --background: #181a1c;
+    --foreground: #e2e8f0;
+    --primary: #94a3b8;
+    --card: rgba(30, 32, 35, 0.9);
+    --border: rgba(148, 163, 184, 0.3);
+  }
+  html.light.era-industrial body {
+    --background: #e2e8f0;
+    --foreground: #0f172a;
+    --primary: #475569;
+    --card: rgba(255, 255, 255, 0.95);
+    --border: rgba(71, 85, 105, 0.25);
+  }
+
+  /* Early 20th Century / Silent Film (1900 - 1949) */
+  .bg-era-early20th {
+    background-color: #161412;
+    background-image: radial-gradient(circle at center, rgba(210, 190, 160, 0.2) 0%, rgba(15, 12, 10, 0.98) 100%);
+  }
+  html.light .bg-era-early20th {
+    background-color: #ece5d8;
+    background-image: radial-gradient(circle at center, rgba(245, 240, 230, 0.8) 0%, rgba(236, 229, 216, 1) 100%);
+  }
+
+  html.era-early20th body {
+    --background: #161412;
+    --foreground: #e7e5e4;
+    --primary: #a8a29e;
+    --card: rgba(28, 25, 23, 0.9);
+    --border: rgba(168, 162, 158, 0.3);
+  }
+  html.light.era-early20th body {
+    --background: #ece5d8;
+    --foreground: #292524;
+    --primary: #78716c;
+    --card: rgba(255, 253, 248, 0.95);
+    --border: rgba(120, 113, 108, 0.25);
+  }
+
+  /* Golden Era / 60s & 70s (1950 - 1979) */
+  .bg-era-golden {
+    background-color: #181410;
+    background-image: radial-gradient(circle at 50% 20%, rgba(245, 158, 11, 0.25) 0%, rgba(18, 14, 10, 0.98) 100%);
+  }
+  html.light .bg-era-golden {
+    background-color: #fef3c7;
+    background-image: radial-gradient(circle at 50% 20%, rgba(251, 191, 36, 0.3) 0%, rgba(254, 243, 199, 1) 100%);
+  }
+
+  html.era-golden body {
+    --background: #181410;
+    --foreground: #fef08a;
+    --primary: #f59e0b;
+    --card: rgba(30, 24, 18, 0.9);
+    --border: rgba(245, 158, 11, 0.3);
+  }
+  html.light.era-golden body {
+    --background: #fef3c7;
+    --foreground: #78350f;
+    --primary: #d97706;
+    --card: rgba(255, 254, 245, 0.95);
+    --border: rgba(217, 119, 6, 0.25);
+  }
+
+  /* Retrowave 80s & 90s (1980 - 1999) */
+  .bg-era-retro {
+    background-color: #0a0518;
+    background-image: radial-gradient(circle at 50% 30%, rgba(255, 0, 128, 0.25) 0%, rgba(10, 5, 25, 0.98) 100%);
+  }
+  html.light .bg-era-retro {
+    background-color: #fdf2f8;
+    background-image: radial-gradient(circle at 50% 30%, rgba(244, 114, 182, 0.2) 0%, rgba(253, 242, 248, 1) 100%);
+  }
+
+  html.era-retro body {
+    --background: #0a0518;
+    --foreground: #f472b6;
+    --primary: #ec4899;
+    --card: rgba(22, 12, 38, 0.9);
+    --border: rgba(236, 72, 153, 0.4);
+  }
+  html.light.era-retro body {
+    --background: #fdf2f8;
+    --foreground: #831843;
+    --primary: #db2777;
+    --card: rgba(255, 255, 255, 0.95);
+    --border: rgba(219, 39, 119, 0.3);
+  }
+
+  /* Modern Era (2000+) */
+  .bg-era-modern {
+    background-color: #090d16;
+    background-image: radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.2) 0%, rgba(5, 8, 18, 0.98) 100%);
+  }
+  html.light .bg-era-modern {
+    background-color: #f8fafc;
+    background-image: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.15) 0%, rgba(248, 250, 252, 1) 100%);
+  }
+
+  html.era-modern body {
+    --background: #090d16;
+    --foreground: #f8fafc;
+    --primary: #38bdf8;
+    --card: rgba(18, 24, 38, 0.88);
+    --border: rgba(56, 189, 248, 0.25);
+  }
+  html.light.era-modern body {
+    --background: #f8fafc;
+    --foreground: #0f172a;
+    --primary: #0284c7;
+    --card: rgba(255, 255, 255, 0.95);
+    --border: rgba(2, 132, 199, 0.2);
+  }
+}
+
+/* RETROWAVE 80S SYNTHWAVE GRID & SUN (CLEAN & NON-BROKEN) */
+.retrowave-grid-wrapper {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.retrowave-sun {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: linear-gradient(to bottom, #ff007f 0%, #ffaa00 100%);
+  box-shadow: 0 0 60px rgba(255, 0, 127, 0.5);
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.retrowave-grid {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 45vh;
+  background-image: 
+    linear-gradient(to right, rgba(255, 0, 128, 0.3) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 240, 255, 0.3) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
+}
+
+/* CRT SCANLINE OVERLAY */
+.crt-scanlines {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.2) 50%
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+/* DUST OVERLAY */
+.dust-vignette {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+/* GLOBAL STYLED SELECT & OPTION DROPDOWNS */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23F59E0B' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 1.1em;
+  padding-right: 2.5rem !important;
+}
+
+select option {
+  background-color: #ffffff;
+  color: #0f172a;
+  padding: 10px 14px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.dark select option,
+html.dark select option {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
