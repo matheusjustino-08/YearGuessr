@@ -13,7 +13,7 @@ interface Ad {
   link_destino?: string;
   imagem_url?: string;
   formato: string;
-  posicao?: string; // 'esquerda' | 'direita' | 'ambos'
+  posicao?: string;
   ativo: boolean;
   mostrar_botao?: boolean;
   texto_botao?: string;
@@ -51,12 +51,12 @@ const EMPTY_AD: AdFormData = {
   texto_botao: 'Acessar',
 };
 
-// Defined outside the parent to prevent React from remounting on every render
-function AdForm({ data, onChange, onSubmit, submitLabel }: {
+function AdForm({ data, onChange, onSubmit, submitLabel, saving }: {
   data: AdFormData;
   onChange: (d: AdFormData) => void;
   onSubmit: (e: React.FormEvent) => void;
   submitLabel: string;
+  saving?: boolean;
 }) {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -110,7 +110,7 @@ function AdForm({ data, onChange, onSubmit, submitLabel }: {
             />
           </div>
         )}
-        <p className="text-[11px] text-muted-foreground mt-1">Aceita SVG, PNG, WebP, JPG, GIF e Data URIs de qualquer servidor (Imgur, Google Drive, Dropbox, Cloudinary, etc.).</p>
+        <p className="text-[11px] text-muted-foreground mt-1">Aceita SVG, PNG, WebP, JPG, GIF e Data URIs de qualquer servidor.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -182,9 +182,17 @@ function AdForm({ data, onChange, onSubmit, submitLabel }: {
 
       <button
         type="submit"
-        className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm cursor-pointer hover:bg-primary/90 transition-colors shadow-md active:scale-98"
+        disabled={saving}
+        className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm cursor-pointer hover:bg-primary/90 transition-colors shadow-md active:scale-98 disabled:opacity-50 flex items-center justify-center gap-2"
       >
-        {submitLabel}
+        {saving ? (
+          <>
+            <RefreshCw className="w-4 h-4 animate-spin" />
+            <span>Salvando Alterações...</span>
+          </>
+        ) : (
+          <span>{submitLabel}</span>
+        )}
       </button>
     </form>
   );
@@ -193,8 +201,10 @@ function AdForm({ data, onChange, onSubmit, submitLabel }: {
 export function AdManagerSection({ supabase }: Props) {
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [newAd, setNewAd] = useState<AdFormData>({ ...EMPTY_AD });
   const [editingAd, setEditingAd] = useState<(Ad & AdFormData) | null>(null);
+  const [modalError, setModalError] = useState('');
   const [selectedReportAd, setSelectedReportAd] = useState<Ad | null>(null);
   const [msg, setMsg] = useState('');
 
@@ -264,50 +274,54 @@ export function AdManagerSection({ supabase }: Props) {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSaving(true);
     try {
-      const payload: any = {
+      const corePayload = {
         titulo: newAd.titulo,
         subtitulo: newAd.subtitulo,
         link_destino: newAd.link_destino,
         imagem_url: newAd.imagem_url ? resolveImageUrl(newAd.imagem_url) : null,
         formato: newAd.formato,
-        posicao: newAd.posicao || 'ambos',
         ativo: newAd.ativo,
-        mostrar_botao: newAd.mostrar_botao,
-        texto_botao: newAd.texto_botao || 'Acessar',
       };
 
-      const { data, error } = await supabase.from('anuncios').insert([payload]).select();
-      if (error && error.message?.includes('column')) {
-        delete payload.mostrar_botao;
-        delete payload.texto_botao;
-        delete payload.posicao;
-        const res = await supabase.from('anuncios').insert([payload]).select();
-        if (res.error) throw res.error;
-        if (res.data && res.data[0]) {
-          localStorage.setItem(`yearguessr_ad_showbtn_${res.data[0].id}`, String(newAd.mostrar_botao));
-          localStorage.setItem(`yearguessr_ad_textbtn_${res.data[0].id}`, newAd.texto_botao || 'Acessar');
-          localStorage.setItem(`yearguessr_ad_pos_${res.data[0].id}`, newAd.posicao || 'ambos');
+      const { data, error } = await supabase.from('anuncios').insert([corePayload]).select();
+      if (error) throw error;
+
+      if (data && data[0]) {
+        const createdId = data[0].id;
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`yearguessr_ad_showbtn_${createdId}`, String(newAd.mostrar_botao));
+          localStorage.setItem(`yearguessr_ad_textbtn_${createdId}`, newAd.texto_botao || 'Acessar');
+          localStorage.setItem(`yearguessr_ad_pos_${createdId}`, newAd.posicao || 'ambos');
         }
-      } else if (error) {
-        throw error;
-      } else if (data && data[0]) {
-        localStorage.setItem(`yearguessr_ad_showbtn_${data[0].id}`, String(newAd.mostrar_botao));
-        localStorage.setItem(`yearguessr_ad_textbtn_${data[0].id}`, newAd.texto_botao || 'Acessar');
-        localStorage.setItem(`yearguessr_ad_pos_${data[0].id}`, newAd.posicao || 'ambos');
+
+        try {
+          await supabase.from('anuncios').update({
+            posicao: newAd.posicao || 'ambos',
+            mostrar_botao: newAd.mostrar_botao,
+            texto_botao: newAd.texto_botao || 'Acessar',
+          }).eq('id', createdId);
+        } catch {
+          // Ignore
+        }
       }
 
       showMsg('Anúncio criado com sucesso!');
       setNewAd({ ...EMPTY_AD });
-      loadAds();
+      await loadAds();
     } catch (err: unknown) {
       showMsg(`Erro ao criar anúncio: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingAd) return;
+    setSaving(true);
+    setModalError('');
     try {
       if (typeof window !== 'undefined') {
         localStorage.setItem(`yearguessr_ad_showbtn_${editingAd.id}`, String(editingAd.mostrar_botao));
@@ -315,34 +329,37 @@ export function AdManagerSection({ supabase }: Props) {
         localStorage.setItem(`yearguessr_ad_pos_${editingAd.id}`, editingAd.posicao || 'ambos');
       }
 
-      const payload: any = {
+      const corePayload = {
         titulo: editingAd.titulo,
         subtitulo: editingAd.subtitulo,
         link_destino: editingAd.link_destino,
         imagem_url: editingAd.imagem_url ? resolveImageUrl(editingAd.imagem_url) : null,
         formato: editingAd.formato,
-        posicao: editingAd.posicao || 'ambos',
         ativo: editingAd.ativo,
-        mostrar_botao: editingAd.mostrar_botao,
-        texto_botao: editingAd.texto_botao || 'Acessar',
       };
 
-      let { error } = await supabase.from('anuncios').update(payload).eq('id', editingAd.id);
-      if (error && error.message?.includes('column')) {
-        delete payload.mostrar_botao;
-        delete payload.texto_botao;
-        delete payload.posicao;
-        const res = await supabase.from('anuncios').update(payload).eq('id', editingAd.id);
-        if (res.error) throw res.error;
-      } else if (error) {
-        throw error;
+      const { error: coreErr } = await supabase.from('anuncios').update(corePayload).eq('id', editingAd.id);
+      if (coreErr) throw coreErr;
+
+      try {
+        await supabase.from('anuncios').update({
+          posicao: editingAd.posicao || 'ambos',
+          mostrar_botao: editingAd.mostrar_botao,
+          texto_botao: editingAd.texto_botao || 'Acessar',
+        }).eq('id', editingAd.id);
+      } catch {
+        // Silently fall back to localStorage
       }
 
       showMsg('Anúncio e preferências salvas com sucesso!');
       setEditingAd(null);
-      loadAds();
+      await loadAds();
     } catch (err: unknown) {
-      showMsg(`Erro ao salvar: ${err instanceof Error ? err.message : String(err)}`);
+      const errMsg = err instanceof Error ? err.message : String(err);
+      setModalError(`Erro ao salvar: ${errMsg}`);
+      showMsg(`Erro ao salvar: ${errMsg}`);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -381,7 +398,7 @@ Gerado por YearGuessr Analytics`;
       {/* Create Form */}
       <div className="p-5 rounded-2xl border border-border/60 bg-muted/20 space-y-4">
         <h3 className="text-sm font-bold text-foreground">Novo Letreiro / Anúncio</h3>
-        <AdForm data={newAd} onChange={setNewAd} onSubmit={handleCreate} submitLabel="Criar Letreiro" />
+        <AdForm data={newAd} onChange={setNewAd} onSubmit={handleCreate} submitLabel="Criar Letreiro" saving={saving} />
       </div>
 
       {/* List & Live Analytics */}
@@ -490,15 +507,18 @@ Gerado por YearGuessr Analytics`;
 
                 <button
                   type="button"
-                  onClick={() => setEditingAd({
-                    ...ad,
-                    subtitulo: ad.subtitulo || '',
-                    link_destino: ad.link_destino || '',
-                    imagem_url: ad.imagem_url || '',
-                    posicao: ad.posicao || 'ambos',
-                    mostrar_botao: !(ad.mostrar_botao === false || (ad.mostrar_botao as unknown) === 'false'),
-                    texto_botao: ad.texto_botao || 'Acessar',
-                  })}
+                  onClick={() => {
+                    setModalError('');
+                    setEditingAd({
+                      ...ad,
+                      subtitulo: ad.subtitulo || '',
+                      link_destino: ad.link_destino || '',
+                      imagem_url: ad.imagem_url || '',
+                      posicao: ad.posicao || 'ambos',
+                      mostrar_botao: !(ad.mostrar_botao === false || (ad.mostrar_botao as unknown) === 'false'),
+                      texto_botao: ad.texto_botao || 'Acessar',
+                    });
+                  }}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-border/60 bg-muted/30 hover:bg-muted text-foreground transition-all cursor-pointer"
                 >
                   <Pencil className="w-3.5 h-3.5" />
@@ -527,13 +547,29 @@ Gerado por YearGuessr Analytics`;
               <h3 className="text-base font-bold text-foreground">Editar Letreiro</h3>
               <button
                 type="button"
-                onClick={() => setEditingAd(null)}
+                onClick={() => {
+                  setEditingAd(null);
+                  setModalError('');
+                }}
                 className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <AdForm data={editingAd} onChange={d => setEditingAd(prev => prev ? { ...prev, ...d } : null)} onSubmit={handleSaveEdit} submitLabel="Salvar Alterações" />
+
+            {modalError && (
+              <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-500 text-xs font-bold">
+                {modalError}
+              </div>
+            )}
+
+            <AdForm
+              data={editingAd}
+              onChange={d => setEditingAd(prev => prev ? { ...prev, ...d } : null)}
+              onSubmit={handleSaveEdit}
+              submitLabel="Salvar Alterações"
+              saving={saving}
+            />
           </div>
         </div>
       )}
