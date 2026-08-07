@@ -75,9 +75,10 @@ function SingleBannerItem({ ad, tAd, handleAdClick }: { ad: any; tAd: any; handl
 export function SideBanners() {
   const tAd = useTranslations('advertise');
   const supabase = createClient();
-  const [dynamicAds, setDynamicAds] = useState<any[]>([]);
+  const [leftAds, setLeftAds] = useState<any[]>([]);
+  const [rightAds, setRightAds] = useState<any[]>([]);
   const [indexSlot1, setIndexSlot1] = useState(0);
-  const [indexSlot2, setIndexSlot2] = useState(1);
+  const [indexSlot2, setIndexSlot2] = useState(0);
 
   useEffect(() => {
     const fetchAds = async () => {
@@ -100,23 +101,25 @@ export function SideBanners() {
               if (localTextSetting !== null) {
                 ad.texto_botao = localTextSetting;
               }
+              const localPosSetting = localStorage.getItem(`yearguessr_ad_pos_${ad.id}`);
+              if (localPosSetting !== null) {
+                ad.posicao = localPosSetting;
+              }
             }
             return ad;
           });
 
-          setDynamicAds(processedData);
+          // Slot 1 (Left): posicao === 'esquerda' or 'ambos' or undefined
+          const left = processedData.filter(a => a.posicao === 'esquerda' || a.posicao === 'ambos' || !a.posicao);
+          // Slot 2 (Right): posicao === 'direita' or 'ambos' or undefined
+          const right = processedData.filter(a => a.posicao === 'direita' || a.posicao === 'ambos' || !a.posicao);
+
+          setLeftAds(left);
+          setRightAds(right);
 
           // Initial view count
-          processedData.slice(0, 2).forEach(async (ad) => {
-            try {
-              await supabase
-                .from('anuncios')
-                .update({ visualizacoes: (ad.visualizacoes || 0) + 1 })
-                .eq('id', ad.id);
-            } catch {
-              // Ignore view error
-            }
-          });
+          if (left[0]) trackView(left[0]);
+          if (right[0] && right[0].id !== left[0]?.id) trackView(right[0]);
         }
       } catch {
         // Fallback
@@ -126,28 +129,35 @@ export function SideBanners() {
     fetchAds();
   }, [supabase]);
 
-  // Automatic Rotation Carousel every 5.5 seconds if multiple ads exist
+  // Automatic Rotation Carousel every 5.5 seconds for Slot 1
   useEffect(() => {
-    if (dynamicAds.length <= 1) return;
+    if (leftAds.length <= 1) return;
 
     const timer = setInterval(() => {
       setIndexSlot1(prev => {
-        const next = (prev + 1) % dynamicAds.length;
-        trackView(dynamicAds[next]);
+        const next = (prev + 1) % leftAds.length;
+        trackView(leftAds[next]);
         return next;
       });
-
-      if (dynamicAds.length > 2) {
-        setIndexSlot2(prev => {
-          const next = (prev + 1) % dynamicAds.length;
-          trackView(dynamicAds[next]);
-          return next;
-        });
-      }
     }, 5500);
 
     return () => clearInterval(timer);
-  }, [dynamicAds]);
+  }, [leftAds]);
+
+  // Automatic Rotation Carousel every 5.5 seconds for Slot 2
+  useEffect(() => {
+    if (rightAds.length <= 1) return;
+
+    const timer = setInterval(() => {
+      setIndexSlot2(prev => {
+        const next = (prev + 1) % rightAds.length;
+        trackView(rightAds[next]);
+        return next;
+      });
+    }, 5500);
+
+    return () => clearInterval(timer);
+  }, [rightAds]);
 
   const trackView = async (ad: any) => {
     if (!ad) return;
@@ -172,115 +182,88 @@ export function SideBanners() {
     }
   };
 
-  // Render rotating dynamic ads
-  if (dynamicAds.length > 0) {
-    const ad1 = dynamicAds[indexSlot1 % dynamicAds.length];
-    const ad2 = dynamicAds.length > 1 ? dynamicAds[indexSlot2 % dynamicAds.length] : null;
+  const adLeft = leftAds.length > 0 ? leftAds[indexSlot1 % leftAds.length] : null;
+  const adRight = rightAds.length > 0 ? rightAds[indexSlot2 % rightAds.length] : null;
 
-    return (
-      <div className="w-full max-w-4xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
-        {/* Slot 1 Carousel */}
+  return (
+    <div className="w-full max-w-4xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+      {/* Slot 1 (Left Banner Slot) */}
+      {adLeft ? (
         <div className="h-[58px] relative overflow-hidden flex items-center justify-center">
           <AnimatePresence mode="wait">
             <motion.div
-              key={ad1.id + '-' + indexSlot1}
+              key={adLeft.id + '-' + indexSlot1}
               initial={{ opacity: 0, x: 15 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -15 }}
               transition={{ duration: 0.4, ease: 'easeInOut' }}
               className="h-full flex items-center justify-center"
             >
-              <SingleBannerItem ad={ad1} tAd={tAd} handleAdClick={handleAdClick} />
+              <SingleBannerItem ad={adLeft} tAd={tAd} handleAdClick={handleAdClick} />
             </motion.div>
           </AnimatePresence>
         </div>
-
-        {/* Slot 2 Carousel or Default Partnership Modal */}
-        {ad2 && ad2.id !== ad1.id ? (
-          <div className="h-[58px] relative overflow-hidden flex items-center justify-center">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={ad2.id + '-' + indexSlot2}
-                initial={{ opacity: 0, x: 15 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -15 }}
-                transition={{ duration: 0.4, ease: 'easeInOut' }}
-                className="h-full flex items-center justify-center"
-              >
-                <SingleBannerItem ad={ad2} tAd={tAd} handleAdClick={handleAdClick} />
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        ) : (
-          <AdvertiseModal
-            trigger={
-              <div className="w-full sm:w-[340px] h-[58px] px-4 rounded-2xl bg-card/90 border border-sky-500/30 shadow-md backdrop-blur-xl flex items-center justify-between text-card-foreground">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="p-2 rounded-xl bg-sky-500/10 text-sky-500 border border-sky-500/20 shrink-0">
-                    <Globe2 className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-black uppercase tracking-tight text-foreground truncate">
-                      {tAd('brand_history')}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground truncate">{tAd('edition_label')} (300x50px)</p>
-                  </div>
+      ) : (
+        <AdvertiseModal
+          trigger={
+            <div className="w-full sm:w-[320px] h-[54px] px-4 rounded-2xl bg-card/90 border border-amber-500/30 shadow-md backdrop-blur-xl flex items-center justify-between text-card-foreground">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">
+                  <Building2 className="w-4 h-4" />
                 </div>
-                <span className="px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-[10px] font-bold font-mono shrink-0">
-                  {tAd('know_more_btn')}
-                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-black uppercase tracking-tight text-foreground truncate">
+                    {tAd('banner_title')}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground truncate">{tAd('partner_label')} (300x50px)</p>
+                </div>
               </div>
-            }
-          />
-        )}
-      </div>
-    );
-  }
-
-  // Fallback default partnership letreiros (300x50px)
-  return (
-    <div className="w-full max-w-4xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
-      <AdvertiseModal
-        trigger={
-          <div className="w-full sm:w-[320px] h-[54px] px-4 rounded-2xl bg-card/90 border border-amber-500/30 shadow-md backdrop-blur-xl flex items-center justify-between text-card-foreground">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">
-                <Building2 className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-black uppercase tracking-tight text-foreground truncate">
-                  {tAd('banner_title')}
-                </p>
-                <p className="text-[10px] text-muted-foreground truncate">{tAd('partner_label')} (300x50px)</p>
-              </div>
+              <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] font-bold font-mono shrink-0">
+                {tAd('advertise_btn')}
+              </span>
             </div>
-            <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] font-bold font-mono shrink-0">
-              {tAd('advertise_btn')}
-            </span>
-          </div>
-        }
-      />
+          }
+        />
+      )}
 
-      <AdvertiseModal
-        trigger={
-          <div className="w-full sm:w-[320px] h-[54px] px-4 rounded-2xl bg-card/90 border border-sky-500/30 shadow-md backdrop-blur-xl flex items-center justify-between text-card-foreground">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="p-2 rounded-xl bg-sky-500/10 text-sky-500 border border-sky-500/20 shrink-0">
-                <Globe2 className="w-4 h-4" />
+      {/* Slot 2 (Right Banner Slot) */}
+      {adRight && adRight.id !== adLeft?.id ? (
+        <div className="h-[58px] relative overflow-hidden flex items-center justify-center">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={adRight.id + '-' + indexSlot2}
+              initial={{ opacity: 0, x: 15 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -15 }}
+              transition={{ duration: 0.4, ease: 'easeInOut' }}
+              className="h-full flex items-center justify-center"
+            >
+              <SingleBannerItem ad={adRight} tAd={tAd} handleAdClick={handleAdClick} />
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      ) : (
+        <AdvertiseModal
+          trigger={
+            <div className="w-full sm:w-[340px] h-[58px] px-4 rounded-2xl bg-card/90 border border-sky-500/30 shadow-md backdrop-blur-xl flex items-center justify-between text-card-foreground">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="p-2 rounded-xl bg-sky-500/10 text-sky-500 border border-sky-500/20 shrink-0">
+                  <Globe2 className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-black uppercase tracking-tight text-foreground truncate">
+                    {tAd('brand_history')}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground truncate">{tAd('edition_label')} (300x50px)</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <p className="text-xs font-black uppercase tracking-tight text-foreground truncate">
-                  {tAd('brand_history')}
-                </p>
-                <p className="text-[10px] text-muted-foreground truncate">{tAd('edition_label')} (300x50px)</p>
-              </div>
+              <span className="px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-[10px] font-bold font-mono shrink-0">
+                {tAd('know_more_btn')}
+              </span>
             </div>
-            <span className="px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-[10px] font-bold font-mono shrink-0">
-              {tAd('know_more_btn')}
-            </span>
-          </div>
-        }
-      />
+          }
+        />
+      )}
     </div>
   );
 }

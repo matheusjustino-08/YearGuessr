@@ -20,8 +20,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "YearGuessr",
-  description: "Guess the historical year",
+  title: "YearGuessr - Adivinhe o Ano da História",
+  description: "O jogo definitivo de adivinhação de anos históricos e imagens clássicas.",
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/logo-icon.svg', type: 'image/svg+xml' },
+      { url: '/logo-icon.png', type: 'image/png' },
+    ],
+    apple: '/logo-icon.png',
+  },
 };
 
 export default async function RootLayout({

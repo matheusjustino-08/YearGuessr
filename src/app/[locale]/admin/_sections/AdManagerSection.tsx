@@ -13,6 +13,7 @@ interface Ad {
   link_destino?: string;
   imagem_url?: string;
   formato: string;
+  posicao?: string; // 'esquerda' | 'direita' | 'ambos'
   ativo: boolean;
   mostrar_botao?: boolean;
   texto_botao?: string;
@@ -29,6 +30,7 @@ interface AdFormData {
   link_destino: string;
   imagem_url: string;
   formato: string;
+  posicao: string;
   ativo: boolean;
   mostrar_botao: boolean;
   texto_botao: string;
@@ -43,6 +45,7 @@ const EMPTY_AD: AdFormData = {
   link_destino: '',
   imagem_url: '',
   formato: '300x50',
+  posicao: 'ambos',
   ativo: true,
   mostrar_botao: true,
   texto_botao: 'Acessar',
@@ -110,7 +113,7 @@ function AdForm({ data, onChange, onSubmit, submitLabel }: {
         <p className="text-[11px] text-muted-foreground mt-1">Aceita SVG, PNG, WebP, JPG, GIF e Data URIs de qualquer servidor (Imgur, Google Drive, Dropbox, Cloudinary, etc.).</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
           <label className={labelCls}>Link de Destino</label>
           <input
@@ -122,13 +125,25 @@ function AdForm({ data, onChange, onSubmit, submitLabel }: {
           />
         </div>
         <div>
-          <label className={labelCls}>Formato do Anúncio (Diretrizes)</label>
+          <label className={labelCls}>Formato do Anúncio</label>
           <CustomSelect
             value={data.formato}
             onChange={val => onChange({ ...data, formato: val })}
             options={[
-              { value: '300x50', label: '300x50 — Letreiro Inferior (Diretriz)' },
-              { value: '728x90', label: '728x90 — Leaderboard Topo (Diretriz)' },
+              { value: '300x50', label: '300x50 — Letreiro Inferior' },
+              { value: '728x90', label: '728x90 — Leaderboard Topo' },
+            ]}
+          />
+        </div>
+        <div>
+          <label className={labelCls}>Posição do Letreiro (Slot)</label>
+          <CustomSelect
+            value={data.posicao || 'ambos'}
+            onChange={val => onChange({ ...data, posicao: val })}
+            options={[
+              { value: 'ambos', label: 'Ambos / Rotação Geral' },
+              { value: 'esquerda', label: 'Esquerda (Slot 1)' },
+              { value: 'direita', label: 'Direita (Slot 2)' },
             ]}
           />
         </div>
@@ -202,6 +217,10 @@ export function AdManagerSection({ supabase }: Props) {
           if (localTextSetting !== null) {
             ad.texto_botao = localTextSetting;
           }
+          const localPosSetting = localStorage.getItem(`yearguessr_ad_pos_${ad.id}`);
+          if (localPosSetting !== null) {
+            ad.posicao = localPosSetting;
+          }
         }
         return ad;
       });
@@ -252,6 +271,7 @@ export function AdManagerSection({ supabase }: Props) {
         link_destino: newAd.link_destino,
         imagem_url: newAd.imagem_url ? resolveImageUrl(newAd.imagem_url) : null,
         formato: newAd.formato,
+        posicao: newAd.posicao || 'ambos',
         ativo: newAd.ativo,
         mostrar_botao: newAd.mostrar_botao,
         texto_botao: newAd.texto_botao || 'Acessar',
@@ -261,17 +281,20 @@ export function AdManagerSection({ supabase }: Props) {
       if (error && error.message?.includes('column')) {
         delete payload.mostrar_botao;
         delete payload.texto_botao;
+        delete payload.posicao;
         const res = await supabase.from('anuncios').insert([payload]).select();
         if (res.error) throw res.error;
         if (res.data && res.data[0]) {
           localStorage.setItem(`yearguessr_ad_showbtn_${res.data[0].id}`, String(newAd.mostrar_botao));
           localStorage.setItem(`yearguessr_ad_textbtn_${res.data[0].id}`, newAd.texto_botao || 'Acessar');
+          localStorage.setItem(`yearguessr_ad_pos_${res.data[0].id}`, newAd.posicao || 'ambos');
         }
       } else if (error) {
         throw error;
       } else if (data && data[0]) {
         localStorage.setItem(`yearguessr_ad_showbtn_${data[0].id}`, String(newAd.mostrar_botao));
         localStorage.setItem(`yearguessr_ad_textbtn_${data[0].id}`, newAd.texto_botao || 'Acessar');
+        localStorage.setItem(`yearguessr_ad_pos_${data[0].id}`, newAd.posicao || 'ambos');
       }
 
       showMsg('Anúncio criado com sucesso!');
@@ -286,10 +309,10 @@ export function AdManagerSection({ supabase }: Props) {
     e.preventDefault();
     if (!editingAd) return;
     try {
-      // Store in localStorage for 100% reliable offline/online persistence
       if (typeof window !== 'undefined') {
         localStorage.setItem(`yearguessr_ad_showbtn_${editingAd.id}`, String(editingAd.mostrar_botao));
         localStorage.setItem(`yearguessr_ad_textbtn_${editingAd.id}`, editingAd.texto_botao || 'Acessar');
+        localStorage.setItem(`yearguessr_ad_pos_${editingAd.id}`, editingAd.posicao || 'ambos');
       }
 
       const payload: any = {
@@ -298,6 +321,7 @@ export function AdManagerSection({ supabase }: Props) {
         link_destino: editingAd.link_destino,
         imagem_url: editingAd.imagem_url ? resolveImageUrl(editingAd.imagem_url) : null,
         formato: editingAd.formato,
+        posicao: editingAd.posicao || 'ambos',
         ativo: editingAd.ativo,
         mostrar_botao: editingAd.mostrar_botao,
         texto_botao: editingAd.texto_botao || 'Acessar',
@@ -307,6 +331,7 @@ export function AdManagerSection({ supabase }: Props) {
       if (error && error.message?.includes('column')) {
         delete payload.mostrar_botao;
         delete payload.texto_botao;
+        delete payload.posicao;
         const res = await supabase.from('anuncios').update(payload).eq('id', editingAd.id);
         if (res.error) throw res.error;
       } else if (error) {
@@ -329,6 +354,7 @@ export function AdManagerSection({ supabase }: Props) {
 ----------------------------------------
 Campanha: ${ad.titulo}
 Formato: ${ad.formato}
+Posição: ${ad.posicao || 'ambos'}
 Status: ${ad.ativo ? 'Ativo' : 'Inativo'}
 Visualizações: ${views.toLocaleString('pt-BR')}
 Cliques: ${clicks.toLocaleString('pt-BR')}
@@ -375,6 +401,7 @@ Gerado por YearGuessr Analytics`;
           const clicks = ad.cliques || 0;
           const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : '0.0';
           const isButtonEnabled = !(ad.mostrar_botao === false || (ad.mostrar_botao as unknown) === 'false');
+          const slotPos = ad.posicao === 'esquerda' ? 'Letreiro Esquerdo' : ad.posicao === 'direita' ? 'Letreiro Direito' : 'Ambos (Rotação)';
 
           return (
             <div key={ad.id} className="p-5 rounded-2xl border border-border/60 bg-card/60 space-y-4 shadow-sm">
@@ -383,6 +410,7 @@ Gerado por YearGuessr Analytics`;
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-black truncate text-foreground">{ad.titulo}</p>
                     <span className="text-[10px] font-mono font-bold text-muted-foreground border border-border/50 rounded px-2 py-0.5">{ad.formato}</span>
+                    <span className="text-[10px] font-mono font-bold text-sky-500 border border-sky-500/30 rounded px-2 py-0.5 bg-sky-500/10">{slotPos}</span>
                     {!isButtonEnabled ? (
                       <span className="text-[10px] font-mono font-bold text-rose-500 border border-rose-500/30 rounded px-2 py-0.5 bg-rose-500/10">Sem Botão</span>
                     ) : (
@@ -398,7 +426,7 @@ Gerado por YearGuessr Analytics`;
                 {ad.imagem_url && (
                   <div className="w-20 h-10 rounded-xl overflow-hidden border border-border/40 bg-muted/30 shrink-0 shadow-xs">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={ad.imagem_url} alt={ad.titulo} className="w-full h-full object-cover" />
+                    <img src={ad.imagem_url} alt={ad.titulo} className="w-full h-full object-contain p-0.5" />
                   </div>
                 )}
               </div>
@@ -467,6 +495,7 @@ Gerado por YearGuessr Analytics`;
                     subtitulo: ad.subtitulo || '',
                     link_destino: ad.link_destino || '',
                     imagem_url: ad.imagem_url || '',
+                    posicao: ad.posicao || 'ambos',
                     mostrar_botao: !(ad.mostrar_botao === false || (ad.mostrar_botao as unknown) === 'false'),
                     texto_botao: ad.texto_botao || 'Acessar',
                   })}
