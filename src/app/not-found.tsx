@@ -1,6 +1,5 @@
 'use client';
 
-import "./globals.css";
 import Link from 'next/link';
 import Image from 'next/image';
 import { Home, Trophy, ArrowRight, Sparkles, History } from 'lucide-react';
