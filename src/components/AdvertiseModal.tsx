@@ -71,12 +71,12 @@ export function AdvertiseModal({ trigger }: { trigger?: React.ReactNode }) {
 
         {/* Modal Header */}
         <div className="flex items-center gap-3 pb-4 border-b border-border/40">
-          <div className="relative w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 overflow-hidden shrink-0">
+          <div className="relative w-20 h-20 shrink-0 drop-shadow-md -my-3">
             <Image
               src="/mascot-shrug.png"
               alt="YearGuessr Mascot"
               fill
-              className="object-cover object-top scale-110"
+              className="object-contain animate-in fade-in slide-in-from-bottom-3 duration-500 [mask-image:linear-gradient(to_bottom,black_65%,transparent_100%)]"
             />
           </div>
           <div>

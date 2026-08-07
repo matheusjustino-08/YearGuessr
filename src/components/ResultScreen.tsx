@@ -147,17 +147,25 @@ export function ResultScreen() {
 
       {/* Main Status Header */}
       <div className="space-y-2 relative z-10 flex flex-col items-center">
-        <div className="relative w-28 h-28 shrink-0 drop-shadow-md -mb-2">
+        <div className="relative w-32 h-32 shrink-0 drop-shadow-xl -mb-1">
           <Image
             src="/mascot-shrug.png"
             alt="YearGuessr Mascot"
             fill
-            className="object-contain animate-in zoom-in duration-300"
+            className="object-contain animate-in fade-in slide-in-from-bottom-4 duration-500 [mask-image:linear-gradient(to_bottom,black_65%,transparent_100%)]"
           />
         </div>
-        <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground font-serif">
-          {isWin ? tResult('won_title') : tResult('finished_title')}
-        </h2>
+
+        <div className="space-y-1">
+          <span className={`inline-block px-3 py-1 rounded-full text-[11px] font-mono font-black uppercase tracking-wider ${
+            isWin ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/30' : 'bg-rose-500/10 text-rose-500 border border-rose-500/30'
+          }`}>
+            {isWin ? '★ Palpite Exato!' : 'Desafio Finalizado'}
+          </span>
+          <h2 className={`text-2xl sm:text-3xl font-black tracking-tight ${isWin ? 'text-emerald-500 dark:text-emerald-400' : 'text-foreground'}`}>
+            {isWin ? tResult('won_title') : tResult('finished_title')}
+          </h2>
+        </div>
       </div>
       
       {/* Target Year Card */}

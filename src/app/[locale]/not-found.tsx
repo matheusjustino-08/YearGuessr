@@ -12,7 +12,7 @@ export default function NotFound() {
           src="/mascot-shrug.png"
           alt="YearGuessr Mascot 404"
           fill
-          className="object-contain animate-in fade-in zoom-in duration-500"
+          className="object-contain animate-in fade-in slide-in-from-bottom-5 duration-700 [mask-image:linear-gradient(to_bottom,black_65%,transparent_100%)]"
           priority
         />
       </div>
