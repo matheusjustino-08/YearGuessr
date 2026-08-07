@@ -1,28 +1,49 @@
 /**
  * Converts image URLs or raw SVG markup from sharing formats to direct-embeddable formats.
- * Supports raw <svg> markup, SVG Data URIs, PNG, WebP, JPG, GIF, Imgur, Dropbox, GitHub, and Google Drive URLs.
+ * Uses Base64 encoding for raw SVG code and Data URIs to guarantee 100% browser compatibility.
  */
 export function resolveImageUrl(url: string): string {
   if (!url) return url;
 
   const trimmed = url.trim();
 
-  // 1. Raw SVG markup pasted directly -> convert to SVG Data URI
+  // 1. Raw SVG markup pasted directly -> convert to Base64 SVG Data URI
   if (trimmed.startsWith('<svg') || trimmed.includes('<svg ') || trimmed.includes('xmlns="http://www.w3.org/2000/svg"')) {
-    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(trimmed)}`;
+    try {
+      const base64 = typeof window !== 'undefined'
+        ? window.btoa(unescape(encodeURIComponent(trimmed)))
+        : Buffer.from(trimmed).toString('base64');
+      return `data:image/svg+xml;base64,${base64}`;
+    } catch {
+      return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(trimmed)}`;
+    }
   }
 
-  // 2. Data URI (SVG or raster image)
+  // 2. SVG Data URI UTF8 -> convert to Base64 SVG Data URI for 100% img tag compatibility
+  if (trimmed.startsWith('data:image/svg+xml') && !trimmed.includes(';base64,')) {
+    const content = trimmed.replace(/^data:image\/svg\+xml(?:;charset=[^,]+)?,/, '');
+    try {
+      const decoded = decodeURIComponent(content);
+      const base64 = typeof window !== 'undefined'
+        ? window.btoa(unescape(encodeURIComponent(decoded)))
+        : Buffer.from(decoded).toString('base64');
+      return `data:image/svg+xml;base64,${base64}`;
+    } catch {
+      return trimmed;
+    }
+  }
+
+  // 3. Regular Data URIs (PNG, WebP, JPG, GIF)
   if (trimmed.startsWith('data:image/')) {
     return trimmed;
   }
 
-  // 3. GitHub SVG/Image blob URL -> raw content URL
+  // 4. GitHub SVG/Image blob URL -> raw content URL
   if (trimmed.includes('github.com') && trimmed.includes('/blob/')) {
     return trimmed.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
   }
 
-  // 4. Google Drive share URL -> direct thumbnail URL
+  // 5. Google Drive share URL -> direct thumbnail URL
   const driveFileMatch = trimmed.match(
     /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/
   );
@@ -44,13 +65,13 @@ export function resolveImageUrl(url: string): string {
     return `https://drive.google.com/thumbnail?id=${driveUcMatch[1]}&sz=w1200`;
   }
 
-  // 5. Imgur page link -> direct image link (e.g. https://imgur.com/abc -> https://i.imgur.com/abc.png)
+  // 6. Imgur page link -> direct image link
   const imgurMatch = trimmed.match(/^https?:\/\/(?:www\.)?imgur\.com\/([a-zA-Z0-9]{5,8})$/);
   if (imgurMatch) {
     return `https://i.imgur.com/${imgurMatch[1]}.png`;
   }
 
-  // 6. Dropbox share link -> direct raw image link
+  // 7. Dropbox share link -> direct raw image link
   if (trimmed.includes('dropbox.com')) {
     return trimmed.replace('dl=0', 'dl=1').replace('www.dropbox.com', 'dl.dropboxusercontent.com');
   }

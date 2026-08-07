@@ -20,18 +20,18 @@ function SingleTopAdItem({ topAd, tAd, handleAdClick }: { topAd: any; tAd: any; 
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => handleAdClick(topAd)}
-        className="w-full h-16 sm:h-20 rounded-2xl border-2 border-amber-500/40 hover:border-amber-500 shadow-xl flex items-center justify-end transition-all duration-300 group cursor-pointer hover:scale-[1.01] overflow-hidden relative bg-card/90 block"
+        className="relative inline-flex items-center justify-center cursor-pointer max-w-full h-full"
       >
-        {/* FULL UNZOOMED BANNER IMAGE */}
+        {/* PURE IMAGE ONLY - NO CARD BACKGROUND, NO BORDER, NO SHADOW, NO HOVER SCALE */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imageUrl}
           alt={topAd.titulo || 'Anúncio Topo'}
-          className="absolute inset-0 w-full h-full object-contain p-1"
+          className="max-h-[80px] w-auto h-auto object-contain block"
         />
 
         {showBtn && (
-          <span className="relative z-10 mr-4 px-4 py-2 rounded-full bg-amber-500 text-black font-bold text-xs font-mono shrink-0 group-hover:bg-amber-400 transition-colors flex items-center gap-1.5 shadow-lg">
+          <span className="absolute right-3 bottom-2 py-1.5 px-3.5 rounded-full bg-amber-500 text-black font-bold text-xs font-mono shrink-0 flex items-center gap-1.5 shadow-md z-10">
             <span>{btnText}</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </span>
@@ -47,14 +47,14 @@ function SingleTopAdItem({ topAd, tAd, handleAdClick }: { topAd: any; tAd: any; 
       target="_blank"
       rel="noopener noreferrer"
       onClick={() => handleAdClick(topAd)}
-      className="w-full h-14 sm:h-16 px-4 rounded-2xl bg-card/90 border-2 border-amber-500/40 hover:border-amber-500 shadow-lg backdrop-blur-xl flex items-center justify-between transition-all duration-300 group cursor-pointer hover:scale-[1.01] text-card-foreground overflow-hidden block"
+      className="w-full h-14 sm:h-16 px-4 rounded-2xl bg-card/90 border-2 border-amber-500/40 shadow-lg backdrop-blur-xl flex items-center justify-between text-card-foreground overflow-hidden block"
     >
       <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
-        <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/30 shrink-0 group-hover:scale-110 transition-transform">
+        <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/30 shrink-0">
           <Award className="w-5 h-5" />
         </div>
         <div className="min-w-0 text-left flex-1">
-          <p className="text-xs sm:text-sm font-black uppercase tracking-tight text-foreground truncate group-hover:text-amber-500 transition-colors">
+          <p className="text-xs sm:text-sm font-black uppercase tracking-tight text-foreground truncate">
             {topAd.titulo}
           </p>
           <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{topAd.subtitulo || tAd('official_sponsor_full')}</p>
@@ -62,7 +62,7 @@ function SingleTopAdItem({ topAd, tAd, handleAdClick }: { topAd: any; tAd: any; 
       </div>
 
       {showBtn && (
-        <span className="px-3 py-1.5 rounded-full bg-amber-500 text-black font-bold text-xs font-mono shrink-0 group-hover:bg-amber-400 transition-colors flex items-center gap-1 shadow-xs">
+        <span className="px-3 py-1.5 rounded-full bg-amber-500 text-black font-bold text-xs font-mono shrink-0 flex items-center gap-1 shadow-xs">
           <span>{btnText}</span>
           <ExternalLink className="w-3.5 h-3.5" />
         </span>
@@ -165,16 +165,16 @@ export function TopLeaderboardAd() {
     const currentAd = topAds[currentIndex % topAds.length];
 
     return (
-      <div className="w-full max-w-4xl mx-auto mb-4">
-        <div className="w-full h-16 sm:h-20 relative overflow-hidden">
+      <div className="w-full max-w-4xl mx-auto mb-4 flex items-center justify-center">
+        <div className="h-16 sm:h-20 relative overflow-hidden flex items-center justify-center">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentAd.id + '-' + currentIndex}
-              initial={{ opacity: 0, x: 25 }}
+              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -25 }}
+              exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.45, ease: 'easeInOut' }}
-              className="w-full h-full"
+              className="h-full flex items-center justify-center"
             >
               <SingleTopAdItem topAd={currentAd} tAd={tAd} handleAdClick={handleAdClick} />
             </motion.div>
