@@ -51,6 +51,11 @@ export default async function RootLayout({
       lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="icon" href="/favicon.ico?v=99" sizes="any" />
+        <link rel="shortcut icon" href="/favicon.ico?v=99" />
+        <link rel="apple-touch-icon" href="/logo-icon.png?v=99" />
+      </head>
       <body className="min-h-screen flex flex-col justify-between">
         <NextIntlClientProvider messages={messages}>
           <ThemeEngine>
