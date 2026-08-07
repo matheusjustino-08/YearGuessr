@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
-import {NextIntlClientProvider} from 'next-intl';
 import {getMessages} from 'next-intl/server';
 import {notFound} from 'next/navigation';
 import {routing} from '@/i18n/routing';
+import {IntlProviderWrapper} from '@/components/IntlProviderWrapper';
 import {ThemeEngine} from '@/components/ThemeEngine';
 import {Navbar} from '@/components/Navbar';
 import {Footer} from '@/components/Footer';
@@ -62,22 +62,13 @@ export default async function RootLayout({
         <link rel="manifest" href="/site.webmanifest" />
       </head>
       <body className="min-h-screen flex flex-col justify-between">
-        <NextIntlClientProvider 
-          messages={messages}
-          onError={(error) => {
-            if (error.code === 'MISSING_MESSAGE') return;
-            console.error(error);
-          }}
-          getMessageFallback={({ key, namespace }) => {
-            return `${namespace ? `${namespace}.` : ''}${key}`;
-          }}
-        >
+        <IntlProviderWrapper locale={locale} messages={messages}>
           <ThemeEngine>
             <Navbar />
             {children}
             <Footer />
           </ThemeEngine>
-        </NextIntlClientProvider>
+        </IntlProviderWrapper>
       </body>
     </html>
   );
