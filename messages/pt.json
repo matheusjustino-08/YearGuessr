@@ -11,7 +11,17 @@
     "status_logged": "Jogador Autenticado",
     "btn_github": "Continuar com GitHub",
     "btn_google": "Continuar com Google",
-    "btn_logout": "Sair da Conta"
+    "btn_logout": "Sair da Conta",
+    "tab_login": "Entrar",
+    "tab_register": "Criar Conta",
+    "email_label": "E-mail",
+    "password_label": "Senha",
+    "forgot_password": "Esqueceu sua senha?",
+    "btn_email_login": "Entrar com E-mail",
+    "btn_email_register": "Criar Conta",
+    "btn_send_reset": "Enviar E-mail de Recuperação",
+    "back_to_login": "Voltar para o Login",
+    "or_continue_with": "ou continue com"
   },
   "game": {
     "title": "YearGuessr",

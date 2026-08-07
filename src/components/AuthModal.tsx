@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { createClient } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { LogOut, User as UserIcon, X, Save, Settings, Flame, Trophy, Sun, Moon, Laptop } from 'lucide-react';
+import { 
+  LogOut, User as UserIcon, X, Save, Settings, Flame, Trophy, Sun, Moon, Laptop,
+  Mail, Lock, ArrowLeft, CheckCircle2, AlertCircle, Loader2
+} from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useGameStore } from '@/store/useGameStore';
 import { CustomSelect } from './CustomSelect';
@@ -22,6 +25,15 @@ export function AuthModal() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  // Guest Auth State (Email Login / Register / Password Reset)
+  const [authMode, setAuthMode] = useState<'login' | 'register' | 'forgot'>('login');
+  const [emailInput, setEmailInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
+  const [regUsernameInput, setRegUsernameInput] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authSuccess, setAuthSuccess] = useState<string | null>(null);
+
   const themeOverride = useGameStore((state) => state.themeOverride);
   const setThemeOverride = useGameStore((state) => state.setThemeOverride);
   const colorMode = useGameStore((state) => state.colorMode);
@@ -33,6 +45,14 @@ export function AuthModal() {
   const tNav = useTranslations('nav');
   const tSettings = useTranslations('settings');
   const tEras = useTranslations('eras');
+
+  const getTranslation = (key: string, fallback: string) => {
+    try {
+      const val = tAuth(key);
+      if (val && !val.startsWith('auth.')) return val;
+    } catch {}
+    return fallback;
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -94,6 +114,110 @@ export function AuthModal() {
     }
   };
 
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailInput || !passwordInput) {
+      setAuthError(locale === 'en' ? 'Please fill in all fields.' : 'Por favor, preencha todos os campos.');
+      return;
+    }
+
+    setAuthLoading(true);
+    setAuthError(null);
+    setAuthSuccess(null);
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: emailInput.trim(),
+        password: passwordInput,
+      });
+
+      if (error) throw error;
+      setIsOpen(false);
+    } catch (err: any) {
+      setAuthError(err.message || (locale === 'en' ? 'Invalid email or password.' : 'E-mail ou senha incorretos.'));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleEmailRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailInput || !passwordInput) {
+      setAuthError(locale === 'en' ? 'Please fill in all fields.' : 'Por favor, preencha todos os campos.');
+      return;
+    }
+    if (passwordInput.length < 6) {
+      setAuthError(locale === 'en' ? 'Password must be at least 6 characters.' : 'A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
+    setAuthLoading(true);
+    setAuthError(null);
+    setAuthSuccess(null);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: emailInput.trim(),
+        password: passwordInput,
+        options: {
+          data: {
+            full_name: regUsernameInput.trim() || emailInput.split('@')[0],
+            username: regUsernameInput.trim() || emailInput.split('@')[0],
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        await supabase.from('perfis').upsert({
+          id: data.user.id,
+          username: regUsernameInput.trim() || emailInput.split('@')[0],
+          e_anonimo: false,
+        });
+      }
+
+      setAuthSuccess(
+        locale === 'en' 
+          ? 'Account created! If confirmation is required, please check your inbox.' 
+          : 'Conta criada com sucesso! Se necessário, verifique sua caixa de entrada.'
+      );
+    } catch (err: any) {
+      setAuthError(err.message || (locale === 'en' ? 'Failed to create account.' : 'Erro ao criar conta.'));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailInput) {
+      setAuthError(locale === 'en' ? 'Please enter your email.' : 'Por favor, digite seu e-mail.');
+      return;
+    }
+
+    setAuthLoading(true);
+    setAuthError(null);
+    setAuthSuccess(null);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(emailInput.trim(), {
+        redirectTo: `${window.location.origin}/auth/callback?next=/settings`,
+      });
+
+      if (error) throw error;
+      setAuthSuccess(
+        locale === 'en' 
+          ? 'Password recovery email sent! Please check your inbox.' 
+          : 'E-mail de recuperação enviado! Verifique sua caixa de entrada.'
+      );
+    } catch (err: any) {
+      setAuthError(err.message || (locale === 'en' ? 'Error sending recovery email.' : 'Erro ao enviar e-mail de recuperação.'));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
   const signInWithGithub = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'github',
@@ -121,14 +245,22 @@ export function AuthModal() {
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
       <div className="bg-card text-card-foreground border border-border/50 w-full max-w-md p-6 sm:p-8 rounded-3xl shadow-2xl relative animate-in zoom-in-95 duration-200">
         <button 
-          onClick={() => setIsOpen(false)}
+          onClick={() => {
+            setIsOpen(false);
+            setAuthError(null);
+            setAuthSuccess(null);
+          }}
           className="absolute top-5 right-5 p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
         
         <h2 className="text-2xl font-bold mb-2 text-center tracking-tight">
-          {user ? tAuth('title_logged') : tAuth('title_guest')}
+          {user ? tAuth('title_logged') : (
+            authMode === 'forgot' 
+              ? (locale === 'en' ? 'Reset Password' : locale === 'es' ? 'Restablecer Contraseña' : 'Recuperar Senha')
+              : tAuth('title_guest')
+          )}
         </h2>
 
         {user ? (
@@ -341,45 +473,232 @@ export function AuthModal() {
             </button>
           </div>
         ) : (
-          <div className="space-y-4 mt-4">
-            <p className="text-center text-sm text-muted-foreground mb-6 leading-relaxed">
-              {tAuth('subtitle')}
-            </p>
-            
-            <button
-              onClick={signInWithGithub}
-              className="w-full flex items-center justify-center gap-3 py-3.5 rounded-2xl bg-[#24292e] text-white hover:bg-[#24292e]/90 transition-all font-medium shadow-sm hover:shadow text-sm"
-            >
-              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-              </svg>
-              {tAuth('btn_github')}
-            </button>
-            
-            <button
-              onClick={signInWithGoogle}
-              className="w-full flex items-center justify-center gap-3 py-3.5 rounded-2xl bg-white text-gray-900 border border-gray-200 hover:bg-gray-50 transition-all font-medium shadow-sm hover:shadow text-sm"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  fill="#4285F4"
-                />
-                <path
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  fill="#34A853"
-                />
-                <path
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  fill="#FBBC05"
-                />
-                <path
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  fill="#EA4335"
-                />
-              </svg>
-              {tAuth('btn_google')}
-            </button>
+          <div className="space-y-4 mt-3">
+            {/* Auth Tabs: Login vs Register (hidden in forgot mode) */}
+            {authMode !== 'forgot' && (
+              <div className="flex bg-muted/60 p-1 rounded-2xl border border-border/50 mb-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('login');
+                    setAuthError(null);
+                    setAuthSuccess(null);
+                  }}
+                  className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
+                    authMode === 'login'
+                      ? 'bg-background text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {getTranslation('tab_login', 'Entrar')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('register');
+                    setAuthError(null);
+                    setAuthSuccess(null);
+                  }}
+                  className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
+                    authMode === 'register'
+                      ? 'bg-background text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {getTranslation('tab_register', 'Criar Conta')}
+                </button>
+              </div>
+            )}
+
+            {/* Error & Success Messages */}
+            {authError && (
+              <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{authError}</span>
+              </div>
+            )}
+            {authSuccess && (
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{authSuccess}</span>
+              </div>
+            )}
+
+            {/* Forgot Password Mode Form */}
+            {authMode === 'forgot' ? (
+              <form onSubmit={handleResetPassword} className="space-y-3">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {locale === 'en' 
+                    ? 'Enter your email address and we will send you a link to reset your password.' 
+                    : locale === 'es' 
+                    ? 'Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.' 
+                    : 'Digite seu e-mail e enviaremos um link de redefinição de senha.'}
+                </p>
+                <div className="relative">
+                  <Mail className="w-4 h-4 absolute left-3.5 top-3 text-muted-foreground" />
+                  <input
+                    type="email"
+                    required
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    placeholder={getTranslation('email_label', 'E-mail')}
+                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="w-full py-3 bg-primary text-primary-foreground font-bold text-xs rounded-xl hover:bg-primary/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-xs"
+                >
+                  {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : getTranslation('btn_send_reset', 'Enviar E-mail de Recuperação')}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('login');
+                    setAuthError(null);
+                    setAuthSuccess(null);
+                  }}
+                  className="w-full py-2 text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 transition-colors"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>{getTranslation('back_to_login', 'Voltar para o Login')}</span>
+                </button>
+              </form>
+            ) : (
+              /* Login / Register Forms */
+              <form onSubmit={authMode === 'login' ? handleEmailLogin : handleEmailRegister} className="space-y-3">
+                {/* Username Input (Register Only) */}
+                {authMode === 'register' && (
+                  <div className="relative">
+                    <UserIcon className="w-4 h-4 absolute left-3.5 top-3 text-muted-foreground" />
+                    <input
+                      type="text"
+                      value={regUsernameInput}
+                      onChange={(e) => setRegUsernameInput(e.target.value)}
+                      placeholder={tSettings('username_placeholder')}
+                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    />
+                  </div>
+                )}
+
+                {/* Email Input */}
+                <div className="relative">
+                  <Mail className="w-4 h-4 absolute left-3.5 top-3 text-muted-foreground" />
+                  <input
+                    type="email"
+                    required
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    placeholder={getTranslation('email_label', 'E-mail')}
+                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </div>
+
+                {/* Password Input */}
+                <div className="relative">
+                  <Lock className="w-4 h-4 absolute left-3.5 top-3 text-muted-foreground" />
+                  <input
+                    type="password"
+                    required
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
+                    placeholder={getTranslation('password_label', 'Senha')}
+                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </div>
+
+                {/* Forgot Password Link (Login Only) */}
+                {authMode === 'login' && (
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthMode('forgot');
+                        setAuthError(null);
+                        setAuthSuccess(null);
+                      }}
+                      className="text-xs font-semibold text-primary hover:underline"
+                    >
+                      {getTranslation('forgot_password', 'Esqueceu sua senha?')}
+                    </button>
+                  </div>
+                )}
+
+                {/* Submit Email Button */}
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="w-full py-3 bg-primary text-primary-foreground font-bold text-xs rounded-xl hover:bg-primary/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-xs mt-1"
+                >
+                  {authLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : authMode === 'login' ? (
+                    getTranslation('btn_email_login', 'Entrar com E-mail')
+                  ) : (
+                    getTranslation('btn_email_register', 'Criar Conta')
+                  )}
+                </button>
+              </form>
+            )}
+
+            {/* OAuth Section Divider */}
+            {authMode !== 'forgot' && (
+              <>
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-border/60" />
+                  </div>
+                  <div className="relative flex justify-center text-[10px] uppercase font-mono tracking-wider">
+                    <span className="bg-card px-2 text-muted-foreground">
+                      {getTranslation('or_continue_with', 'ou continue com')}
+                    </span>
+                  </div>
+                </div>
+
+                {/* OAuth Provider Buttons */}
+                <div className="space-y-2">
+                  <button
+                    onClick={signInWithGithub}
+                    type="button"
+                    className="w-full flex items-center justify-center gap-3 py-3 rounded-2xl bg-[#24292e] text-white hover:bg-[#24292e]/90 transition-all font-medium shadow-xs text-xs"
+                  >
+                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                    </svg>
+                    {tAuth('btn_github')}
+                  </button>
+                  
+                  <button
+                    onClick={signInWithGoogle}
+                    type="button"
+                    className="w-full flex items-center justify-center gap-3 py-3 rounded-2xl bg-white text-gray-900 border border-gray-200 hover:bg-gray-50 transition-all font-medium shadow-xs text-xs"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24">
+                      <path
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        fill="#4285F4"
+                      />
+                      <path
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        fill="#34A853"
+                      />
+                      <path
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                        fill="#FBBC05"
+                      />
+                      <path
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        fill="#EA4335"
+                      />
+                    </svg>
+                    {tAuth('btn_google')}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
