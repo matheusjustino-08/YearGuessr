@@ -266,7 +266,7 @@ export function ChallengeFormSection({ supabase }: Props) {
         />
         <div className="pt-1.5 flex flex-wrap items-center gap-2">
           <label className="cursor-pointer px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/30 text-xs font-bold text-primary transition-all flex items-center gap-1.5 active:scale-95">
-            <span>📷 Fazer Upload & Comprimir WebP (Max 1200px)</span>
+            <span>Fazer Upload & Comprimir WebP (Max 1200px)</span>
             <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
           </label>
           <span className="text-[10px] text-muted-foreground font-mono">(Cache-Control: max-age=31536000)</span>

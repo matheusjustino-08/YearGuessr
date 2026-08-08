@@ -235,8 +235,8 @@ export default function AdminPage() {
         </AdminAccordion>
 
         <AdminAccordion
-          title="Modos de Jogo & Regras"
-          description="Gerencie os parâmetros do Contratempo, Linha do Tempo e Treino"
+          title="Gerenciador da Linha do Tempo & Modos de Jogo"
+          description="Gerencie os eventos da Linha do Tempo em Ordem e regras do Contratempo e Treino"
           icon={<Gamepad2 className="w-4 h-4" />}
         >
           <GameModesSection supabase={supabase} />

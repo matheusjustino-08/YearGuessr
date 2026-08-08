@@ -1,11 +1,21 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Gamepad2, Timer, Clock, Zap, CheckCircle2, AlertCircle, Save, Sliders } from 'lucide-react';
+import { Gamepad2, Timer, Clock, Zap, CheckCircle2, AlertCircle, Save, Sliders, Calendar, ExternalLink } from 'lucide-react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 interface Props {
   supabase: SupabaseClient;
+}
+
+interface ChronoEvent {
+  id: string;
+  ano_correto: number;
+  imagem_principal: string;
+  conteudo_i18n: {
+    pt: { titulo: string; dica: string };
+    en?: { titulo: string; dica: string };
+  };
 }
 
 export function GameModesSection({ supabase }: Props) {
@@ -15,7 +25,7 @@ export function GameModesSection({ supabase }: Props) {
   const [chronoItemsCount, setChronoItemsCount] = useState(4);
   const [enableTimeAttack, setEnableTimeAttack] = useState(true);
   const [enableChronological, setEnableChronological] = useState(true);
-  const [enablePractice, setEnablePractice] = useState(true);
+  const [chronoEvents, setChronoEvents] = useState<ChronoEvent[]>([]);
   const [msg, setMsg] = useState<{ text: string; type: 'ok' | 'err' } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,12 +37,14 @@ export function GameModesSection({ supabase }: Props) {
   const loadModeStats = useCallback(async () => {
     setLoading(true);
     try {
-      const { count, error } = await supabase
+      const { data, count, error } = await supabase
         .from('desafios')
-        .select('*', { count: 'exact', head: true });
+        .select('id, ano_correto, imagem_principal, conteudo_i18n', { count: 'exact' })
+        .order('ano_correto', { ascending: true });
 
-      if (!error && count !== null) {
-        setTotalChallenges(count);
+      if (!error && data) {
+        setTotalChallenges(count || data.length);
+        setChronoEvents(data);
       }
     } catch {
       // Ignore fallback
@@ -56,7 +68,7 @@ export function GameModesSection({ supabase }: Props) {
     'block text-[11px] font-bold uppercase tracking-wider text-muted-foreground font-mono mb-1';
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-8">
       {msg && (
         <div
           className={`p-3 rounded-xl font-mono text-xs font-bold text-center border ${
@@ -87,8 +99,8 @@ export function GameModesSection({ supabase }: Props) {
               {totalChallenges >= 2 ? 'Elegível' : 'Requer 2+ desafios'}
             </span>
           </div>
-          <p className="text-sm font-bold text-foreground">{chronoItemsCount} Eventos Reais</p>
-          <p className="text-[11px] text-muted-foreground font-mono">Disponíveis no Banco: {totalChallenges}</p>
+          <p className="text-sm font-bold text-foreground">{chronoItemsCount} Eventos por Partida</p>
+          <p className="text-[11px] text-muted-foreground font-mono">Eventos no Banco: {totalChallenges}</p>
         </div>
 
         <div className="p-4 rounded-2xl bg-card border border-border/60 space-y-1">
@@ -185,6 +197,60 @@ export function GameModesSection({ supabase }: Props) {
           <span>SALVAR CONFIGURAÇÕES DOS MODOS DE JOGO</span>
         </button>
       </form>
+
+      {/* DEDICATED CHRONOLOGICAL EVENTS MANAGER TABLE */}
+      <div className="pt-4 space-y-4 border-t border-border/40">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-black text-foreground uppercase tracking-tight font-mono flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-primary" />
+              GERENCIADOR DE EVENTOS DA LINHA DO TEMPO
+            </h3>
+            <p className="text-xs text-muted-foreground font-mono">
+              Todos os desafios cadastrados alimentam automaticamente o Modo Linha do Tempo. Abaixo estão listados em ordem cronológica real:
+            </p>
+          </div>
+        </div>
+
+        {chronoEvents.length === 0 ? (
+          <div className="p-8 text-center rounded-2xl bg-muted/20 border border-border/60">
+            <p className="text-xs font-mono font-bold text-muted-foreground">
+              Nenhum evento cadastrado no banco de dados ainda. Cadastre desafios no formulário acima!
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-border/60 bg-card overflow-hidden divide-y divide-border/40">
+            {chronoEvents.map((evt, idx) => (
+              <div key={evt.id} className="p-3.5 flex items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
+                <div className="flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary font-mono font-black text-[11px] flex items-center justify-center shrink-0">
+                    {idx + 1}
+                  </span>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={evt.imagem_principal}
+                    alt=""
+                    className="w-12 h-12 rounded-xl object-cover border border-border/50 shrink-0"
+                  />
+                  <div>
+                    <p className="text-xs font-bold text-foreground">{evt.conteudo_i18n?.pt?.titulo || 'Evento Sem Título'}</p>
+                    <p className="text-[10px] text-muted-foreground font-mono">ID: {evt.id}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-mono font-black text-xs">
+                    Ano {evt.ano_correto}
+                  </span>
+                  <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-mono font-bold text-[10px]">
+                    Ativo na Linha do Tempo
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

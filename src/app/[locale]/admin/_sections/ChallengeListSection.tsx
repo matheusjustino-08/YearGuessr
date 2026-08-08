@@ -168,7 +168,7 @@ export function ChallengeListSection({ supabase }: Props) {
       <div className="flex items-center gap-2">
         <input
           type="text"
-          placeholder="🔍 Buscar desafio por título, ano ou data (YYYY-MM-DD)..."
+          placeholder="Buscar desafio por título, ano ou data (YYYY-MM-DD)..."
           className={inputCls}
           value={searchTerm}
           onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
