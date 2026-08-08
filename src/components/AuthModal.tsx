@@ -231,19 +231,19 @@ export function AuthModal() {
 
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
-      <div className="bg-card text-card-foreground border border-border/50 w-full max-w-md p-6 sm:p-8 rounded-3xl shadow-2xl relative animate-in zoom-in-95 duration-200">
+      <div className={`bg-card text-card-foreground border border-border/50 w-full ${user ? 'max-w-3xl' : 'max-w-md'} p-6 sm:p-8 rounded-3xl shadow-2xl relative animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto`}>
         <button 
           onClick={() => {
             setIsOpen(false);
             setAuthError(null);
             setAuthSuccess(null);
           }}
-          className="absolute top-5 right-5 p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          className="absolute top-5 right-5 p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
         
-        <h2 className="text-2xl font-bold mb-2 text-center tracking-tight">
+        <h2 className="text-2xl font-bold mb-2 text-center tracking-tight font-serif">
           {user ? tAuth('title_logged') : (
             authMode === 'forgot' 
               ? (locale === 'en' ? 'Reset Password' : locale === 'es' ? 'Restablecer Contraseña' : 'Recuperar Senha')
@@ -252,44 +252,82 @@ export function AuthModal() {
         </h2>
 
         {user ? (
-          <div className="space-y-5 mt-4">
-            {/* User Profile Card */}
-            <div className="flex items-center gap-4 bg-muted/60 border border-border/50 p-4 rounded-2xl">
-              {user.user_metadata?.avatar_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-12 h-12 rounded-full border border-border" />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                  <UserIcon className="w-6 h-6 text-primary" />
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-4 items-start">
+            {/* Left Column (5 cols): User Identity, Stats & Main Actions */}
+            <div className="md:col-span-5 space-y-4">
+              {/* User Profile Card */}
+              <div className="flex flex-col items-center text-center p-5 rounded-2xl bg-muted/40 border border-border/50 space-y-2">
+                {user.user_metadata?.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-16 h-16 rounded-full border-2 border-primary object-cover shadow-sm" />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center text-primary">
+                    <UserIcon className="w-8 h-8" />
+                  </div>
+                )}
+                <div className="w-full min-w-0">
+                  <p className="font-bold truncate text-base text-foreground">{user.user_metadata?.full_name || user.email}</p>
+                  <p className="text-xs text-muted-foreground truncate font-mono">{user.email}</p>
                 </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="font-bold truncate text-sm">{user.user_metadata?.full_name || user.email}</p>
-                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              </div>
+
+              {/* User Stats Summary Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-center flex flex-col items-center justify-center">
+                  <div className="flex items-center gap-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-amber-500 font-mono">{tSettings('current_streak')}</p>
+                    <Flame className="w-3.5 h-3.5 text-amber-500" />
+                  </div>
+                  <p className="text-xl font-black text-amber-500 font-mono mt-0.5">
+                    {streakAtual} <span className="text-xs font-normal">{streakAtual === 1 ? tSettings('day_singular') : tSettings('days')}</span>
+                  </p>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-primary/10 border border-primary/20 text-center flex flex-col items-center justify-center">
+                  <div className="flex items-center gap-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-primary font-mono">{tSettings('best_streak')}</p>
+                    <Trophy className="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  <p className="text-xl font-black text-primary font-mono mt-0.5">
+                    {maiorStreak} <span className="text-xs font-normal">{maiorStreak === 1 ? tSettings('day_singular') : tSettings('days')}</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Navigation Action Buttons */}
+              <div className="space-y-2 pt-2">
+                {username && (
+                  <Link
+                    href={`/perfil/${encodeURIComponent(username)}`}
+                    onClick={() => setIsOpen(false)}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-all font-semibold text-xs text-center cursor-pointer"
+                  >
+                    <UserIcon className="w-4 h-4" />
+                    <span>{tSettings('view_public_profile')}</span>
+                  </Link>
+                )}
+
+                {profileRole === 'admin' && (
+                  <a
+                    href={`/${locale}/admin`}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 transition-all font-semibold text-xs"
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span>{tSettings('cms_panel')}</span>
+                  </a>
+                )}
+
+                <button
+                  onClick={signOut}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors font-semibold text-xs cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>{tAuth('btn_logout')}</span>
+                </button>
               </div>
             </div>
 
-            {/* User Stats Summary */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-center flex flex-col items-center justify-center">
-                <div className="flex items-center gap-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-amber-500 font-mono">{tSettings('current_streak')}</p>
-                  <Flame className="w-3.5 h-3.5 text-amber-500" />
-                </div>
-                <p className="text-xl font-black text-amber-500 font-mono mt-0.5">{streakAtual} {tSettings('days')}</p>
-              </div>
-              <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20 text-center flex flex-col items-center justify-center">
-                <div className="flex items-center gap-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-primary font-mono">{tSettings('best_streak')}</p>
-                  <Trophy className="w-3.5 h-3.5 text-primary" />
-                </div>
-                <p className="text-xl font-black text-primary font-mono mt-0.5">{maiorStreak} {tSettings('pts')}</p>
-              </div>
-            </div>
-
-            {/* Profile Settings Form */}
-            <div className="space-y-4 pt-1">
-              
+            {/* Right Column (7 cols): Preferences & Settings Form */}
+            <div className="md:col-span-7 space-y-4 md:border-l md:border-border/40 md:pl-6">
               {/* Appearance Mode (Light / Dark / System) */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground font-mono">
@@ -299,9 +337,9 @@ export function AuthModal() {
                   <button
                     type="button"
                     onClick={() => setColorMode('system')}
-                    className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border text-xs font-bold transition-all ${
-                      colorMode === 'system' 
-                        ? 'bg-primary text-primary-foreground border-primary shadow-xs' 
+                    className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                      colorMode === 'system'
+                        ? 'bg-primary text-primary-foreground border-primary shadow-xs'
                         : 'bg-background hover:bg-muted text-muted-foreground hover:text-foreground border-border/60'
                     }`}
                   >
@@ -311,9 +349,9 @@ export function AuthModal() {
                   <button
                     type="button"
                     onClick={() => setColorMode('light')}
-                    className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border text-xs font-bold transition-all ${
-                      colorMode === 'light' 
-                        ? 'bg-primary text-primary-foreground border-primary shadow-xs' 
+                    className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                      colorMode === 'light'
+                        ? 'bg-primary text-primary-foreground border-primary shadow-xs'
                         : 'bg-background hover:bg-muted text-muted-foreground hover:text-foreground border-border/60'
                     }`}
                   >
@@ -323,9 +361,9 @@ export function AuthModal() {
                   <button
                     type="button"
                     onClick={() => setColorMode('dark')}
-                    className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border text-xs font-bold transition-all ${
-                      colorMode === 'dark' 
-                        ? 'bg-primary text-primary-foreground border-primary shadow-xs' 
+                    className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                      colorMode === 'dark'
+                        ? 'bg-primary text-primary-foreground border-primary shadow-xs'
                         : 'bg-background hover:bg-muted text-muted-foreground hover:text-foreground border-border/60'
                     }`}
                   >
@@ -340,8 +378,8 @@ export function AuthModal() {
                 <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground font-mono">
                   {tSettings('username_label')}
                 </label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder={tSettings('username_placeholder')}
@@ -358,8 +396,8 @@ export function AuthModal() {
                   value={themeOverride}
                   onChange={(val) => setThemeOverride(val)}
                   options={[
-                    { 
-                      value: 'auto', 
+                    {
+                      value: 'auto',
                       label: (() => {
                         try {
                           const res = tSettings('dynamic_era');
@@ -368,8 +406,8 @@ export function AuthModal() {
                         return 'Dinâmico (Altera conforme o ano)';
                       })()
                     },
-                    { 
-                      value: 'era-neutral', 
+                    {
+                      value: 'era-neutral',
                       label: (() => {
                         try {
                           const res = tSettings('neutral_era');
@@ -398,7 +436,7 @@ export function AuthModal() {
                 <button
                   type="button"
                   onClick={() => setIsAnonimo(!isAnonimo)}
-                  className={`w-11 h-6 rounded-full transition-colors relative p-0.5 ${
+                  className={`w-11 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer ${
                     isAnonimo ? 'bg-primary' : 'bg-muted-foreground/30'
                   }`}
                 >
@@ -417,7 +455,7 @@ export function AuthModal() {
                 <button
                   type="button"
                   onClick={() => setSoundEnabled(!soundEnabled)}
-                  className={`w-11 h-6 rounded-full transition-colors relative p-0.5 ${
+                  className={`w-11 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer ${
                     soundEnabled ? 'bg-primary' : 'bg-muted-foreground/30'
                   }`}
                 >
@@ -427,10 +465,11 @@ export function AuthModal() {
                 </button>
               </div>
 
+              {/* Save Preferences Button */}
               <button
                 onClick={handleSaveProfile}
                 disabled={isSaving}
-                className="w-full py-3 bg-primary text-primary-foreground font-bold text-xs rounded-xl hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm"
+                className="w-full py-3 bg-primary text-primary-foreground font-bold text-xs rounded-xl hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm cursor-pointer"
               >
                 <Save className="w-4 h-4" />
                 {isSaving ? tSettings('saving') : tSettings('save_btn')}
@@ -439,38 +478,7 @@ export function AuthModal() {
               {saveSuccess && (
                 <p className="text-xs text-green-500 font-medium text-center">{tSettings('saved_success')}</p>
               )}
-
-              {/* Link to Public Profile */}
-              {username && (
-                <Link
-                  href={`/perfil/${encodeURIComponent(username)}`}
-                  onClick={() => setIsOpen(false)}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-all font-semibold text-xs text-center"
-                >
-                  <UserIcon className="w-4 h-4" />
-                  <span>Ver Meu Perfil Público</span>
-                </Link>
-              )}
             </div>
-
-            {/* Account Role / Admin link if applicable */}
-            {profileRole === 'admin' && (
-              <a 
-                href={`/${locale}/admin`}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 transition-all font-semibold text-xs"
-              >
-                <Settings className="w-4 h-4" />
-                <span>{tSettings('cms_panel')}</span>
-              </a>
-            )}
-            
-            <button
-              onClick={signOut}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors font-semibold text-xs"
-            >
-              <LogOut className="w-4 h-4" />
-              {tAuth('btn_logout')}
-            </button>
           </div>
         ) : (
           <div className="space-y-4 mt-3">
