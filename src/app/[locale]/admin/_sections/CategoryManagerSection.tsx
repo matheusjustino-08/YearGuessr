@@ -219,7 +219,12 @@ CREATE POLICY "categorias_admin" ON categorias FOR ALL
                 {/* Icon preview */}
                 <div className="w-8 h-8 rounded-lg border border-border/50 bg-muted/40 flex items-center justify-center shrink-0 overflow-hidden">
                   {cat.icon_url ? (
-                    <img src={cat.icon_url} alt={cat.label} className="w-5 h-5 object-contain" />
+                    cat.icon_url.trim().startsWith('<svg') ? (
+                      <span className="w-5 h-5 flex items-center justify-center" dangerouslySetInnerHTML={{ __html: cat.icon_url }} />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={cat.icon_url} alt={cat.label} className="w-5 h-5 object-contain" />
+                    )
                   ) : (
                     <span className="text-[10px] font-bold text-muted-foreground/50 uppercase">{cat.id.slice(0, 2)}</span>
                   )}
@@ -233,9 +238,9 @@ CREATE POLICY "categorias_admin" ON categorias FOR ALL
 
                 {/* Icon URL input (inline edit) */}
                 <input
-                  type="url"
-                  placeholder="URL do ícone SVG"
-                  className="w-32 xs:w-44 sm:w-52 text-[11px] px-2 py-1.5 rounded-lg border border-border/50 bg-muted/30 font-mono focus:outline-none focus:ring-1 focus:ring-primary/30 text-muted-foreground placeholder:text-muted-foreground/40 transition-all"
+                  type="text"
+                  placeholder="URL do ícone ou <svg>"
+                  className="w-32 xs:w-44 sm:w-52 text-[11px] px-2 py-1.5 rounded-lg border border-border/50 bg-muted/30 font-mono focus:outline-none focus:ring-1 focus:ring-primary/30 text-muted-foreground placeholder:text-muted-foreground/40 transition-all truncate"
                   value={cat.icon_url ?? ''}
                   onChange={e => handleUpdateIcon(cat.id, e.target.value)}
                   onBlur={e => handleUpdateIcon(cat.id, e.target.value)}

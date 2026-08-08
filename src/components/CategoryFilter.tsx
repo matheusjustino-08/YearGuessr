@@ -88,10 +88,14 @@ export function CategoryFilter() {
               }`}
             >
               {(cat as any).icon_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={(cat as any).icon_url} alt="" className="w-3.5 h-3.5 object-contain" />
+                (cat as any).icon_url.trim().startsWith('<svg') ? (
+                  <span className="w-3.5 h-3.5 flex items-center justify-center shrink-0" dangerouslySetInnerHTML={{ __html: (cat as any).icon_url }} />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={(cat as any).icon_url} alt="" className="w-3.5 h-3.5 object-contain shrink-0" />
+                )
               ) : (
-                <DefaultIcon className={`w-3.5 h-3.5 ${isSelected ? 'text-primary-foreground' : 'text-primary'}`} />
+                <DefaultIcon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-primary-foreground' : 'text-primary'}`} />
               )}
               <span className="whitespace-nowrap">{label}</span>
             </button>
