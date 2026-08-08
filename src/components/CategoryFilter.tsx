@@ -58,13 +58,17 @@ export function CategoryFilter() {
 
   const getCategoryLabel = (cat: { id: string; label: string }) => {
     if (cat.id === 'all') return tCat('all');
+    // Prioritize the custom label saved by admin in CMS / DB
+    if (cat.label && cat.label.trim() !== '') {
+      return stripEmojis(cat.label);
+    }
     try {
       const res = tCat(cat.id);
       if (res && !res.startsWith('categories.')) return res;
     } catch {
       // Fallback if key missing
     }
-    return stripEmojis(cat.label || cat.id);
+    return stripEmojis(cat.id);
   };
 
   return (

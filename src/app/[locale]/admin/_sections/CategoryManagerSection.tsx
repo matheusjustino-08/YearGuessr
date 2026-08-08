@@ -106,6 +106,14 @@ export function CategoryManagerSection({ supabase }: Props) {
     setCategories(prev => prev.map(c => c.id === id ? { ...c, icon_url } : c));
   };
 
+  const handleUpdateLabel = async (id: string, newLabel: string) => {
+    if (!newLabel.trim()) return;
+    if (tableExists) {
+      await supabase.from('categorias').update({ label: newLabel.trim() }).eq('id', id);
+    }
+    setCategories(prev => prev.map(c => c.id === id ? { ...c, label: newLabel.trim() } : c));
+  };
+
   return (
     <div className="space-y-5">
       {/* SQL instruction if table doesn't exist */}
@@ -232,8 +240,14 @@ CREATE POLICY "categorias_admin" ON categorias FOR ALL
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground leading-none">{cat.label}</p>
-                  <p className="text-[11px] font-mono text-muted-foreground mt-0.5">{cat.id}</p>
+                  <input
+                    type="text"
+                    className="text-sm font-semibold text-foreground bg-transparent border-b border-transparent hover:border-border/60 focus:border-primary focus:bg-muted/30 focus:outline-none px-1 py-0.5 rounded transition-all w-full"
+                    value={cat.label}
+                    onChange={e => handleUpdateLabel(cat.id, e.target.value)}
+                    onBlur={e => handleUpdateLabel(cat.id, e.target.value)}
+                  />
+                  <p className="text-[11px] font-mono text-muted-foreground mt-0.5 px-1">{cat.id}</p>
                 </div>
 
                 {/* Icon URL input (inline edit) */}
