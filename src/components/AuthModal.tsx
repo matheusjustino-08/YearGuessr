@@ -9,6 +9,7 @@ import {
   Mail, Lock, ArrowLeft, CheckCircle2, AlertCircle, Loader2
 } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
+import { Link } from '@/i18n/routing';
 import { useGameStore } from '@/store/useGameStore';
 import { CustomSelect } from './CustomSelect';
 
@@ -434,6 +435,18 @@ export function AuthModal() {
 
               {saveSuccess && (
                 <p className="text-xs text-green-500 font-medium text-center">{tSettings('saved_success')}</p>
+              )}
+
+              {/* Link to Public Profile */}
+              {username && (
+                <Link
+                  href={`/perfil/${encodeURIComponent(username)}`}
+                  onClick={() => setIsOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-all font-semibold text-xs text-center"
+                >
+                  <UserIcon className="w-4 h-4" />
+                  <span>Ver Meu Perfil Público</span>
+                </Link>
               )}
             </div>
 
