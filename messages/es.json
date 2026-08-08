@@ -156,6 +156,8 @@
     "btn_email": "Enviar Propuesta por Correo",
     "form_name": "Nombre o Empresa",
     "form_email": "Correo de Contacto",
+    "form_linkedin": "LinkedIn de la Empresa (Opcional)",
+    "form_linkedin_placeholder": "https://linkedin.com/company/tu-empresa",
     "form_message": "Detalles del Proyecto o Propuesta",
     "form_submit": "Enviar Propuesta",
     "success_msg": "¡Propuesta enviada con éxito! Nos pondremos en contacto pronto.",

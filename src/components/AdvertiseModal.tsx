@@ -12,7 +12,7 @@ export function AdvertiseModal({ trigger }: { trigger?: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', linkedin: '', message: '' });
   const tAd = useTranslations('advertise');
   const tSales = useTranslations('sales_page');
 
@@ -27,6 +27,7 @@ export function AdvertiseModal({ trigger }: { trigger?: React.ReactNode }) {
       id: 'prop_' + Date.now(),
       nome: formData.name,
       email: formData.email,
+      linkedin: formData.linkedin,
       mensagem: formData.message,
       pacote: 'Contato Geral (Modal)',
     };
@@ -54,7 +55,7 @@ export function AdvertiseModal({ trigger }: { trigger?: React.ReactNode }) {
     setTimeout(() => {
       setSubmitted(false);
       setIsOpen(false);
-      setFormData({ name: '', email: '', message: '' });
+      setFormData({ name: '', email: '', linkedin: '', message: '' });
     }, 3000);
   };
 
@@ -171,6 +172,19 @@ export function AdvertiseModal({ trigger }: { trigger?: React.ReactNode }) {
                   className="w-full p-2.5 rounded-xl border border-border/60 bg-background text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all"
                   value={formData.email}
                   onChange={e => setFormData({ ...formData, email: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-mono uppercase font-bold text-muted-foreground mb-1">
+                  {tAd('form_linkedin')}
+                </label>
+                <input
+                  type="url"
+                  placeholder={tAd('form_linkedin_placeholder')}
+                  className="w-full p-2.5 rounded-xl border border-border/60 bg-background text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all"
+                  value={formData.linkedin}
+                  onChange={e => setFormData({ ...formData, linkedin: e.target.value })}
                 />
               </div>
 

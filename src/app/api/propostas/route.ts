@@ -36,6 +36,7 @@ export async function POST(request: Request) {
       id: body.id || 'prop_' + Date.now(),
       nome: body.nome || body.name || 'Anunciante Sem Nome',
       email: body.email || 'sem-email@anunciante.com',
+      linkedin: body.linkedin || body.linkedin_url || null,
       pacote: body.pacote || 'Contato Geral',
       mensagem: body.mensagem || body.message || '',
       created_at: new Date().toISOString(),

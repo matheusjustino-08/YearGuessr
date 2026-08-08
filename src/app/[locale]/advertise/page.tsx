@@ -12,6 +12,7 @@ import { createClient } from '@/lib/supabase/client';
 
 export default function AdvertiseSalesPage() {
   const tSales = useTranslations('sales_page');
+  const tAd = useTranslations('advertise');
   const locale = useLocale();
   const supabase = createClient();
 
@@ -26,6 +27,7 @@ export default function AdvertiseSalesPage() {
   const [selectedPkg, setSelectedPkg] = useState('Desafio Diário de 1 Dia Inteiro');
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
+  const [contactLinkedin, setContactLinkedin] = useState('');
   const [contactMessage, setContactMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [formSent, setFormSent] = useState(false);
@@ -68,6 +70,7 @@ export default function AdvertiseSalesPage() {
       id: 'prop_' + Date.now(),
       nome: contactName,
       email: contactEmail,
+      linkedin: contactLinkedin,
       pacote: selectedPkg,
       mensagem: contactMessage,
       data_desejada: selectedDate || null,
@@ -101,6 +104,7 @@ export default function AdvertiseSalesPage() {
       setIsFormOpen(false);
       setContactName('');
       setContactEmail('');
+      setContactLinkedin('');
       setContactMessage('');
     }, 3000);
   };
@@ -531,6 +535,17 @@ export default function AdvertiseSalesPage() {
                     className="w-full p-2.5 rounded-xl border border-border/70 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40"
                     value={contactEmail}
                     onChange={e => setContactEmail(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-mono font-bold uppercase text-muted-foreground mb-1">{tAd('form_linkedin')}</label>
+                  <input
+                    type="url"
+                    placeholder={tAd('form_linkedin_placeholder')}
+                    className="w-full p-2.5 rounded-xl border border-border/70 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                    value={contactLinkedin}
+                    onChange={e => setContactLinkedin(e.target.value)}
                   />
                 </div>
 
