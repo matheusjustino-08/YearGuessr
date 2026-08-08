@@ -38,6 +38,8 @@ const ERA_BACKGROUND_CLASSES: Record<string, string> = {
 
 export function ThemeEngine({ children }: { children: React.ReactNode }) {
   const currentYear = useGameStore((state) => state.currentYear);
+  const targetYear = useGameStore((state) => state.targetYear);
+  const gameState = useGameStore((state) => state.gameState);
   const themeOverride = useGameStore((state) => state.themeOverride);
   const colorMode = useGameStore((state) => state.colorMode);
 
@@ -46,7 +48,8 @@ export function ThemeEngine({ children }: { children: React.ReactNode }) {
 
   // Handle Era Themes
   useEffect(() => {
-    const era = themeOverride && themeOverride !== 'auto' ? themeOverride : getEraTheme(currentYear);
+    const yearToUse = (gameState === 'won' || gameState === 'finished') && targetYear ? targetYear : currentYear;
+    const era = themeOverride && themeOverride !== 'auto' ? themeOverride : getEraTheme(yearToUse);
     const root = document.documentElement;
     const body = document.body;
     
@@ -59,7 +62,7 @@ export function ThemeEngine({ children }: { children: React.ReactNode }) {
     body?.classList.add(ERA_BACKGROUND_CLASSES[era]);
     setActiveEra(era);
     previousEra.current = era;
-  }, [currentYear, themeOverride]);
+  }, [currentYear, targetYear, gameState, themeOverride]);
 
   // Handle Light / Dark / System Mode
   useEffect(() => {

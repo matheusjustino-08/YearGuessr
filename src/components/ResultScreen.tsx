@@ -25,7 +25,7 @@ export function ResultScreen() {
   const supabase = useMemo(() => createClient(), []);
   const { playWin, playLose } = useAudioEngine();
 
-  const isWin = gameState === 'won' || lastDistance === 0 || (lastScore !== null && lastScore >= 950);
+  const isWin = gameState === 'won' || lastDistance === 0;
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {

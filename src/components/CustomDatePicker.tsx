@@ -129,7 +129,7 @@ export function CustomDatePicker({ value, onChange }: CustomDatePickerProps) {
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="font-bold text-sm tracking-tight font-serif text-foreground">
+            <span className="font-bold text-sm tracking-tight font-sans text-foreground">
               {monthNames[currentMonth]} {currentYear}
             </span>
             <button

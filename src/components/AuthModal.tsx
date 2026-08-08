@@ -243,7 +243,7 @@ export function AuthModal() {
           <X className="w-5 h-5" />
         </button>
         
-        <h2 className="text-2xl font-bold mb-2 text-center tracking-tight font-serif">
+        <h2 className="text-2xl font-bold mb-2 text-center tracking-tight">
           {user ? tAuth('title_logged') : (
             authMode === 'forgot' 
               ? (locale === 'en' ? 'Reset Password' : locale === 'es' ? 'Restablecer Contraseña' : 'Recuperar Senha')

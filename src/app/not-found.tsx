@@ -43,7 +43,7 @@ export default function NotFound() {
               <span>404 — Página Perdida no Tempo</span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground font-serif">
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground font-sans">
               Ops! Em que ano essa página foi parar?
             </h1>
 

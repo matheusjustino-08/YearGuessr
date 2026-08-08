@@ -83,7 +83,7 @@ export default async function ProfilePage({
           )}
 
           <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground font-serif">
+            <h1 className="text-xl sm:text-2xl font-sans font-black tracking-tight text-foreground flex items-center gap-2">
               {profile.e_anonimo ? tLb('anonymous_player') : profile.username}
             </h1>
             <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider">

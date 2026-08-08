@@ -165,7 +165,7 @@ export function LeaderboardViewer() {
               <Trophy className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-3xl font-black tracking-tight text-foreground font-serif">
+              <h1 className="text-xl sm:text-3xl font-black tracking-tight text-foreground">
                 {tLb('title')}
               </h1>
             </div>
