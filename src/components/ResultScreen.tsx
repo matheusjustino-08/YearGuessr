@@ -276,7 +276,7 @@ export function ResultScreen() {
             if (typeof window === 'undefined' || !currentChallenge) return;
             const challengeUrl = `${window.location.origin}/${activeLocale}?challenge=${currentChallenge.id}&ref=${lastScore || 0}`;
             const msgText = tResult('whatsapp_share_text', { score: lastScore || 0 });
-            const fullText = `${msgText}\n\n👉 ${challengeUrl}`;
+            const fullText = `${msgText}\n\nLink: ${challengeUrl}`;
             
             const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(fullText)}`;
             window.open(waUrl, '_blank');
