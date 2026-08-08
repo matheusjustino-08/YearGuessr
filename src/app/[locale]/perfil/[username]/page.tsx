@@ -4,6 +4,7 @@ import { Link } from '@/i18n/routing';
 import { User as UserIcon, ArrowLeft, Flame, Trophy, Calendar, Target } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { updateAndFetchUserStreak } from '@/lib/streak-calculator';
+import { BadgesGrid } from '@/components/BadgesGrid';
 
 export async function generateMetadata({ params }: { params: Promise<{ username: string; locale: string }> }) {
   const { username, locale } = await params;
@@ -51,7 +52,7 @@ export default async function ProfilePage({
     .limit(10);
 
   const totalMatches = matches?.length || 0;
-  const bestMatch = matches?.reduce((max, m) => (m.pontos > max ? m.pontos : max), 0) || 0;
+  const avgScore = totalMatches > 0 ? Math.round((matches || []).reduce((sum, m) => sum + (m.pontos || 0), 0) / totalMatches) : 0;
 
   return (
     <main className="flex-grow flex flex-col items-center justify-start p-4 sm:p-8 w-full max-w-4xl mx-auto space-y-6">
@@ -125,11 +126,22 @@ export default async function ProfilePage({
           <div className="p-4 rounded-2xl bg-background/60 border border-border/50 text-center space-y-1">
             <div className="flex items-center justify-center gap-1 text-emerald-500">
               <Trophy className="w-4 h-4" />
-              <span className="text-[10px] font-mono font-bold uppercase">{tSettings('best_score_label')}</span>
+              <span className="text-[10px] font-mono font-bold uppercase">{tSettings('avg_score_label')}</span>
             </div>
-            <p className="text-2xl font-black font-mono text-emerald-500">{bestMatch} pts</p>
+            <p className="text-2xl font-black font-mono text-emerald-500">{avgScore} pts</p>
           </div>
         </div>
+
+        {/* Badges Grid */}
+        <BadgesGrid
+          stats={{
+            totalMatches,
+            streak: streaks.streak_atual,
+            hasFirstTryWin: matches?.some(m => m.tentativas === 1 && m.acertou),
+            hasHighScore: matches?.some(m => m.pontos >= 4900),
+            hasCinemaWin: matches?.some(m => (m.desafios as any)?.categorias?.includes('cinema')),
+          }}
+        />
 
         {/* Recent Matches */}
         <div className="space-y-3 pt-2">
@@ -145,7 +157,7 @@ export default async function ProfilePage({
                   <th className="px-4 py-2.5">Data</th>
                   <th className="px-4 py-2.5">Ano Correto</th>
                   <th className="px-4 py-2.5 text-right">{tResult('total_score')}</th>
-                  <th className="px-4 py-2.5 text-right">{tResult('distance_off')}</th>
+                  <th className="px-4 py-2.5 text-right">{tLb('time')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30 font-mono">

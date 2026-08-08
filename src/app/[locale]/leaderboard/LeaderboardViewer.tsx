@@ -274,7 +274,7 @@ export function LeaderboardViewer() {
               {loading ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground font-mono text-xs animate-pulse">
-                    Calculando ranking e médias...
+                    {tLb('loading')}
                   </td>
                 </tr>
               ) : rankedPlayers && rankedPlayers.length > 0 ? (

@@ -69,6 +69,12 @@ export function AuthModal() {
           setStreakAtual(streaks.streak_atual);
           setMaiorStreak(streaks.maior_streak);
         }
+      } else {
+        setUsername('');
+        setProfileRole(null);
+        setIsAnonimo(false);
+        setStreakAtual(0);
+        setMaiorStreak(0);
       }
     };
 

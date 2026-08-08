@@ -31,6 +31,9 @@ export function ChallengeListSection({ supabase }: Props) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [saveMsg, setSaveMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const loadChallenges = async () => {
     setLoading(true);
@@ -134,6 +137,20 @@ export function ChallengeListSection({ supabase }: Props) {
   const getDiffColor = (d: string) => DIFFICULTIES.find(x => x.id === d)?.color ?? DIFFICULTIES[1].color;
   const getDiffLabel = (d: string) => DIFFICULTIES.find(x => x.id === d)?.label ?? 'Normal';
 
+  const filteredChallenges = challenges.filter(c => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase().trim();
+    const ptTitle = (c.conteudo_i18n?.pt?.titulo || '').toLowerCase();
+    const enTitle = (c.conteudo_i18n?.en?.titulo || '').toLowerCase();
+    const esTitle = (c.conteudo_i18n?.es?.titulo || '').toLowerCase();
+    const yearStr = String(c.ano_correto || '');
+    const dateStr = String(c.data_publicacao || '');
+    return ptTitle.includes(term) || enTitle.includes(term) || esTitle.includes(term) || yearStr.includes(term) || dateStr.includes(term);
+  });
+
+  const totalPages = Math.ceil(filteredChallenges.length / itemsPerPage) || 1;
+  const paginatedChallenges = filteredChallenges.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <div className="space-y-4">
       {dbError && (
@@ -147,11 +164,22 @@ export function ChallengeListSection({ supabase }: Props) {
         </div>
       )}
 
-      {challenges.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-4">Nenhum desafio cadastrado.</p>
+      {/* Search Input Bar */}
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          placeholder="🔍 Buscar desafio por título, ano ou data (YYYY-MM-DD)..."
+          className={inputCls}
+          value={searchTerm}
+          onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+        />
+      </div>
+
+      {filteredChallenges.length === 0 ? (
+        <p className="text-xs text-muted-foreground py-4">Nenhum desafio encontrado para esta busca.</p>
       ) : (
         <div className="space-y-2">
-          {challenges.map(ch => {
+          {paginatedChallenges.map(ch => {
             const title = ch.conteudo_i18n?.pt?.titulo || ch.conteudo_i18n?.en?.titulo || 'Sem título';
             const cats: string[] = ch.categorias || [];
             const diff = ch.dificuldade || 'normal';
@@ -227,6 +255,31 @@ export function ChallengeListSection({ supabase }: Props) {
               </div>
             );
           })}
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-3 border-t border-border/40 text-xs font-mono">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                className="px-3 py-1.5 rounded-lg bg-muted/60 hover:bg-muted text-foreground font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                ← Anterior
+              </button>
+              <span className="text-muted-foreground font-semibold">
+                Página {currentPage} de {totalPages} ({filteredChallenges.length} desafios)
+              </span>
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                className="px-3 py-1.5 rounded-lg bg-muted/60 hover:bg-muted text-foreground font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Próximo →
+              </button>
+            </div>
+          )}
         </div>
       )}
 

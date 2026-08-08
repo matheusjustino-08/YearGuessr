@@ -11,6 +11,8 @@ import { useEffect } from 'react';
 import { CategoryFilter } from '@/components/CategoryFilter';
 import { SideBanners } from '@/components/SideBanners';
 import { OnboardingModal } from '@/components/OnboardingModal';
+import { ChronologicalGame } from '@/components/ChronologicalGame';
+import { Swords } from 'lucide-react';
 
 export default function HomePage() {
   const t = useTranslations('game');
@@ -20,9 +22,23 @@ export default function HomePage() {
   const setGameMode = useGameStore((state) => state.setGameMode);
   const fetchDailyChallenge = useGameStore((state) => state.fetchDailyChallenge);
   
+  const loadSpecificChallenge = useGameStore((state) => state.loadSpecificChallenge);
+  const setDuelTargetScore = useGameStore((state) => state.setDuelTargetScore);
+  const duelTargetScore = useGameStore((state) => state.duelTargetScore);
+  
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const challengeId = params.get('challenge');
+      const refScore = params.get('ref');
+      if (challengeId) {
+        if (refScore) setDuelTargetScore(parseInt(refScore, 10));
+        loadSpecificChallenge(challengeId);
+        return;
+      }
+    }
     fetchDailyChallenge();
-  }, [fetchDailyChallenge]);
+  }, [fetchDailyChallenge, loadSpecificChallenge, setDuelTargetScore]);
 
   const currentChallenge = useGameStore((state) => state.currentChallenge);
   const content = currentChallenge?.conteudo_i18n?.[activeLocale] || currentChallenge?.conteudo_i18n?.pt || currentChallenge?.conteudo_i18n?.en;
@@ -32,14 +48,22 @@ export default function HomePage() {
       <OnboardingModal />
       {/* Main Game Container */}
       <div className="w-full space-y-6">
+
+        {/* Duel Active Banner */}
+        {duelTargetScore !== null && (
+          <div className="max-w-2xl mx-auto p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-center text-xs font-bold font-mono flex items-center justify-center gap-2">
+            <Swords className="w-4 h-4 text-amber-500 shrink-0" />
+            <span>{t('duel_notice', { score: duelTargetScore })}</span>
+          </div>
+        )}
         
-        {/* Game Mode Switcher (Daily Challenge vs Practice Mode) */}
+        {/* Game Mode Switcher (Daily Challenge vs Practice Mode vs Time Attack) */}
         <div className="flex items-center justify-center pt-2">
           <div className="flex items-center gap-1 p-1 rounded-full bg-card/80 border border-border/60 backdrop-blur-md shadow-xs">
             <button
               type="button"
               onClick={() => setGameMode('daily')}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 gameMode === 'daily'
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -50,7 +74,7 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => setGameMode('practice')}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 gameMode === 'practice'
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -58,10 +82,34 @@ export default function HomePage() {
             >
               {t('practice_mode')}
             </button>
+            <button
+              type="button"
+              onClick={() => setGameMode('timeattack')}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                gameMode === 'timeattack'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {t('timeattack_mode')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setGameMode('chronological')}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                gameMode === 'chronological'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {t('chronological_mode')}
+            </button>
           </div>
         </div>
 
-        {gameState === 'playing' ? (
+        {gameMode === 'chronological' ? (
+          <ChronologicalGame />
+        ) : gameState === 'playing' ? (
           <div className="space-y-6">
             {/* Category Filter ONLY in Practice Mode */}
             {gameMode === 'practice' && <CategoryFilter />}

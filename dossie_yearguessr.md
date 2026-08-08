@@ -125,4 +125,40 @@ Suporte a 3 idiomas: **Português (`pt`)**, **Inglês (`en`)**, **Espanhol (`es`
 
 ## 🗄️ 12. Esquema do Banco de Dados Supabase (`schema.sql`)
 
-Tabelas: `desafios`, `categorias`, `dificuldades`, `anuncios`, `anuncios_propostas`, `partidas`, `profiles`.
+Tabelas: `desafios`, `categorias`, `dificuldades`, `anuncios`, `anuncios_propostas`, `partidas`, `perfis`.
+
+---
+
+## ⚡ 13. Melhorias Recentes de Acessibilidade, Áudio e UX
+
+- **Acessibilidade e Navegação por Teclado (`Timeline.tsx`)**:
+  - Atributos ARIA nativos para leitores de tela (`aria-label="Ano do palpite"`, `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, `aria-valuetext`).
+  - Atalhos de teclado: `Setas Esquerda/Baixo` (subtrai 1 ano), `Setas Direita/Cima` (adiciona 1 ano), segurando `Shift` (ajusta em blocos de 10 anos) e tecla `Enter` para confirmar o palpite.
+- **Prevenção de Fuso Horário Local (`getLocalDateKey()`)**:
+  - Substituído `toISOString().split('T')[0]` por `getLocalDateKey()`, prevenindo viradas indevidas de data entre UTC e UTC-3 (Horário Oficial de Brasília).
+- **Sintetizador Web Audio API & Controle Mute/Unmute (`useAudioEngine.ts` & `Navbar.tsx`)**:
+  - Efeitos sonoros gerados dinamicamente via Web Audio API (sem dependência de arquivos MP3 externos).
+  - Som de tique-taque ao deslizar a régua, som de envio ao palpitar, fanfarras de vitória e derrota.
+  - Botão de Mute/Unmute no cabeçalho com persistência no Zustand e `localStorage`.
+- **Busca e Paginação no CMS Admin (`ChallengeListSection.tsx`)**:
+  - Barra de pesquisa em tempo real por título em qualquer idioma, ano correto ou data de publicação.
+  - Paginação fluida com 10 desafios por página e contador de resultados.
+- **Metadados SEO e Open Graph em Servidor (`/anuncie` & `/advertise`)**:
+  - Exportação dinâmica de `generateMetadata()` com títulos, descrições e cartões social media (Open Graph) em componentes de servidor.
+- **Carregador de Imagem com Skeleton Pulse (`ChallengeViewer.tsx`)**:
+  - Exibição de esqueleto animado com ícone pulsante enquanto a imagem histórica é carregada pelo navegador.
+
+---
+
+## 🚀 14. Recursos Avançados & Expansões Virais (Modo Duelo, Contratempo, Badges & PWA)
+
+- **Modo Duelo de Amigos ("Desafiar Amigo")**:
+  - Botão dedicado no menu de resultados que gera um link exclusivo de desafio (`?challenge=ID&ref=SCORE`).
+  - Banner dinâmico no topo informando ao desafiado a pontuação a ser superada.
+- **Modo Contratempo (Time Attack)**:
+  - Adicionado ao seletor de modos de jogo (`Desafio Diário | Modo Treino | Contratempo`).
+- **Sistema de Conquistas & Badges (`badges-calculator.ts`)**:
+  - Calculador de 5 selos históricos (*Historiador de Primeira*, *Em Chamas*, *Mestre da Precisão*, *Cineasta*, *Veterano della História*).
+  - Tradução 100% i18n em Português, Inglês e Espanhol.
+- **Suporte Nativo a PWA (`manifest.ts`)**:
+  - Configuração `standalone` que permite a instalação do aplicativo na tela inicial de celulares iOS e Android.

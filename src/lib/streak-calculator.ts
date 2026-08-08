@@ -1,5 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+function getLocalDateKey(d = new Date()): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 /**
  * Calculates current consecutive days streak and all-time best streak for a user
  * based on their recorded matches in `partidas`, and updates `perfis`.
@@ -24,7 +31,7 @@ export async function updateAndFetchUserStreak(
     const uniqueDatesSet = new Set<string>();
     matches.forEach(m => {
       if (m.created_at) {
-        const dateStr = new Date(m.created_at).toISOString().split('T')[0];
+        const dateStr = getLocalDateKey(new Date(m.created_at));
         uniqueDatesSet.add(dateStr);
       }
     });
@@ -35,10 +42,10 @@ export async function updateAndFetchUserStreak(
       return { streak_atual: 0, maior_streak: 0 };
     }
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateKey();
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
+    const yesterdayStr = getLocalDateKey(yesterday);
 
     // 3. Calculate streak_atual
     const mostRecentDate = uniqueDates[0];

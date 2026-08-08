@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGameStore } from '@/store/useGameStore';
 import { useLocale, useTranslations } from 'next-intl';
 import { 
@@ -31,6 +31,12 @@ export function ChallengeViewer() {
   const currentYear = useGameStore((state) => state.currentYear);
   const themeOverride = useGameStore((state) => state.themeOverride);
   const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  useEffect(() => {
+    setImageLoaded(false);
+    setImageError(false);
+  }, [currentChallenge?.id]);
   
   const locale = useLocale() as 'en' | 'pt' | 'es';
   const tGame = useTranslations('game');
@@ -170,13 +176,21 @@ export function ChallengeViewer() {
 
         {/* Image Showcase Container with Smooth Zoom on Hover */}
         <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black/40 border border-black/20 shadow-inner flex items-center justify-center">
+          {!imageLoaded && !imageError && (
+            <div className="absolute inset-0 bg-muted/60 animate-pulse flex items-center justify-center">
+              <Camera className="w-8 h-8 text-muted-foreground/40 animate-bounce" />
+            </div>
+          )}
           {!imageError ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img 
               src={currentChallenge.imagem_principal} 
               alt={content?.titulo || 'Historical image'}
-              className="object-cover w-full h-full pointer-events-none group-hover:scale-105 transition-transform duration-700 ease-out"
+              className={`object-cover w-full h-full pointer-events-none group-hover:scale-105 transition-transform duration-700 ease-out ${
+                imageLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
               loading="eager"
+              onLoad={() => setImageLoaded(true)}
               onError={() => setImageError(true)}
             />
           ) : (

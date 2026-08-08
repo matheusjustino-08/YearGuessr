@@ -2,13 +2,16 @@
 
 import { Link, usePathname } from '@/i18n/routing';
 import { useLocale, useTranslations } from 'next-intl';
-import { Trophy, Globe } from 'lucide-react';
+import { Trophy, Globe, Volume2, VolumeX } from 'lucide-react';
 import { AuthModal } from './AuthModal';
+import { useGameStore } from '@/store/useGameStore';
 
 export function Navbar() {
   const locale = useLocale();
   const pathname = usePathname();
   const t = useTranslations('nav');
+  const soundEnabled = useGameStore((state) => state.soundEnabled);
+  const setSoundEnabled = useGameStore((state) => state.setSoundEnabled);
 
   return (
     <nav className="w-full border-b border-border/40 bg-background/60 backdrop-blur-xl sticky top-0 z-50 transition-colors duration-500">
@@ -62,6 +65,16 @@ export function Navbar() {
               ES
             </Link>
           </div>
+
+          {/* Sound Mute/Unmute Toggle */}
+          <button
+            type="button"
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            aria-label={soundEnabled ? 'Desativar Som' : 'Ativar Som'}
+            className="p-2 rounded-full bg-card/80 border border-border/70 text-muted-foreground hover:text-foreground transition-all active:scale-95 cursor-pointer"
+          >
+            {soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-500" /> : <VolumeX className="w-4 h-4 text-muted-foreground" />}
+          </button>
 
           {/* Ranking Link */}
           <Link 

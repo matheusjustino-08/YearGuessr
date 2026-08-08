@@ -78,9 +78,18 @@ export function OnboardingModal() {
                 {tOnboarding('step_2_desc')}
               </p>
               <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono font-bold">
-                <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">🟩 Super Perto</div>
-                <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500">🟧 Perto</div>
-                <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500">🟥 Longe</div>
+                <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                  <span>Super Perto</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 flex items-center justify-center gap-1">
+                  <Compass className="w-3.5 h-3.5 shrink-0" />
+                  <span>Perto</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 flex items-center justify-center gap-1">
+                  <Target className="w-3.5 h-3.5 shrink-0" />
+                  <span>Longe</span>
+                </div>
               </div>
             </div>
           )}

@@ -7,13 +7,13 @@ import { useState, useEffect, useMemo } from 'react';
 import { generateScoreCardBlob, type ScorecardStrings } from '@/lib/score-card-canvas';
 import { createClient } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { Share2, RefreshCw, Trophy, Target, CheckCircle2, Flame, ArrowRight, Sparkles } from 'lucide-react';
+import { Share2, RefreshCw, Trophy, Target, CheckCircle2, Flame, ArrowRight, Sparkles, Copy, Check } from 'lucide-react';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 
 import { useLocale } from 'next-intl';
 
 export function ResultScreen() {
-  const { gameState, lastScore, lastDistance, targetYear, guesses, reset, gameMode, dailyCompleted, setGameMode, currentChallenge } = useGameStore();
+  const { gameState, lastScore, lastDistance, targetYear, guesses, guessHistory, reset, gameMode, dailyCompleted, setGameMode, currentChallenge } = useGameStore();
   const activeLocale = useLocale() as 'pt' | 'en' | 'es';
   const tResult = useTranslations('result');
   const tAuth = useTranslations('auth');
@@ -21,6 +21,7 @@ export function ResultScreen() {
   const tScorecard = useTranslations('scorecard');
   
   const [isProcessing, setIsProcessing] = useState(false);
+  const [copiedToast, setCopiedToast] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const supabase = useMemo(() => createClient(), []);
   const { playWin, playLose } = useAudioEngine();
@@ -141,6 +142,24 @@ export function ResultScreen() {
   const switchToPracticeText = tGame('switch_to_practice');
   const yearUnitLabel = lastDistance === 1 ? tResult('year_unit') : tResult('years_unit');
 
+  const handleCopyText = async () => {
+    try {
+      const historyLines = (guessHistory || []).map((g, idx) => {
+        const badgeLabel = g.distanceOff === 0 ? 'Exact' : g.distanceOff <= 3 ? 'Super Close' : g.distanceOff <= 15 ? 'Close' : 'Far';
+        const dirLabel = g.direction === 'higher' ? 'NEWER' : g.direction === 'lower' ? 'OLDER' : 'EXACT';
+        return `Attempt ${idx + 1}: ${g.guessedYear} (${badgeLabel} - ${dirLabel})`;
+      }).join('\n');
+
+      const textToCopy = `YearGuessr #${currentChallenge?.id?.substring(0, 6) || '1969'}\n${tResult('total_score')}: ${lastScore || 0} pts | ${tResult('distance_off')}: ${lastDistance || 0} ${yearUnitLabel}\n\n${historyLines}\n\nhttps://yearguessr.vercel.app`;
+
+      await navigator.clipboard.writeText(textToCopy);
+      setCopiedToast(true);
+      setTimeout(() => setCopiedToast(false), 3000);
+    } catch {
+      // Ignore clipboard restriction
+    }
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 25, scale: 0.96 }}
@@ -191,7 +210,7 @@ export function ResultScreen() {
               } catch {
                 // fallback
               }
-              return isWin ? '★ Palpite Exato!' : 'Desafio Concluído';
+              return isWin ? 'Palpite Exato!' : 'Desafio Concluído';
             })()}
           </span>
           <h2 className={`text-2xl sm:text-3xl font-black tracking-tight ${isWin ? 'text-emerald-500 dark:text-emerald-400' : 'text-foreground'}`}>
@@ -220,14 +239,52 @@ export function ResultScreen() {
 
       {/* Action Buttons */}
       <div className="space-y-2.5 pt-1 relative z-10">
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={handleShareImage}
+            disabled={isProcessing}
+            className="py-3 px-2 bg-primary text-primary-foreground font-bold text-xs rounded-2xl hover:bg-primary/90 transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50 uppercase tracking-wider cursor-pointer"
+          >
+            <Share2 className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{isProcessing ? '...' : tResult('download_card')}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCopyText}
+            className="py-3 px-2 bg-card border border-border/80 text-foreground font-bold text-xs rounded-2xl hover:bg-muted/60 transition-all shadow-xs active:scale-95 flex items-center justify-center gap-1.5 uppercase tracking-wider cursor-pointer"
+          >
+            {copiedToast ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span className="text-emerald-500 truncate">{tResult('copied_toast')}</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5 text-primary shrink-0" />
+                <span className="truncate">{tResult('copy_text_button')}</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Challenge a Friend WhatsApp Duel Button */}
         <button
           type="button"
-          onClick={handleShareImage}
-          disabled={isProcessing}
-          className="w-full py-3.5 px-5 bg-primary text-primary-foreground font-bold text-xs rounded-2xl hover:bg-primary/90 transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-2.5 disabled:opacity-50 uppercase tracking-wider cursor-pointer"
+          onClick={() => {
+            if (typeof window === 'undefined' || !currentChallenge) return;
+            const challengeUrl = `${window.location.origin}/${activeLocale}?challenge=${currentChallenge.id}&ref=${lastScore || 0}`;
+            const msgText = tResult('whatsapp_share_text', { score: lastScore || 0 });
+            const fullText = `${msgText}\n\n👉 ${challengeUrl}`;
+            
+            const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(fullText)}`;
+            window.open(waUrl, '_blank');
+          }}
+          className="w-full py-3 px-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-bold text-xs rounded-2xl hover:bg-emerald-500/20 transition-all flex items-center justify-center gap-2 uppercase tracking-wider cursor-pointer shadow-xs active:scale-95"
         >
-          <Share2 className="w-4 h-4" />
-          <span>{isProcessing ? '...' : tResult('download_card')}</span>
+          <Share2 className="w-4 h-4 text-emerald-500 shrink-0" />
+          <span>{tResult('challenge_friend')}</span>
         </button>
 
         <button

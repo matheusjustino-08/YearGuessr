@@ -1,5 +1,4 @@
-'use client';
-
+import { useEffect, useCallback } from 'react';
 import { useGameStore } from '@/store/useGameStore';
 import { useTranslations } from 'next-intl';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
@@ -16,16 +15,11 @@ function getEraKey(year: number) {
 }
 
 export function Timeline() {
-  const currentYear = useGameStore((state) => state.currentYear);
-  const setCurrentYear = useGameStore((state) => state.setCurrentYear);
-  const submitGuess = useGameStore((state) => state.submitGuess);
-  const isSubmitting = useGameStore((state) => state.isSubmitting);
-  const currentChallenge = useGameStore((state) => state.currentChallenge);
-  const guesses = useGameStore((state) => state.guesses);
+  const { currentChallenge, currentYear, setCurrentYear, submitGuess, guesses, isSubmitting } = useGameStore();
   const guessHistory = useGameStore((state) => state.guessHistory);
   const tGame = useTranslations('game');
   const tEras = useTranslations('eras');
-  const { playTick } = useAudioEngine();
+  const { playTick, playSubmit } = useAudioEngine();
 
   const minYear = currentChallenge?.minYear || 1000;
   const maxYear = currentChallenge?.maxYear || 2026;
@@ -41,21 +35,44 @@ export function Timeline() {
     }
   };
 
-  const adjustYear = (delta: number) => {
+  const adjustYear = useCallback((delta: number) => {
     const newYear = Math.max(minYear, Math.min(maxYear, currentYear + delta));
     setCurrentYear(newYear);
     playTick();
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       navigator.vibrate(10);
     }
-  };
+  }, [currentYear, minYear, maxYear, setCurrentYear, playTick]);
 
-  const handleGuess = () => {
+  const handleGuess = useCallback(() => {
+    if (isSubmitting) return;
+    playSubmit();
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       navigator.vibrate(50);
     }
     submitGuess();
-  };
+  }, [isSubmitting, playSubmit, submitGuess]);
+
+  // Keyboard navigation shortcuts: Arrow keys to adjust year (-1/+1 or Shift for -10/+10) and Enter to confirm guess
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        adjustYear(e.shiftKey ? -10 : -1);
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        adjustYear(e.shiftKey ? 10 : 1);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        handleGuess();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [adjustYear, handleGuess]);
 
   const getProximityColor = (dist: number) => {
     if (dist <= 3) return 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400';

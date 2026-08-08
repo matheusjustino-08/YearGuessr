@@ -98,7 +98,6 @@ export function TopLeaderboardAd() {
     fetchTopAds();
   }, [supabase]);
 
-  // Rotate Top Ads every 5.5 seconds if multiple active 728x90 ads exist
   useEffect(() => {
     if (topAds.length <= 1) return;
 
@@ -116,7 +115,6 @@ export function TopLeaderboardAd() {
     const now = Date.now();
     const lastTracked = trackedViewsRef.current.get(ad.id) || 0;
 
-    // Cooldown guard: prevent double counting ad impression within 10s
     if (now - lastTracked < 10000) return;
     trackedViewsRef.current.set(ad.id, now);
 
@@ -130,6 +128,14 @@ export function TopLeaderboardAd() {
       // Fallback
     }
   };
+
+  const currentAd = topAds.length > 0 ? topAds[currentIndex % topAds.length] : null;
+
+  useEffect(() => {
+    if (currentAd) {
+      trackView(currentAd);
+    }
+  }, [currentAd]);
 
   const handleAdClick = async (ad: any) => {
     if (!ad || !ad.id) return;

@@ -19,7 +19,7 @@ function getAudioContext(): AudioContext | null {
   }
 }
 
-function createSynthSound(type: 'tick' | 'win' | 'lose') {
+function createSynthSound(type: 'tick' | 'win' | 'lose' | 'submit') {
   const isSoundEnabled = useGameStore.getState().soundEnabled;
   if (!isSoundEnabled) return;
 
@@ -27,7 +27,6 @@ function createSynthSound(type: 'tick' | 'win' | 'lose') {
   if (!ctx) return;
 
   try {
-    // Resume if suspended (autoplay policy)
     if (ctx.state === 'suspended') {
       ctx.resume();
     }
@@ -44,6 +43,18 @@ function createSynthSound(type: 'tick' | 'win' | 'lose') {
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + 0.035);
+    } else if (type === 'submit') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.14);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.15);
     } else if (type === 'win') {
       [523.25, 659.25, 783.99, 1046.50].forEach((freq, index) => {
         const osc = ctx.createOscillator();
@@ -81,6 +92,10 @@ export function useAudioEngine() {
     createSynthSound('tick');
   }, []);
 
+  const playSubmit = useCallback(() => {
+    createSynthSound('submit');
+  }, []);
+
   const playWin = useCallback(() => {
     createSynthSound('win');
   }, []);
@@ -89,5 +104,5 @@ export function useAudioEngine() {
     createSynthSound('lose');
   }, []);
 
-  return { playTick, playWin, playLose };
+  return { playTick, playSubmit, playWin, playLose };
 }

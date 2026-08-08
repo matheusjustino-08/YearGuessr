@@ -2,6 +2,13 @@ import { create } from 'zustand';
 import { createClient } from '@/lib/supabase/client';
 import { generateOrganicRulerRange } from '@/lib/ruler-calculator';
 
+export function getLocalDateKey(d = new Date()): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 type GameState = 'playing' | 'won' | 'finished';
 
 export interface Challenge {
@@ -41,8 +48,9 @@ interface GameStore {
   colorMode: string;
   selectedCategory: string;
   selectedDifficulty: string;
-  gameMode: 'daily' | 'practice';
+  gameMode: 'daily' | 'practice' | 'timeattack' | 'chronological';
   dailyCompleted: boolean;
+  duelTargetScore: number | null;
   challengeStartTime: number | null;
   soundEnabled: boolean;
   setCurrentYear: (year: number) => void;
@@ -52,10 +60,12 @@ interface GameStore {
   setSoundEnabled: (enabled: boolean) => void;
   setSelectedCategory: (category: string) => void;
   setSelectedDifficulty: (difficulty: string) => void;
-  setGameMode: (mode: 'daily' | 'practice') => void;
+  setGameMode: (mode: 'daily' | 'practice' | 'timeattack' | 'chronological') => void;
+  setDuelTargetScore: (score: number | null) => void;
   submitGuess: () => void;
   reset: () => void;
   fetchDailyChallenge: () => Promise<void>;
+  loadSpecificChallenge: (challengeId: string) => Promise<void>;
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -74,6 +84,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   selectedDifficulty: 'all',
   gameMode: 'daily',
   dailyCompleted: false,
+  duelTargetScore: null,
   challengeStartTime: null,
   soundEnabled: typeof window !== 'undefined' ? localStorage.getItem('yearguessr_sound') !== 'false' : true,
 
@@ -88,6 +99,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ gameMode: mode, gameState: 'playing', guesses: [], lastScore: null, lastDistance: null });
     get().fetchDailyChallenge();
   },
+
+  setDuelTargetScore: (score) => set({ duelTargetScore: score }),
   
   setSelectedCategory: (category) => {
     set({ selectedCategory: category, gameState: 'playing', guesses: [], lastScore: null, lastDistance: null });
@@ -121,6 +134,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     try {
       const supabase = createClient();
       const { selectedCategory, selectedDifficulty, gameMode } = get();
+      const todayKey = getLocalDateKey();
 
       if (gameMode === 'daily') {
         // 1. Check DB for logged-in user
@@ -152,7 +166,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
 
         // 2. Check localStorage for guests / offline
-        const todayKey = new Date().toISOString().split('T')[0];
         if (typeof window !== 'undefined') {
           const completedDate = localStorage.getItem('yearguessr_daily_completed_date');
           if (completedDate === todayKey) {
@@ -210,8 +223,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
 
       set({ dailyCompleted: false });
-
-      const todayKey = new Date().toISOString().split('T')[0];
 
       let { data, error } = await supabase
         .from('desafios')
@@ -306,6 +317,43 @@ export const useGameStore = create<GameStore>((set, get) => ({
       console.error('Falha ao buscar desafio:', err);
     }
   },
+
+  loadSpecificChallenge: async (challengeId: string) => {
+    try {
+      const supabase = createClient();
+      const { data: item } = await supabase
+        .from('desafios')
+        .select('*')
+        .eq('id', challengeId)
+        .single();
+
+      if (item) {
+        const organicRuler = generateOrganicRulerRange(item.ano_correto, item.dificuldade || 'normal');
+        const minYear = item.janela_anos ? item.janela_anos[0] : organicRuler.minYear;
+        const maxYear = item.janela_anos ? item.janela_anos[1] : organicRuler.maxYear;
+
+        set({
+          currentChallenge: {
+            id: item.id,
+            minYear,
+            maxYear,
+            imagem_principal: item.imagem_principal,
+            categorias: item.categorias || ['historia'],
+            dificuldade: item.dificuldade || 'normal',
+            conteudo_i18n: item.conteudo_i18n,
+          },
+          targetYear: null,
+          currentYear: Math.floor((minYear + maxYear) / 2),
+          guesses: [],
+          guessHistory: [],
+          gameState: 'playing',
+          challengeStartTime: Date.now(),
+        });
+      }
+    } catch {
+      // Ignore
+    }
+  },
   
   submitGuess: async () => {
     const { currentYear, guesses, currentChallenge, gameMode, challengeStartTime, isSubmitting } = get();
@@ -352,7 +400,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const updatedHistory = [...get().guessHistory, feedback];
 
       if (gameMode === 'daily' && isGameOver && typeof window !== 'undefined') {
-        const todayKey = new Date().toISOString().split('T')[0];
+        const todayKey = getLocalDateKey();
         localStorage.setItem('yearguessr_daily_completed_date', todayKey);
         localStorage.setItem('yearguessr_daily_score', String(score));
         localStorage.setItem('yearguessr_daily_distance', String(distanceOff));
