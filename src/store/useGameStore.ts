@@ -33,6 +33,7 @@ interface GameStore {
   guesses: number[];
   guessHistory: GuessFeedback[];
   gameState: GameState;
+  isSubmitting: boolean;
   lastScore: number | null;
   lastDistance: number | null;
   currentChallenge: Challenge | null;
@@ -63,6 +64,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   guesses: [],
   guessHistory: [],
   gameState: 'playing',
+  isSubmitting: false,
   lastScore: null,
   lastDistance: null,
   currentChallenge: null,
@@ -306,9 +308,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   
   submitGuess: async () => {
-    const { currentYear, guesses, currentChallenge, gameMode, challengeStartTime } = get();
-    if (!currentChallenge) return;
+    const { currentYear, guesses, currentChallenge, gameMode, challengeStartTime, isSubmitting } = get();
+    if (!currentChallenge || isSubmitting) return;
 
+    set({ isSubmitting: true });
     const newGuesses = [...guesses, currentYear];
     const timeInSeconds = challengeStartTime
       ? Math.min(Math.round((Date.now() - challengeStartTime) / 1000), 300)
@@ -389,6 +392,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     } catch (err) {
       console.error('Submit guess error:', err);
+    } finally {
+      set({ isSubmitting: false });
     }
   },
   

@@ -19,6 +19,7 @@ export function Timeline() {
   const currentYear = useGameStore((state) => state.currentYear);
   const setCurrentYear = useGameStore((state) => state.setCurrentYear);
   const submitGuess = useGameStore((state) => state.submitGuess);
+  const isSubmitting = useGameStore((state) => state.isSubmitting);
   const currentChallenge = useGameStore((state) => state.currentChallenge);
   const guesses = useGameStore((state) => state.guesses);
   const guessHistory = useGameStore((state) => state.guessHistory);
@@ -160,6 +161,11 @@ export function Timeline() {
             max={maxYear}
             value={currentYear}
             onChange={handleSliderChange}
+            aria-label="Ano do palpite"
+            aria-valuemin={minYear}
+            aria-valuemax={maxYear}
+            aria-valuenow={currentYear}
+            aria-valuetext={`${currentYear}`}
             className="w-full h-3 bg-muted/80 rounded-full appearance-none cursor-pointer accent-primary hover:accent-primary/90 transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 shadow-inner"
           />
         </div>
@@ -197,10 +203,11 @@ export function Timeline() {
       <div className="flex justify-center pt-2">
         <button
           onClick={handleGuess}
-          className="w-full flex items-center justify-center gap-2.5 px-8 py-4 bg-primary text-primary-foreground font-black tracking-wide rounded-2xl hover:bg-primary/90 transition-all shadow-xl hover:shadow-2xl active:scale-95 uppercase text-sm cursor-pointer"
+          disabled={isSubmitting}
+          className="w-full flex items-center justify-center gap-2.5 px-8 py-4 bg-primary text-primary-foreground font-black tracking-wide rounded-2xl hover:bg-primary/90 transition-all shadow-xl hover:shadow-2xl active:scale-95 uppercase text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <CheckCircle2 className="w-5 h-5" />
-          {tGame('guess_button', { year: currentYear })}
+          {isSubmitting ? 'Enviando palpite...' : tGame('guess_button', { year: currentYear })}
         </button>
       </div>
     </div>

@@ -87,7 +87,7 @@ CREATE INDEX IF NOT EXISTS idx_partidas_user_id ON public.partidas (user_id);
 CREATE INDEX IF NOT EXISTS idx_partidas_created_at ON public.partidas (created_at);
 
 -- 7. TABELA DE PERFIS DE USUÁRIOS
-CREATE TABLE IF NOT EXISTS public.profiles (
+CREATE TABLE IF NOT EXISTS public.perfis (
     id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     username text UNIQUE,
     avatar_url text,
@@ -110,7 +110,7 @@ ALTER TABLE public.dificuldades ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.anuncios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.anuncios_propostas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.partidas ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.perfis ENABLE ROW LEVEL SECURITY;
 
 -- Permissões de Leitura Pública
 DROP POLICY IF EXISTS "Leitura publica de desafios" ON public.desafios;
@@ -127,7 +127,7 @@ CREATE POLICY "Leitura publica de anuncios" ON public.anuncios FOR SELECT USING 
 
 -- Permissões de Escrita / Inserção Pública
 DROP POLICY IF EXISTS "Insercao de propostas" ON public.anuncios_propostas;
-CREATE POLICY "Insercao de propostas" ON public.anuncios_propostas FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Insercao de propostas" ON public.anuncios_propostas FOR INSERT WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Gerenciamento de anuncios" ON public.anuncios;
 CREATE POLICY "Gerenciamento de anuncios" ON public.anuncios FOR ALL USING (true) WITH CHECK (true);
@@ -135,8 +135,19 @@ CREATE POLICY "Gerenciamento de anuncios" ON public.anuncios FOR ALL USING (true
 DROP POLICY IF EXISTS "Gerenciamento de desafios" ON public.desafios;
 CREATE POLICY "Gerenciamento de desafios" ON public.desafios FOR ALL USING (true) WITH CHECK (true);
 
-DROP POLICY IF EXISTS "Partidas usuarios" ON public.partidas;
-CREATE POLICY "Partidas usuarios" ON public.partidas FOR ALL USING (true) WITH CHECK (true);
+-- Políticas Seguras de Partidas
+DROP POLICY IF EXISTS "Partidas leitura" ON public.partidas;
+CREATE POLICY "Partidas leitura" ON public.partidas FOR SELECT USING (true);
 
-DROP POLICY IF EXISTS "Perfis usuarios" ON public.profiles;
-CREATE POLICY "Perfis usuarios" ON public.profiles FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Partidas insercao" ON public.partidas;
+CREATE POLICY "Partidas insercao" ON public.partidas FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
+
+-- Políticas Seguras de Perfis
+DROP POLICY IF EXISTS "Perfis leitura" ON public.perfis;
+CREATE POLICY "Perfis leitura" ON public.perfis FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Perfis insercao" ON public.perfis;
+CREATE POLICY "Perfis insercao" ON public.perfis FOR INSERT WITH CHECK (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Perfis atualizacao" ON public.perfis;
+CREATE POLICY "Perfis atualizacao" ON public.perfis FOR UPDATE USING (auth.uid() = id);
