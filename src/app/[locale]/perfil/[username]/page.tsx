@@ -82,7 +82,7 @@ export default async function ProfilePage({
               {profile.e_anonimo ? tLb('anonymous_player') : profile.username}
             </h1>
             <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
-              {profile.role === 'admin' ? '⭐ Administrador' : '🎮 Jogador YearGuessr'}
+              {profile.role === 'admin' ? 'Administrador' : 'Jogador YearGuessr'}
             </p>
           </div>
         </div>
