@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useGameStore } from '@/store/useGameStore';
 import { createClient } from '@/lib/supabase/client';
 import { useTranslations, useLocale } from 'next-intl';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
-import { Timer, Zap, Trophy, RefreshCw, CheckCircle2, ArrowUp, ArrowDown } from 'lucide-react';
+import { Timer, Zap, Trophy, RefreshCw, AlertCircle } from 'lucide-react';
 import { generateOrganicRulerRange } from '@/lib/ruler-calculator';
 
 interface ChallengeItem {
@@ -25,7 +24,6 @@ export function TimeAttackGame() {
   const supabase = useMemo(() => createClient(), []);
   const activeLocale = useLocale() as 'pt' | 'en' | 'es';
   const tGame = useTranslations('game');
-  const tLb = useTranslations('leaderboard');
   const { playTick, playSubmit, playWin, playLose } = useAudioEngine();
 
   const [timeLeft, setTimeLeft] = useState(60);
@@ -38,9 +36,11 @@ export function TimeAttackGame() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [feedback, setFeedback] = useState<{ msg: string; bonusTime?: number } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Fetch real challenges from Supabase
   const loadChallenges = useCallback(async () => {
+    setLoading(true);
     try {
       const { data } = await supabase
         .from('desafios')
@@ -59,11 +59,14 @@ export function TimeAttackGame() {
             conteudo_i18n: item.conteudo_i18n,
           };
         });
-        // Shuffle pool
         setChallengesPool(mapped.sort(() => Math.random() - 0.5));
+      } else {
+        setChallengesPool([]);
       }
     } catch {
-      // Fallback pool
+      setChallengesPool([]);
+    } finally {
+      setLoading(false);
     }
   }, [supabase]);
 
@@ -75,7 +78,6 @@ export function TimeAttackGame() {
     setCurrentIndex(0);
     setFeedback(null);
     setIsActive(true);
-    loadChallenges();
   };
 
   useEffect(() => {
@@ -109,26 +111,17 @@ export function TimeAttackGame() {
     return () => clearInterval(interval);
   }, [isActive, gameOver, timeLeft, playTick, playLose]);
 
-  const activeChallenge = challengesPool[currentIndex % (challengesPool.length || 1)] || {
-    id: 'demo',
-    ano_correto: 1969,
-    minYear: 1900,
-    maxYear: 2000,
-    imagem_principal: 'https://images.unsplash.com/photo-1517976487492-5750f3195933?q=80&w=1200&auto=format&fit=crop',
-    conteudo_i18n: {
-      pt: { titulo: 'Chegada do Homem à Lua (Apollo 11)', dica: 'Corrida Espacial.' },
-      en: { titulo: 'Apollo 11 Moon Landing', dica: 'Space Race.' },
-    },
-  };
-
-  const content = activeChallenge.conteudo_i18n?.[activeLocale] || activeChallenge.conteudo_i18n?.pt || activeChallenge.conteudo_i18n?.en;
+  const activeChallenge = challengesPool.length > 0 ? challengesPool[currentIndex % challengesPool.length] : null;
+  const content = activeChallenge?.conteudo_i18n?.[activeLocale] || activeChallenge?.conteudo_i18n?.pt || activeChallenge?.conteudo_i18n?.en;
 
   useEffect(() => {
-    setCurrentYear(Math.floor((activeChallenge.minYear + activeChallenge.maxYear) / 2));
-  }, [activeChallenge.minYear, activeChallenge.maxYear, currentIndex]);
+    if (activeChallenge) {
+      setCurrentYear(Math.floor((activeChallenge.minYear + activeChallenge.maxYear) / 2));
+    }
+  }, [activeChallenge]);
 
   const handleGuess = () => {
-    if (isSubmitting || gameOver) return;
+    if (isSubmitting || gameOver || !activeChallenge) return;
     setIsSubmitting(true);
     playSubmit();
 
@@ -136,7 +129,6 @@ export function TimeAttackGame() {
     const roundScore = Math.max(0, Math.round(5000 * Math.exp(-0.018 * diff)));
 
     if (diff === 0) {
-      // Exact hit: +5s bonus time!
       playWin();
       setTimeLeft((prev) => prev + 5);
       setTotalScore((prev) => prev + 5000);
@@ -154,6 +146,36 @@ export function TimeAttackGame() {
     }, 900);
   };
 
+  if (loading) {
+    return (
+      <div className="w-full max-w-xl mx-auto text-center p-12 rounded-3xl bg-card/80 border border-border/70 backdrop-blur-2xl space-y-4">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-xs font-mono font-bold text-muted-foreground uppercase">Carregando Desafios do Banco de Dados...</p>
+      </div>
+    );
+  }
+
+  if (challengesPool.length === 0) {
+    return (
+      <div className="w-full max-w-xl mx-auto text-center p-8 rounded-3xl bg-card/80 border border-border/70 backdrop-blur-2xl space-y-4">
+        <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/30 w-12 h-12 mx-auto flex items-center justify-center">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h3 className="text-lg font-bold text-foreground">Nenhum Desafio no Banco</h3>
+        <p className="text-xs text-muted-foreground font-mono leading-relaxed max-w-md mx-auto">
+          Cadastre novos desafios históricos no Painel Admin para jogar o Modo Contratempo!
+        </p>
+        <button
+          type="button"
+          onClick={loadChallenges}
+          className="px-6 py-2.5 bg-primary text-primary-foreground font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-primary/90 transition-all cursor-pointer font-mono"
+        >
+          Tentar Novamente
+        </button>
+      </div>
+    );
+  }
+
   if (!isActive && !gameOver) {
     return (
       <div className="w-full max-w-xl mx-auto text-center p-8 rounded-3xl bg-card/80 border border-border/70 backdrop-blur-2xl space-y-6 shadow-xl">
@@ -164,14 +186,14 @@ export function TimeAttackGame() {
           <h2 className="text-2xl font-black uppercase tracking-tight text-foreground font-mono">
             MODO CONTRATEMPO (TIME ATTACK)
           </h2>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Você tem 60 segundos para acertar o máximo de anos históricos! A cada acerto exato (Na Mosca), você ganha +5 segundos de tempo bônus!
+          <p className="text-xs text-muted-foreground leading-relaxed font-mono">
+            Você tem 60 segundos para acertar o máximo de desafios do banco! A cada acerto exato (Na Mosca), você ganha +5 segundos de tempo bônus!
           </p>
         </div>
         <button
           type="button"
           onClick={startGame}
-          className="w-full py-4 bg-primary text-primary-foreground font-black text-xs uppercase tracking-wider rounded-2xl hover:bg-primary/90 transition-all shadow-xl active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+          className="w-full py-4 bg-primary text-primary-foreground font-black text-xs uppercase tracking-wider rounded-2xl hover:bg-primary/90 transition-all shadow-xl active:scale-95 cursor-pointer flex items-center justify-center gap-2 font-mono"
         >
           <Timer className="w-5 h-5" />
           <span>INICIAR DESAFIO (60s)</span>
@@ -195,7 +217,7 @@ export function TimeAttackGame() {
         <button
           type="button"
           onClick={startGame}
-          className="w-full py-4 bg-primary text-primary-foreground font-black text-xs uppercase tracking-wider rounded-2xl hover:bg-primary/90 transition-all shadow-xl active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+          className="w-full py-4 bg-primary text-primary-foreground font-black text-xs uppercase tracking-wider rounded-2xl hover:bg-primary/90 transition-all shadow-xl active:scale-95 cursor-pointer flex items-center justify-center gap-2 font-mono"
         >
           <RefreshCw className="w-5 h-5" />
           <span>JOGAR NOVAMENTE</span>
@@ -203,6 +225,8 @@ export function TimeAttackGame() {
       </div>
     );
   }
+
+  if (!activeChallenge) return null;
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
@@ -255,7 +279,7 @@ export function TimeAttackGame() {
             type="button"
             onClick={handleGuess}
             disabled={isSubmitting}
-            className="w-full py-3.5 bg-primary text-primary-foreground font-black text-xs uppercase tracking-wider rounded-2xl hover:bg-primary/90 transition-all shadow-md active:scale-95 cursor-pointer disabled:opacity-50"
+            className="w-full py-3.5 bg-primary text-primary-foreground font-black text-xs uppercase tracking-wider rounded-2xl hover:bg-primary/90 transition-all shadow-md active:scale-95 cursor-pointer disabled:opacity-50 font-mono"
           >
             CONFIRMAR PALPITE
           </button>

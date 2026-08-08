@@ -3,22 +3,13 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useLocale, useTranslations } from 'next-intl';
-import { ArrowUp, ArrowDown, CheckCircle2, RefreshCw, Trophy, Sparkles } from 'lucide-react';
+import { ArrowUp, ArrowDown, CheckCircle2, RefreshCw, AlertCircle } from 'lucide-react';
 
 interface Item {
   id: string;
   title: string;
   year: number;
   imageUrl: string;
-}
-
-function shuffleArray<T>(arr: T[]): T[] {
-  const newArr = [...arr];
-  for (let i = newArr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-  }
-  return newArr;
 }
 
 export function ChronologicalGame() {
@@ -38,11 +29,12 @@ export function ChronologicalGame() {
       const { data } = await supabase
         .from('desafios')
         .select('*')
-        .limit(20);
+        .limit(50);
 
-      if (data && data.length >= 4) {
-        // Shuffle and pick 4 items
-        const shuffled = [...data].sort(() => Math.random() - 0.5).slice(0, 4);
+      if (data && data.length >= 2) {
+        // Pick up to 4 real challenges from DB
+        const countToPick = Math.min(4, data.length);
+        const shuffled = [...data].sort(() => Math.random() - 0.5).slice(0, countToPick);
         const mapped: Item[] = shuffled.map((item) => {
           const content = item.conteudo_i18n?.[activeLocale] || item.conteudo_i18n?.pt || item.conteudo_i18n?.en;
           return {
@@ -54,16 +46,10 @@ export function ChronologicalGame() {
         });
         setItems(mapped);
       } else {
-        // Demo items fallback if DB has fewer than 4 items
-        setItems(shuffleArray([
-          { id: '1', title: 'Construção da Torre Eiffel (Paris)', year: 1887, imageUrl: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?q=80&w=800&auto=format&fit=crop' },
-          { id: '2', title: 'Primeiro Voo do 14-Bis (Santos Dumont)', year: 1906, imageUrl: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop' },
-          { id: '3', title: 'Queda do Muro de Berlim', year: 1989, imageUrl: 'https://images.unsplash.com/photo-1517976487492-5750f3195933?q=80&w=800&auto=format&fit=crop' },
-          { id: '4', title: 'Lançamento do Primeiro iPhone', year: 2007, imageUrl: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?q=80&w=800&auto=format&fit=crop' },
-        ]));
+        setItems([]);
       }
     } catch {
-      // Fallback
+      setItems([]);
     } finally {
       setLoading(false);
       setSubmitted(false);
@@ -91,6 +77,7 @@ export function ChronologicalGame() {
   };
 
   const handleConfirm = () => {
+    if (items.length < 2) return;
     let correctCount = 0;
     for (let i = 0; i < items.length - 1; i++) {
       if (items[i].year <= items[i + 1].year) {
@@ -100,7 +87,7 @@ export function ChronologicalGame() {
 
     const win = correctCount === items.length - 1;
     setIsCorrect(win);
-    setScore(win ? 5000 : correctCount * 1250);
+    setScore(win ? 5000 : Math.round((correctCount / (items.length - 1)) * 5000));
     setSubmitted(true);
   };
 
@@ -108,7 +95,28 @@ export function ChronologicalGame() {
     return (
       <div className="w-full max-w-xl mx-auto text-center p-12 rounded-3xl bg-card/80 border border-border/70 backdrop-blur-2xl space-y-4">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-xs font-mono font-bold text-muted-foreground uppercase">Carregando Desafios Reais do Banco...</p>
+        <p className="text-xs font-mono font-bold text-muted-foreground uppercase">Carregando Desafios Reais do Banco de Dados...</p>
+      </div>
+    );
+  }
+
+  if (items.length < 2) {
+    return (
+      <div className="w-full max-w-xl mx-auto text-center p-8 rounded-3xl bg-card/80 border border-border/70 backdrop-blur-2xl space-y-4">
+        <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/30 w-12 h-12 mx-auto flex items-center justify-center">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h3 className="text-lg font-bold text-foreground">Poucos Desafios Cadastrados</h3>
+        <p className="text-xs text-muted-foreground font-mono leading-relaxed max-w-md mx-auto">
+          É necessário ter pelo menos 2 desafios publicados no banco de dados para jogar o Modo Linha do Tempo. Cadastre novos desafios no Painel Admin!
+        </p>
+        <button
+          type="button"
+          onClick={fetchRealChallenges}
+          className="px-6 py-2.5 bg-primary text-primary-foreground font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-primary/90 transition-all cursor-pointer font-mono"
+        >
+          Tentar Novamente
+        </button>
       </div>
     );
   }
@@ -120,7 +128,7 @@ export function ChronologicalGame() {
           LINHA DO TEMPO EM ORDEM
         </h2>
         <p className="text-xs text-muted-foreground font-mono">
-          Organize os 4 eventos históricos reais do MAIS ANTIGO (topo) ao MAIS RECENTE (base)
+          Organize os {items.length} eventos históricos reais do MAIS ANTIGO (topo) ao MAIS RECENTE (base)
         </p>
       </div>
 
