@@ -227,26 +227,7 @@ export function AdManagerSection({ supabase }: Props) {
         .select('*')
         .order('created_at', { ascending: false });
       if (error) throw error;
-      
-      const processedData = (data || []).map(ad => {
-        if (typeof window !== 'undefined') {
-          const localBtnSetting = localStorage.getItem(`yearguessr_ad_showbtn_${ad.id}`);
-          if (localBtnSetting !== null) {
-            ad.mostrar_botao = localBtnSetting === 'true';
-          }
-          const localTextSetting = localStorage.getItem(`yearguessr_ad_textbtn_${ad.id}`);
-          if (localTextSetting !== null) {
-            ad.texto_botao = localTextSetting;
-          }
-          const localPosSetting = localStorage.getItem(`yearguessr_ad_pos_${ad.id}`);
-          if (localPosSetting !== null) {
-            ad.posicao = localPosSetting;
-          }
-        }
-        return ad;
-      });
-
-      setAds(processedData);
+      setAds(data || []);
     } catch (err: unknown) {
       showMsg(`Erro ao carregar anúncios: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
@@ -336,36 +317,20 @@ export function AdManagerSection({ supabase }: Props) {
     e.preventDefault();
     setSaving(true);
     try {
-      const corePayload = {
+      const payload = {
         titulo: newAd.titulo,
         subtitulo: newAd.subtitulo,
         link_destino: newAd.link_destino,
         imagem_url: newAd.imagem_url ? resolveImageUrl(newAd.imagem_url) : null,
         formato: newAd.formato,
+        posicao: newAd.posicao || 'ambos',
         ativo: newAd.ativo,
+        mostrar_botao: newAd.mostrar_botao,
+        texto_botao: newAd.texto_botao || 'Acessar',
       };
 
-      const { data, error } = await supabase.from('anuncios').insert([corePayload]).select();
+      const { data, error } = await supabase.from('anuncios').insert([payload]).select();
       if (error) throw error;
-
-      if (data && data[0]) {
-        const createdId = data[0].id;
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(`yearguessr_ad_showbtn_${createdId}`, String(newAd.mostrar_botao));
-          localStorage.setItem(`yearguessr_ad_textbtn_${createdId}`, newAd.texto_botao || 'Acessar');
-          localStorage.setItem(`yearguessr_ad_pos_${createdId}`, newAd.posicao || 'ambos');
-        }
-
-        try {
-          await supabase.from('anuncios').update({
-            posicao: newAd.posicao || 'ambos',
-            mostrar_botao: newAd.mostrar_botao,
-            texto_botao: newAd.texto_botao || 'Acessar',
-          }).eq('id', createdId);
-        } catch {
-          // Ignore
-        }
-      }
 
       showMsg('Anúncio criado com sucesso!');
       setNewAd({ ...EMPTY_AD });
@@ -383,42 +348,27 @@ export function AdManagerSection({ supabase }: Props) {
     setSaving(true);
     setModalError('');
     try {
-      const pos = editingAd.posicao || 'ambos';
-      const showBtn = editingAd.mostrar_botao;
-      const textBtn = editingAd.texto_botao || 'Acessar';
-
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(`yearguessr_ad_showbtn_${editingAd.id}`, String(showBtn));
-        localStorage.setItem(`yearguessr_ad_textbtn_${editingAd.id}`, textBtn);
-        localStorage.setItem(`yearguessr_ad_pos_${editingAd.id}`, pos);
-      }
-
-      const updatedAd = { ...editingAd, posicao: pos, mostrar_botao: showBtn, texto_botao: textBtn };
-      setAds(prev => prev.map(a => a.id === editingAd.id ? updatedAd : a));
-
-      const corePayload = {
+      const payload = {
         titulo: editingAd.titulo,
         subtitulo: editingAd.subtitulo,
         link_destino: editingAd.link_destino,
         imagem_url: editingAd.imagem_url ? resolveImageUrl(editingAd.imagem_url) : null,
         formato: editingAd.formato,
+        posicao: editingAd.posicao || 'ambos',
         ativo: editingAd.ativo,
+        mostrar_botao: editingAd.mostrar_botao,
+        texto_botao: editingAd.texto_botao || 'Acessar',
       };
 
-      const { error: coreErr } = await supabase.from('anuncios').update(corePayload).eq('id', editingAd.id);
-      if (coreErr) throw coreErr;
+      const { data, error } = await supabase
+        .from('anuncios')
+        .update(payload)
+        .eq('id', editingAd.id)
+        .select();
 
-      try {
-        await supabase.from('anuncios').update({
-          posicao: pos,
-          mostrar_botao: showBtn,
-          texto_botao: textBtn,
-        }).eq('id', editingAd.id);
-      } catch {
-        // Silently fall back to localStorage
-      }
+      if (error) throw error;
 
-      showMsg('Anúncio e preferências salvas com sucesso!');
+      showMsg('Anúncio atualizado com sucesso no banco de dados!');
       setEditingAd(null);
       await loadAds();
     } catch (err: unknown) {

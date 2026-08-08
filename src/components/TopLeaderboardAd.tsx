@@ -88,31 +88,7 @@ export function TopLeaderboardAd() {
           .order('created_at', { ascending: false });
 
         if (!error && data && data.length > 0) {
-          const processedData = data.map(ad => {
-            if (typeof window !== 'undefined') {
-              const localBtnSetting = localStorage.getItem(`yearguessr_ad_showbtn_${ad.id}`);
-              if (localBtnSetting !== null) {
-                ad.mostrar_botao = localBtnSetting === 'true';
-              }
-              const localTextSetting = localStorage.getItem(`yearguessr_ad_textbtn_${ad.id}`);
-              if (localTextSetting !== null) {
-                ad.texto_botao = localTextSetting;
-              }
-            }
-            return ad;
-          });
-
-          setTopAds(processedData);
-
-          // Track first view
-          try {
-            await supabase
-              .from('anuncios')
-              .update({ visualizacoes: (processedData[0].visualizacoes || 0) + 1 })
-              .eq('id', processedData[0].id);
-          } catch {
-            // Ignore
-          }
+          setTopAds(data);
         }
       } catch {
         // Fallback

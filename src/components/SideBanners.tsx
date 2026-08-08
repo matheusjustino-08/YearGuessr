@@ -91,29 +91,8 @@ export function SideBanners() {
           .order('created_at', { ascending: false });
 
         if (!error && data && data.length > 0) {
-          const processedData = data.map(ad => {
-            if (typeof window !== 'undefined') {
-              const localBtnSetting = localStorage.getItem(`yearguessr_ad_showbtn_${ad.id}`);
-              if (localBtnSetting !== null) {
-                ad.mostrar_botao = localBtnSetting === 'true';
-              }
-              const localTextSetting = localStorage.getItem(`yearguessr_ad_textbtn_${ad.id}`);
-              if (localTextSetting !== null) {
-                ad.texto_botao = localTextSetting;
-              }
-              const localPosSetting = localStorage.getItem(`yearguessr_ad_pos_${ad.id}`);
-              if (localPosSetting !== null) {
-                ad.posicao = localPosSetting;
-              }
-            }
-            return ad;
-          });
-
-          // Slot 1 (Left): posicao === 'esquerda' or 'ambos' or undefined
-          const left = processedData.filter(a => a.posicao === 'esquerda' || a.posicao === 'ambos' || !a.posicao);
-          // Slot 2 (Right): posicao === 'direita' or 'ambos' or undefined
-          const right = processedData.filter(a => a.posicao === 'direita' || a.posicao === 'ambos' || !a.posicao);
-
+          const left = data.filter(ad => !ad.posicao || ad.posicao === 'ambos' || ad.posicao === 'esquerda');
+          const right = data.filter(ad => !ad.posicao || ad.posicao === 'ambos' || ad.posicao === 'direita');
           setLeftAds(left);
           setRightAds(right);
 

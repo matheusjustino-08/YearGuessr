@@ -75,7 +75,7 @@ export function ChallengeListSection({ supabase }: Props) {
       const minYr = Number(editingChallenge.minYear ?? (editingChallenge.janela_anos ? editingChallenge.janela_anos[0] : 1800));
       const maxYr = Number(editingChallenge.maxYear ?? (editingChallenge.janela_anos ? editingChallenge.janela_anos[1] : 2026));
 
-      const { error } = await supabase.from('desafios').update({
+      const { data, error } = await supabase.from('desafios').update({
         data_publicacao: editingChallenge.data_publicacao,
         ano_correto: Number(editingChallenge.ano_correto),
         janela_anos: [minYr, maxYr],
@@ -83,13 +83,21 @@ export function ChallengeListSection({ supabase }: Props) {
         imagem_principal: resolvedImg,
         categorias: editingChallenge.categorias || [],
         dificuldade: editingChallenge.dificuldade || 'normal',
-      }).eq('id', editingChallenge.id);
+      }).eq('id', editingChallenge.id).select();
 
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error('Nenhuma alteração foi salva no banco (verifique permissões RLS no Supabase).');
+      }
+
       setSaveMsg(tAdmin('form_success'));
       setTimeout(() => setSaveMsg(''), 3000);
       setEditingChallenge(null);
-      loadChallenges();
+      if (data && data[0]) {
+        setChallenges(prev => prev.map(c => c.id === editingChallenge.id ? data[0] : c));
+      } else {
+        loadChallenges();
+      }
     } catch (err: any) {
       setSaveMsg(`Erro: ${err.message}`);
     } finally {
