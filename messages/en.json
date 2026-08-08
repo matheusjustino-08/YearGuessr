@@ -50,7 +50,15 @@
     "image_unavailable": "Image Unavailable",
     "daily_completed_notice": "Today's Daily Challenge Completed!",
     "daily_completed_desc": "You have already completed today's daily challenge. Come back tomorrow or keep playing in Practice Mode!",
-    "switch_to_practice": "Switch to Practice Mode"
+    "switch_to_practice": "Switch to Practice Mode",
+    "attempt_counter": "Attempt {current} of {max}",
+    "try_higher": "The correct year is MORE RECENT",
+    "try_lower": "The correct year is MORE ANCIENT",
+    "proximity_very_close": "Super Close ({years} {years, plural, =1 {year} other {years}})",
+    "proximity_close": "Close ({years} {years, plural, =1 {year} other {years}})",
+    "proximity_far": "Far ({years} {years, plural, =1 {year} other {years}})",
+    "previous_guesses": "Previous Guesses",
+    "guess_label": "Guess {num}"
   },
   "result": {
     "won_title": "Bullseye! Sensational!",

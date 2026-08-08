@@ -20,10 +20,18 @@ export interface Challenge {
 }
 
 
+export interface GuessFeedback {
+  guessedYear: number;
+  distanceOff: number;
+  direction: 'higher' | 'lower' | 'exact';
+  score: number;
+}
+
 interface GameStore {
   currentYear: number;
   targetYear: number;
   guesses: number[];
+  guessHistory: GuessFeedback[];
   gameState: GameState;
   lastScore: number | null;
   lastDistance: number | null;
@@ -50,9 +58,10 @@ interface GameStore {
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
-  currentYear: 2026,
-  targetYear: 2026,
+  currentYear: 1950,
+  targetYear: 1969,
   guesses: [],
+  guessHistory: [],
   gameState: 'playing',
   lastScore: null,
   lastDistance: null,
@@ -326,19 +335,36 @@ export const useGameStore = create<GameStore>((set, get) => ({
         set({ dailyCompleted: true });
       }
 
-      if (data.isCorrect) {
+      if (data.isCorrect || data.distanceOff === 0) {
+        const direction = 'exact';
+        const feedback: GuessFeedback = { guessedYear: currentYear, distanceOff: 0, direction, score: data.score };
         set({ 
           guesses: newGuesses, 
+          guessHistory: [...get().guessHistory, feedback],
           gameState: 'won', 
+          targetYear: data.correctYear,
+          lastScore: data.score,
+          lastDistance: 0
+        });
+      } else if (newGuesses.length >= 3) {
+        const direction = currentYear < data.correctYear ? 'higher' : 'lower';
+        const feedback: GuessFeedback = { guessedYear: currentYear, distanceOff: data.distanceOff, direction, score: data.score };
+        set({ 
+          guesses: newGuesses, 
+          guessHistory: [...get().guessHistory, feedback],
+          gameState: 'finished', 
           targetYear: data.correctYear,
           lastScore: data.score,
           lastDistance: data.distanceOff
         });
       } else {
-        // Single guess mode: game transitions to result screen on guess
+        // Attempt 1 or 2 failed, record feedback and stay in playing state for next attempt
+        const direction = currentYear < data.correctYear ? 'higher' : 'lower';
+        const feedback: GuessFeedback = { guessedYear: currentYear, distanceOff: data.distanceOff, direction, score: data.score };
         set({ 
           guesses: newGuesses, 
-          gameState: 'finished', 
+          guessHistory: [...get().guessHistory, feedback],
+          gameState: 'playing', 
           targetYear: data.correctYear,
           lastScore: data.score,
           lastDistance: data.distanceOff
@@ -347,12 +373,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
     } catch (error) {
       console.error('Failed to submit guess:', error);
       const fallbackYear = currentChallenge?.ano_correto ?? currentYear;
+      const fallbackDist = Math.abs(currentYear - fallbackYear);
+      const direction = currentYear < fallbackYear ? 'higher' : 'lower';
+      const feedback: GuessFeedback = { guessedYear: currentYear, distanceOff: fallbackDist, direction, score: 0 };
+      const newHist = [...get().guessHistory, feedback];
+
       set({ 
         guesses: newGuesses,
-        gameState: 'finished',
+        guessHistory: newHist,
+        gameState: newGuesses.length >= 3 ? 'finished' : 'playing',
         targetYear: fallbackYear,
         lastScore: 0,
-        lastDistance: Math.abs(currentYear - fallbackYear)
+        lastDistance: fallbackDist
       });
     }
   },
@@ -360,8 +392,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
   reset: () => {
     const { gameMode, dailyCompleted } = get();
     if (gameMode === 'daily' && dailyCompleted) {
-      set({ gameMode: 'practice' });
+      set({ gameState: 'finished' });
+      return;
     }
-    get().fetchDailyChallenge();
+    set({
+      guesses: [],
+      guessHistory: [],
+      gameState: 'playing',
+      lastScore: null,
+      lastDistance: null,
+      challengeStartTime: Date.now(),
+    });
   },
 }));

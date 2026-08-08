@@ -3,7 +3,7 @@
 import { useGameStore } from '@/store/useGameStore';
 import { useTranslations } from 'next-intl';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
-import { Calendar, CheckCircle2, Minus, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, CheckCircle2, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, Target, History } from 'lucide-react';
 
 function getEraKey(year: number) {
   if (year < 1500) return 'medieval';
@@ -20,6 +20,8 @@ export function Timeline() {
   const setCurrentYear = useGameStore((state) => state.setCurrentYear);
   const submitGuess = useGameStore((state) => state.submitGuess);
   const currentChallenge = useGameStore((state) => state.currentChallenge);
+  const guesses = useGameStore((state) => state.guesses);
+  const guessHistory = useGameStore((state) => state.guessHistory);
   const tGame = useTranslations('game');
   const tEras = useTranslations('eras');
   const { playTick } = useAudioEngine();
@@ -27,6 +29,8 @@ export function Timeline() {
   const minYear = currentChallenge?.minYear || 1000;
   const maxYear = currentChallenge?.maxYear || 2026;
   const eraKey = getEraKey(currentYear);
+  const currentAttemptNum = Math.min(guesses.length + 1, 3);
+  const lastFeedback = guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : null;
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCurrentYear(parseInt(e.target.value));
@@ -52,14 +56,33 @@ export function Timeline() {
     submitGuess();
   };
 
+  const getProximityColor = (dist: number) => {
+    if (dist <= 3) return 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400';
+    if (dist <= 15) return 'bg-amber-500/15 border-amber-500/40 text-amber-600 dark:text-amber-400';
+    return 'bg-rose-500/15 border-rose-500/40 text-rose-600 dark:text-rose-400';
+  };
+
+  const getProximityLabel = (dist: number) => {
+    if (dist <= 3) return tGame('proximity_very_close', { years: dist });
+    if (dist <= 15) return tGame('proximity_close', { years: dist });
+    return tGame('proximity_far', { years: dist });
+  };
+
   return (
-    <div className="w-full space-y-6 p-6 sm:p-8 rounded-3xl bg-card/90 border border-border/60 backdrop-blur-xl shadow-2xl transition-all duration-500 flex flex-col justify-between">
+    <div className="w-full space-y-5 p-6 sm:p-8 rounded-3xl bg-card/90 border border-border/60 backdrop-blur-xl shadow-2xl transition-all duration-500 flex flex-col justify-between">
       
-      {/* Top Era Badge & Animated Year Counter */}
-      <div className="flex flex-col items-center justify-center space-y-3 pt-2">
-        <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest shadow-xs">
-          <Calendar className="w-3.5 h-3.5" />
-          <span>{tEras(eraKey)}</span>
+      {/* Top Era Badge & Attempt Counter */}
+      <div className="flex flex-col items-center justify-center space-y-2 pt-1">
+        <div className="flex items-center gap-2">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest shadow-xs">
+            <Calendar className="w-3.5 h-3.5" />
+            <span>{tEras(eraKey)}</span>
+          </div>
+
+          <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-mono font-bold uppercase tracking-wider">
+            <Target className="w-3.5 h-3.5" />
+            <span>{tGame('attempt_counter', { current: currentAttemptNum, max: 3 })}</span>
+          </div>
         </div>
         
         {/* Main Displayed Year */}
@@ -107,6 +130,27 @@ export function Timeline() {
         </div>
       </div>
 
+      {/* Proximity Feedback Box after Attempt 1 or 2 */}
+      {lastFeedback && (
+        <div className={`p-3.5 rounded-2xl border text-xs space-y-1.5 animate-in fade-in zoom-in-95 duration-300 ${getProximityColor(lastFeedback.distanceOff)}`}>
+          <div className="flex items-center justify-between font-bold">
+            <div className="flex items-center gap-1.5">
+              {lastFeedback.direction === 'higher' ? (
+                <ArrowUp className="w-4 h-4 text-emerald-500 animate-bounce" />
+              ) : (
+                <ArrowDown className="w-4 h-4 text-rose-500 animate-bounce" />
+              )}
+              <span className="text-sm font-black font-mono">
+                {lastFeedback.direction === 'higher' ? tGame('try_higher') : tGame('try_lower')}
+              </span>
+            </div>
+            <span className="px-2 py-0.5 rounded-md font-mono text-[11px] uppercase bg-black/10 border border-current">
+              {getProximityLabel(lastFeedback.distanceOff)}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Custom Styled Slider Bar with Padded Capsule Track */}
       <div className="space-y-2">
         <div className="relative p-2.5 bg-muted/40 border border-border/50 rounded-2xl">
@@ -125,6 +169,29 @@ export function Timeline() {
           <span className="bg-muted/60 px-2.5 py-1 rounded-lg border border-border/40">{maxYear}</span>
         </div>
       </div>
+
+      {/* Previous Attempts History List */}
+      {guessHistory.length > 0 && (
+        <div className="space-y-1.5 pt-1">
+          <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+            <History className="w-3 h-3 text-amber-500" />
+            <span>{tGame('previous_guesses')}</span>
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {guessHistory.map((h, idx) => (
+              <div key={idx} className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-muted/50 border border-border/50 text-xs font-mono">
+                <span className="text-muted-foreground font-semibold">{tGame('guess_label', { num: idx + 1 })}:</span>
+                <span className="font-bold text-foreground">{h.guessedYear}</span>
+                {h.direction === 'higher' ? (
+                  <ArrowUp className="w-3.5 h-3.5 text-emerald-500" />
+                ) : (
+                  <ArrowDown className="w-3.5 h-3.5 text-rose-500" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Primary Confirm Guess Button */}
       <div className="flex justify-center pt-2">

@@ -50,7 +50,15 @@
     "image_unavailable": "Imagem Indisponível",
     "daily_completed_notice": "Desafio Diário Concluído por Hoje!",
     "daily_completed_desc": "Você já respondeu ao desafio diário de hoje. Volte amanhã ou continue jogando no Modo Treino!",
-    "switch_to_practice": "Ir para Modo Treino"
+    "switch_to_practice": "Ir para Modo Treino",
+    "attempt_counter": "Tentativa {current} de {max}",
+    "try_higher": "O ano correto é MAIS RECENTE",
+    "try_lower": "O ano correto é MAIS ANTIGO",
+    "proximity_very_close": "Super Perto ({years} {years, plural, =1 {ano} other {anos}})",
+    "proximity_close": "Perto ({years} {years, plural, =1 {ano} other {anos}})",
+    "proximity_far": "Longe ({years} {years, plural, =1 {ano} other {anos}})",
+    "previous_guesses": "Palpites Anteriores",
+    "guess_label": "Palpite {num}"
   },
   "result": {
     "won_title": "Na Mosca! Sensacional!",

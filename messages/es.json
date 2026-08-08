@@ -48,9 +48,17 @@
     "no_challenges_title": "No se encontraron desafíos",
     "no_challenges_desc": "Intenta seleccionar otra categoría o nivel de dificultad.",
     "image_unavailable": "Imagen No Disponible",
-    "daily_completed_notice": "¡Desafío Diario Completado por Hoy!",
-    "daily_completed_desc": "Ya has completado el desafío diario de hoy. ¡Vuelve mañana o sigue jugando en Modo Entrenamiento!",
-    "switch_to_practice": "Ir al Modo Entrenamiento"
+    "daily_completed_notice": "¡Desafío Diario Completado!",
+    "daily_completed_desc": "Ya has respondido al desafío diario de hoy. ¡Vuelve mañana o sigue jugando en Modo Práctica!",
+    "switch_to_practice": "Ir a Modo Práctica",
+    "attempt_counter": "Intento {current} de {max}",
+    "try_higher": "El año correcto es MÁS RECIENTE",
+    "try_lower": "El año correcto es MÁS ANTIGUO",
+    "proximity_very_close": "Súper Cerca ({years} {years, plural, =1 {año} other {años}})",
+    "proximity_close": "Cerca ({years} {years, plural, =1 {año} other {años}})",
+    "proximity_far": "Lejos ({years} {years, plural, =1 {año} other {años}})",
+    "previous_guesses": "Intentos Anteriores",
+    "guess_label": "Intento {num}"
   },
   "result": {
     "won_title": "¡En o blanco! ¡Sensacional!",

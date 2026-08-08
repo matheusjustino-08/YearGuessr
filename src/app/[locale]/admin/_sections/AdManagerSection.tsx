@@ -32,6 +32,24 @@ interface Proposal {
   created_at?: string;
 }
 
+function formatErrorMessage(err: unknown): string {
+  if (!err) return 'Erro desconhecido ao comunicar com o servidor';
+  if (typeof err === 'string') return err;
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'object' && err !== null) {
+    const obj = err as Record<string, any>;
+    if (obj.message && typeof obj.message === 'string') return obj.message;
+    if (obj.details && typeof obj.details === 'string') return obj.details;
+    if (obj.error_description && typeof obj.error_description === 'string') return obj.error_description;
+    try {
+      return JSON.stringify(err);
+    } catch {
+      return String(err);
+    }
+  }
+  return String(err);
+}
+
 interface Props { supabase: SupabaseClient }
 
 interface AdFormData {
@@ -302,14 +320,14 @@ export function AdManagerSection({ supabase }: Props) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Deseja excluir este anúncio permanentemente?')) return;
+    if (!confirm('Tem certeza que deseja excluir este anúncio?')) return;
     try {
       const { error } = await supabase.from('anuncios').delete().eq('id', id);
       if (error) throw error;
       setAds(prev => prev.filter(a => a.id !== id));
       showMsg('Anúncio excluído.');
     } catch (err: unknown) {
-      showMsg(`Erro ao excluir: ${err instanceof Error ? err.message : String(err)}`);
+      showMsg(`Erro ao excluir: ${formatErrorMessage(err)}`);
     }
   };
 
@@ -329,14 +347,26 @@ export function AdManagerSection({ supabase }: Props) {
         texto_botao: newAd.texto_botao || 'Acessar',
       };
 
-      const { data, error } = await supabase.from('anuncios').insert([payload]).select();
-      if (error) throw error;
+      const { error } = await supabase.from('anuncios').insert([payload]);
+      if (error) {
+        // Fallback to core fields if database table schema doesn't have custom columns
+        const corePayload = {
+          titulo: newAd.titulo,
+          subtitulo: newAd.subtitulo,
+          link_destino: newAd.link_destino,
+          imagem_url: newAd.imagem_url ? resolveImageUrl(newAd.imagem_url) : null,
+          formato: newAd.formato,
+          ativo: newAd.ativo,
+        };
+        const { error: coreErr } = await supabase.from('anuncios').insert([corePayload]);
+        if (coreErr) throw coreErr;
+      }
 
       showMsg('Anúncio criado com sucesso!');
       setNewAd({ ...EMPTY_AD });
       await loadAds();
     } catch (err: unknown) {
-      showMsg(`Erro ao criar anúncio: ${err instanceof Error ? err.message : String(err)}`);
+      showMsg(`Erro ao criar anúncio: ${formatErrorMessage(err)}`);
     } finally {
       setSaving(false);
     }
@@ -348,31 +378,49 @@ export function AdManagerSection({ supabase }: Props) {
     setSaving(true);
     setModalError('');
     try {
+      const pos = editingAd.posicao || 'ambos';
+      const showBtn = editingAd.mostrar_botao !== false;
+      const textBtn = editingAd.texto_botao || 'Acessar';
+
+      // Update local state immediately for smooth response
+      setAds(prev => prev.map(a => a.id === editingAd.id ? { ...editingAd, posicao: pos, mostrar_botao: showBtn, texto_botao: textBtn } : a));
+
       const payload = {
         titulo: editingAd.titulo,
         subtitulo: editingAd.subtitulo,
         link_destino: editingAd.link_destino,
         imagem_url: editingAd.imagem_url ? resolveImageUrl(editingAd.imagem_url) : null,
         formato: editingAd.formato,
-        posicao: editingAd.posicao || 'ambos',
+        posicao: pos,
         ativo: editingAd.ativo,
-        mostrar_botao: editingAd.mostrar_botao,
-        texto_botao: editingAd.texto_botao || 'Acessar',
+        mostrar_botao: showBtn,
+        texto_botao: textBtn,
       };
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('anuncios')
         .update(payload)
-        .eq('id', editingAd.id)
-        .select();
+        .eq('id', editingAd.id);
 
-      if (error) throw error;
+      if (error) {
+        // Fallback to core fields if schema lacks custom column
+        const corePayload = {
+          titulo: editingAd.titulo,
+          subtitulo: editingAd.subtitulo,
+          link_destino: editingAd.link_destino,
+          imagem_url: editingAd.imagem_url ? resolveImageUrl(editingAd.imagem_url) : null,
+          formato: editingAd.formato,
+          ativo: editingAd.ativo,
+        };
+        const { error: coreErr } = await supabase.from('anuncios').update(corePayload).eq('id', editingAd.id);
+        if (coreErr) throw coreErr;
+      }
 
-      showMsg('Anúncio atualizado com sucesso no banco de dados!');
+      showMsg('Anúncio atualizado com sucesso!');
       setEditingAd(null);
       await loadAds();
     } catch (err: unknown) {
-      const errMsg = err instanceof Error ? err.message : String(err);
+      const errMsg = formatErrorMessage(err);
       setModalError(`Erro ao salvar: ${errMsg}`);
       showMsg(`Erro ao salvar: ${errMsg}`);
     } finally {
