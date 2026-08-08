@@ -1,15 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Pencil, Check, X } from 'lucide-react';
+import { Pencil, Check, X, Trash2, RefreshCw, Globe, AlertTriangle } from 'lucide-react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { useCategories } from './useCategories';
-
-const DIFFICULTIES = [
-  { id: 'facil', label: 'Fácil', color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/30' },
-  { id: 'normal', label: 'Normal', color: 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/30' },
-  { id: 'dificil', label: 'Difícil', color: 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/30' },
-];
+import { resolveImageUrl, isConvertibleUrl } from '@/lib/resolveImageUrl';
+import { useTranslations } from 'next-intl';
 
 interface Props { supabase: SupabaseClient }
 
@@ -18,11 +14,22 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-mute
 
 export function ChallengeListSection({ supabase }: Props) {
   const { categories: AVAILABLE_CATEGORIES } = useCategories(supabase);
+  const tAdmin = useTranslations('admin');
+  const tDiff = useTranslations('difficulty');
+
+  const DIFFICULTIES = [
+    { id: 'facil', label: tDiff('facil'), color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/30' },
+    { id: 'normal', label: tDiff('normal'), color: 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/30' },
+    { id: 'dificil', label: tDiff('dificil'), color: 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/30' },
+  ];
+
   const [challenges, setChallenges] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [dbError, setDbError] = useState<string | null>(null);
   const [editingChallenge, setEditingChallenge] = useState<any | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [saveMsg, setSaveMsg] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadChallenges = async () => {
     setLoading(true);
@@ -59,28 +66,61 @@ export function ChallengeListSection({ supabase }: Props) {
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingChallenge) return;
+    setIsSubmitting(true);
+    setSaveMsg('');
+
     try {
+      const resolvedImg = resolveImageUrl(editingChallenge.imagem_principal || '');
+
+      const minYr = Number(editingChallenge.minYear ?? (editingChallenge.janela_anos ? editingChallenge.janela_anos[0] : 1800));
+      const maxYr = Number(editingChallenge.maxYear ?? (editingChallenge.janela_anos ? editingChallenge.janela_anos[1] : 2026));
+
       const { error } = await supabase.from('desafios').update({
         data_publicacao: editingChallenge.data_publicacao,
-        ano_correto: editingChallenge.ano_correto,
-        janela_anos: editingChallenge.janela_anos,
+        ano_correto: Number(editingChallenge.ano_correto),
+        janela_anos: [minYr, maxYr],
         conteudo_i18n: editingChallenge.conteudo_i18n,
-        imagem_principal: editingChallenge.imagem_principal,
+        imagem_principal: resolvedImg,
         categorias: editingChallenge.categorias || [],
         dificuldade: editingChallenge.dificuldade || 'normal',
       }).eq('id', editingChallenge.id);
 
       if (error) throw error;
-      setSaveMsg('Salvo com sucesso!');
+      setSaveMsg(tAdmin('form_success'));
       setTimeout(() => setSaveMsg(''), 3000);
       setEditingChallenge(null);
       loadChallenges();
     } catch (err: any) {
       setSaveMsg(`Erro: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  if (loading) return <p className="text-xs text-muted-foreground py-4">Carregando desafios...</p>;
+  const handleDeleteChallenge = async (id: string) => {
+    try {
+      const { error } = await supabase.from('desafios').delete().eq('id', id);
+      if (error) throw error;
+      setSaveMsg('Desafio excluído com sucesso.');
+      setTimeout(() => setSaveMsg(''), 3000);
+      setDeletingId(null);
+      loadChallenges();
+    } catch (err: any) {
+      setSaveMsg(`Erro ao excluir: ${err.message}`);
+    }
+  };
+
+  const startEditing = (ch: any) => {
+    const minYr = ch.janela_anos ? ch.janela_anos[0] : 1800;
+    const maxYr = ch.janela_anos ? ch.janela_anos[1] : 2026;
+    setEditingChallenge({
+      ...JSON.parse(JSON.stringify(ch)),
+      minYear: minYr,
+      maxYear: maxYr,
+    });
+  };
+
+  if (loading) return <p className="text-xs text-muted-foreground py-4 font-mono">{tAdmin('form_saving')}</p>;
 
   const getDiffColor = (d: string) => DIFFICULTIES.find(x => x.id === d)?.color ?? DIFFICULTIES[1].color;
   const getDiffLabel = (d: string) => DIFFICULTIES.find(x => x.id === d)?.label ?? 'Normal';
@@ -99,7 +139,7 @@ export function ChallengeListSection({ supabase }: Props) {
       )}
 
       {challenges.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-4">Nenhum desafio encontrado.</p>
+        <p className="text-xs text-muted-foreground py-4">Nenhum desafio cadastrado.</p>
       ) : (
         <div className="space-y-2">
           {challenges.map(ch => {
@@ -112,7 +152,7 @@ export function ChallengeListSection({ supabase }: Props) {
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground truncate">{title}</p>
                     <p className="text-[11px] font-mono text-muted-foreground mt-0.5">
-                      {ch.data_publicacao} — Ano {ch.ano_correto}
+                      {ch.data_publicacao} — Ano {ch.ano_correto} (Régua: {ch.janela_anos ? `${ch.janela_anos[0]}–${ch.janela_anos[1]}` : '1800–2026'})
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -121,11 +161,19 @@ export function ChallengeListSection({ supabase }: Props) {
                     </span>
                     <button
                       type="button"
-                      onClick={() => setEditingChallenge(JSON.parse(JSON.stringify(ch)))}
+                      onClick={() => startEditing(ch)}
                       className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-all cursor-pointer"
                       aria-label="Editar desafio"
                     >
                       <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeletingId(ch.id)}
+                      className="p-1.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive/20 transition-all cursor-pointer"
+                      aria-label="Excluir desafio"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
@@ -173,12 +221,41 @@ export function ChallengeListSection({ supabase }: Props) {
         </div>
       )}
 
-      {/* Edit Modal */}
+      {/* Delete Confirmation Modal */}
+      {deletingId && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border border-border/80 p-6 rounded-3xl max-w-sm w-full space-y-4 shadow-2xl text-center">
+            <div className="w-12 h-12 rounded-2xl bg-destructive/10 border border-destructive/20 flex items-center justify-center mx-auto text-destructive">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-foreground">Excluir Desafio?</h3>
+            <p className="text-xs text-muted-foreground">Esta ação não pode ser desfeita. O desafio será removido do banco de dados.</p>
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletingId(null)}
+                className="flex-1 py-2.5 rounded-xl border text-xs font-semibold text-muted-foreground hover:bg-muted/40"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteChallenge(deletingId)}
+                className="flex-1 py-2.5 rounded-xl bg-destructive text-destructive-foreground text-xs font-bold hover:bg-destructive/90"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Complete Edit Modal */}
       {editingChallenge && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-card border border-border/80 p-6 rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto space-y-5 shadow-2xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold">Editar Desafio</h3>
+              <h3 className="text-base font-bold text-foreground">Editar Desafio</h3>
               <button
                 type="button"
                 onClick={() => setEditingChallenge(null)}
@@ -190,20 +267,23 @@ export function ChallengeListSection({ supabase }: Props) {
             </div>
 
             <form onSubmit={handleSaveEdit} className="space-y-4">
+              {/* Date & Year */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={labelCls}>Data Publicação</label>
+                  <label className={labelCls}>{tAdmin('form_pub_date')}</label>
                   <input
                     type="date"
+                    required
                     value={editingChallenge.data_publicacao || ''}
                     onChange={e => setEditingChallenge({ ...editingChallenge, data_publicacao: e.target.value })}
                     className={inputCls}
                   />
                 </div>
                 <div>
-                  <label className={labelCls}>Ano Correto</label>
+                  <label className={labelCls}>{tAdmin('form_correct_year')}</label>
                   <input
                     type="number"
+                    required
                     value={editingChallenge.ano_correto || 1950}
                     onChange={e => setEditingChallenge({ ...editingChallenge, ano_correto: +e.target.value })}
                     className={inputCls}
@@ -211,38 +291,141 @@ export function ChallengeListSection({ supabase }: Props) {
                 </div>
               </div>
 
-              <div>
-                <label className={labelCls}>URL da Imagem</label>
+              {/* Timeline Range (Régua min/max) */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>{tAdmin('form_ruler_start')}</label>
+                  <input
+                    type="number"
+                    required
+                    value={editingChallenge.minYear ?? 1800}
+                    onChange={e => setEditingChallenge({ ...editingChallenge, minYear: +e.target.value })}
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>{tAdmin('form_ruler_end')}</label>
+                  <input
+                    type="number"
+                    required
+                    value={editingChallenge.maxYear ?? 2026}
+                    onChange={e => setEditingChallenge({ ...editingChallenge, maxYear: +e.target.value })}
+                    className={inputCls}
+                  />
+                </div>
+              </div>
+
+              {/* Difficulty Selection */}
+              <div className="space-y-1.5">
+                <label className={labelCls}>{tAdmin('form_difficulty')}</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {DIFFICULTIES.map(d => (
+                    <button
+                      key={d.id}
+                      type="button"
+                      onClick={() => setEditingChallenge({ ...editingChallenge, dificuldade: d.id })}
+                      className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                        editingChallenge.dificuldade === d.id
+                          ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+                          : 'bg-background hover:bg-muted text-muted-foreground border-border/60'
+                      }`}
+                    >
+                      {d.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Categories Selection */}
+              <div className="space-y-1.5">
+                <label className={labelCls}>{tAdmin('form_categories')}</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {AVAILABLE_CATEGORIES.map(cat => {
+                    const sel = (editingChallenge.categorias || []).includes(cat.id);
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          const cur = editingChallenge.categorias || [];
+                          const updated = cur.includes(cat.id) ? cur.filter((c: string) => c !== cat.id) : [...cur, cat.id];
+                          setEditingChallenge({ ...editingChallenge, categorias: updated });
+                        }}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                          sel
+                            ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+                            : 'bg-muted/40 text-muted-foreground border-border/50 hover:bg-muted'
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Image URL */}
+              <div className="space-y-1">
+                <label className={labelCls}>{tAdmin('form_image_url')}</label>
                 <input
                   type="url"
+                  required
                   value={editingChallenge.imagem_principal || ''}
                   onChange={e => setEditingChallenge({ ...editingChallenge, imagem_principal: e.target.value })}
                   className={inputCls + ' font-mono text-xs'}
                 />
+                {editingChallenge.imagem_principal && isConvertibleUrl(editingChallenge.imagem_principal) && (
+                  <p className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-1">
+                    <RefreshCw className="w-3 h-3" />
+                    {tAdmin('form_drive_detected')}
+                  </p>
+                )}
               </div>
 
-              {(['pt', 'en', 'es'] as const).map(lang => (
-                <div key={lang} className="space-y-2 p-3 rounded-xl bg-muted/20 border border-border/40">
-                  <label className={labelCls}>{lang.toUpperCase()}</label>
-                  <input
-                    type="text"
-                    placeholder="Título"
-                    value={editingChallenge.conteudo_i18n?.[lang]?.titulo || ''}
-                    onChange={e => setEditingChallenge({
-                      ...editingChallenge,
-                      conteudo_i18n: { ...editingChallenge.conteudo_i18n, [lang]: { ...editingChallenge.conteudo_i18n?.[lang], titulo: e.target.value } }
-                    })}
-                    className={inputCls}
-                  />
-                  <textarea
-                    placeholder="Dica"
-                    value={editingChallenge.conteudo_i18n?.[lang]?.dica || ''}
-                    onChange={e => setEditingChallenge({
-                      ...editingChallenge,
-                      conteudo_i18n: { ...editingChallenge.conteudo_i18n, [lang]: { ...editingChallenge.conteudo_i18n?.[lang], dica: e.target.value } }
-                    })}
-                    className={inputCls + ' h-16 resize-none'}
-                  />
+              {/* Multilingual Content (PT, EN, ES) */}
+              {[
+                { lang: 'PT', flag: 'Português', key: 'pt' },
+                { lang: 'EN', flag: 'English', key: 'en' },
+                { lang: 'ES', flag: 'Español', key: 'es' },
+              ].map(({ lang, flag, key }) => (
+                <div key={key} className="space-y-2 p-3.5 rounded-2xl bg-muted/20 border border-border/40">
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-xs font-bold font-mono uppercase text-foreground/80">{flag} ({lang})</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <label className={labelCls}>{tAdmin('form_title_label')}</label>
+                      <input
+                        type="text"
+                        required={key === 'pt' || key === 'en'}
+                        value={editingChallenge.conteudo_i18n?.[key]?.titulo || ''}
+                        onChange={e => setEditingChallenge({
+                          ...editingChallenge,
+                          conteudo_i18n: {
+                            ...editingChallenge.conteudo_i18n,
+                            [key]: { ...editingChallenge.conteudo_i18n?.[key], titulo: e.target.value }
+                          }
+                        })}
+                        className={inputCls}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls}>{tAdmin('form_hint_label')}</label>
+                      <textarea
+                        required={key === 'pt' || key === 'en'}
+                        value={editingChallenge.conteudo_i18n?.[key]?.dica || ''}
+                        onChange={e => setEditingChallenge({
+                          ...editingChallenge,
+                          conteudo_i18n: {
+                            ...editingChallenge.conteudo_i18n,
+                            [key]: { ...editingChallenge.conteudo_i18n?.[key], dica: e.target.value }
+                          }
+                        })}
+                        className={inputCls + ' h-16 resize-none'}
+                      />
+                    </div>
+                  </div>
                 </div>
               ))}
 
@@ -250,15 +433,16 @@ export function ChallengeListSection({ supabase }: Props) {
                 <button
                   type="button"
                   onClick={() => setEditingChallenge(null)}
-                  className="flex-1 py-2.5 rounded-xl border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all cursor-pointer"
+                  className="flex-1 py-2.5 rounded-xl border text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold cursor-pointer hover:bg-primary/90 transition-colors"
+                  disabled={isSubmitting}
+                  className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold cursor-pointer hover:bg-primary/90 transition-colors disabled:opacity-50"
                 >
-                  Salvar
+                  {isSubmitting ? tAdmin('form_saving') : 'Salvar Alterações'}
                 </button>
               </div>
             </form>
