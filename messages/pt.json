@@ -54,9 +54,9 @@
     "attempt_counter": "Tentativa {current} de {max}",
     "try_higher": "O ano correto é MAIS RECENTE",
     "try_lower": "O ano correto é MAIS ANTIGO",
-    "proximity_very_close": "Super Perto ({years} {years, plural, =1 {ano} other {anos}})",
-    "proximity_close": "Perto ({years} {years, plural, =1 {ano} other {anos}})",
-    "proximity_far": "Longe ({years} {years, plural, =1 {ano} other {anos}})",
+    "proximity_very_close": "Super Perto",
+    "proximity_close": "Perto",
+    "proximity_far": "Longe",
     "previous_guesses": "Palpites Anteriores",
     "guess_label": "Palpite {num}"
   },

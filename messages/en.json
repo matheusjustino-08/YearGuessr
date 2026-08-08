@@ -54,9 +54,9 @@
     "attempt_counter": "Attempt {current} of {max}",
     "try_higher": "The correct year is MORE RECENT",
     "try_lower": "The correct year is MORE ANCIENT",
-    "proximity_very_close": "Super Close ({years} {years, plural, =1 {year} other {years}})",
-    "proximity_close": "Close ({years} {years, plural, =1 {year} other {years}})",
-    "proximity_far": "Far ({years} {years, plural, =1 {year} other {years}})",
+    "proximity_very_close": "Super Close",
+    "proximity_close": "Close",
+    "proximity_far": "Far",
     "previous_guesses": "Previous Guesses",
     "guess_label": "Guess {num}"
   },

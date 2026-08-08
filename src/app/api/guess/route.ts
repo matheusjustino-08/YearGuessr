@@ -19,6 +19,7 @@ export async function POST(request: Request) {
   let challengeId = 'demo-1969';
   let timeInSeconds = 10;
   let cluesUsed = 0;
+  let attemptNumber = 1;
 
   try {
     const body = await request.json();
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
     if (body.challengeId) challengeId = body.challengeId;
     if (typeof body.timeInSeconds === 'number') timeInSeconds = body.timeInSeconds;
     if (typeof body.cluesUsed === 'number') cluesUsed = body.cluesUsed;
+    if (typeof body.attemptNumber === 'number') attemptNumber = body.attemptNumber;
   } catch {
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
   }
@@ -72,18 +74,21 @@ export async function POST(request: Request) {
     }
   }
 
-  // 2. Calculate score
+  // 2. Calculate score based on proximity and attempt multiplier
   const errorEmAnos = Math.abs(guessYear - anoCorreto);
+  const attemptMultiplier = attemptNumber === 1 ? 1.0 : attemptNumber === 2 ? 0.70 : 0.45;
   let pontos = 0;
 
-  if (errorEmAnos <= 1) {
-    pontos = 5000;
+  if (errorEmAnos === 0) {
+    pontos = Math.round(5000 * attemptMultiplier);
+  } else if (errorEmAnos <= 1) {
+    pontos = Math.round(4800 * attemptMultiplier);
   } else {
-    pontos = 5000 - (errorEmAnos * 150) - (cluesUsed * 500) - (timeInSeconds * 2);
-    pontos = Math.max(0, pontos);
+    const rawScore = 5000 - (errorEmAnos * 150) - (cluesUsed * 500) - (timeInSeconds * 2);
+    pontos = Math.max(0, Math.round(rawScore * attemptMultiplier));
   }
 
-  const acertou = errorEmAnos <= 1;
+  const acertou = errorEmAnos === 0;
 
   // 3. Store result in Supabase (if user logged in)
   if (supabase && user?.id) {

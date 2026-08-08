@@ -316,7 +316,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
           challengeId: currentChallenge.id,
           timeInSeconds,
           cluesUsed: 0,
-          gameMode
+          gameMode,
+          attemptNumber: newGuesses.length
         })
       });
 

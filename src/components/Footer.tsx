@@ -24,7 +24,8 @@ export function Footer() {
           <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-2">
             <Link href="/" className="flex items-center gap-2 group cursor-pointer">
               <span className="text-2xl font-black tracking-tighter uppercase font-mono transition-transform duration-300 group-hover:scale-105">
-                Year<span className="text-primary">Guessr</span>
+                <span className="text-foreground">YEAR</span>
+                <span className="text-amber-500 dark:text-amber-400">GUESSR</span>
               </span>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-bold uppercase tracking-wider font-mono">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
