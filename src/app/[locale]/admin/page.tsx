@@ -12,13 +12,15 @@ import {
   BookOpen, 
   Megaphone, 
   Lock, 
-  Settings 
+  Settings,
+  Gamepad2
 } from 'lucide-react';
 import { ChallengeFormSection } from './_sections/ChallengeFormSection';
 import { ChallengeListSection } from './_sections/ChallengeListSection';
 import { CategoryManagerSection } from './_sections/CategoryManagerSection';
 import { DifficultyGuidelinesSection } from './_sections/DifficultyGuidelinesSection';
 import { AdManagerSection } from './_sections/AdManagerSection';
+import { GameModesSection } from './_sections/GameModesSection';
 
 function AdminAccordion({ 
   title, 
@@ -230,6 +232,14 @@ export default function AdminPage() {
           icon={<Megaphone className="w-4 h-4" />}
         >
           <AdManagerSection supabase={supabase} />
+        </AdminAccordion>
+
+        <AdminAccordion
+          title="Modos de Jogo & Regras"
+          description="Gerencie os parâmetros do Contratempo, Linha do Tempo e Treino"
+          icon={<Gamepad2 className="w-4 h-4" />}
+        >
+          <GameModesSection supabase={supabase} />
         </AdminAccordion>
 
         <AdminAccordion
