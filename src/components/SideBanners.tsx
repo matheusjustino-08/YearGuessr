@@ -22,7 +22,6 @@ function SingleBannerItem({ ad, tAd, handleAdClick }: { ad: any; tAd: any; handl
         onClick={() => handleAdClick(ad)}
         className="relative inline-flex items-center justify-center cursor-pointer max-w-full h-full"
       >
-        {/* PURE IMAGE ONLY - NO CARD BACKGROUND, NO BORDER, NO SHADOW, NO HOVER SCALE */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imageUrl}
@@ -30,7 +29,6 @@ function SingleBannerItem({ ad, tAd, handleAdClick }: { ad: any; tAd: any; handl
           className="max-h-[58px] w-auto h-auto object-contain block"
         />
 
-        {/* Optional Floating CTA Button */}
         {showBtn && (
           <span className="absolute right-1 bottom-1 py-1 px-2.5 rounded-full bg-amber-500 text-black font-bold text-[10px] font-mono shrink-0 flex items-center gap-1 shadow-md z-10">
             <span>{btnText}</span>
@@ -41,7 +39,6 @@ function SingleBannerItem({ ad, tAd, handleAdClick }: { ad: any; tAd: any; handl
     );
   }
 
-  // Fallback text layout if no image is uploaded
   return (
     <a
       href={ad.link_destino || 'https://wa.me/5511999999999'}
@@ -80,6 +77,9 @@ export function SideBanners() {
   const [indexSlot1, setIndexSlot1] = useState(0);
   const [indexSlot2, setIndexSlot2] = useState(0);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const trackedSessionRef = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     const fetchAds = async () => {
       try {
@@ -95,10 +95,6 @@ export function SideBanners() {
           const right = data.filter(ad => !ad.posicao || ad.posicao === 'ambos' || ad.posicao === 'direita');
           setLeftAds(left);
           setRightAds(right);
-
-          // Initial view count
-          if (left[0]) trackView(left[0]);
-          if (right[0] && right[0].id !== left[0]?.id) trackView(right[0]);
         }
       } catch {
         // Fallback
@@ -108,49 +104,65 @@ export function SideBanners() {
     fetchAds();
   }, [supabase]);
 
-  // Automatic Rotation Carousel every 5.5 seconds for Slot 1
+  // Rotation carousel for Slot 1
   useEffect(() => {
     if (leftAds.length <= 1) return;
-
     const timer = setInterval(() => {
       setIndexSlot1(prev => (prev + 1) % leftAds.length);
-    }, 5500);
-
+    }, 7000);
     return () => clearInterval(timer);
   }, [leftAds]);
 
-  // Automatic Rotation Carousel every 5.5 seconds for Slot 2
+  // Rotation carousel for Slot 2
   useEffect(() => {
     if (rightAds.length <= 1) return;
-
     const timer = setInterval(() => {
       setIndexSlot2(prev => (prev + 1) % rightAds.length);
-    }, 5500);
-
+    }, 7000);
     return () => clearInterval(timer);
   }, [rightAds]);
 
-  const trackedViewsRef = useRef<Map<string, number>>(new Map());
+  const adLeft = leftAds.length > 0 ? leftAds[indexSlot1 % leftAds.length] : null;
+  const adRight = rightAds.length > 0 ? rightAds[indexSlot2 % rightAds.length] : null;
 
-  const trackView = async (ad: any) => {
-    if (!ad || !ad.id) return;
-    const now = Date.now();
-    const lastTracked = trackedViewsRef.current.get(ad.id) || 0;
+  // Track view ONLY when side banner container is visible in viewport and ONLY ONCE per session per ad ID
+  useEffect(() => {
+    const visibleAds = [adLeft, adRight].filter(Boolean);
+    if (visibleAds.length === 0) return;
 
-    // Cooldown guard: prevent double counting ad impression within 10s
-    if (now - lastTracked < 10000) return;
-    trackedViewsRef.current.set(ad.id, now);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          visibleAds.forEach((ad) => {
+            if (!ad || !ad.id || trackedSessionRef.current.has(ad.id)) return;
+            try {
+              if (sessionStorage.getItem(`ad_view_${ad.id}`)) {
+                trackedSessionRef.current.add(ad.id);
+                return;
+              }
+              sessionStorage.setItem(`ad_view_${ad.id}`, '1');
+            } catch {}
 
-    try {
-      await fetch('/api/anuncios/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adId: ad.id, action: 'view' }),
-      });
-    } catch {
-      // Fallback
+            trackedSessionRef.current.add(ad.id);
+            fetch('/api/anuncios/track', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ adId: ad.id, action: 'view' }),
+            }).catch(() => {});
+          });
+
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
     }
-  };
+
+    return () => observer.disconnect();
+  }, [adLeft, adRight]);
 
   const handleAdClick = async (ad: any) => {
     if (!ad || !ad.id) return;
@@ -165,11 +177,8 @@ export function SideBanners() {
     }
   };
 
-  const adLeft = leftAds.length > 0 ? leftAds[indexSlot1 % leftAds.length] : null;
-  const adRight = rightAds.length > 0 ? rightAds[indexSlot2 % rightAds.length] : null;
-
   return (
-    <div className="w-full max-w-4xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+    <div ref={containerRef} className="w-full max-w-4xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
       {/* Slot 1 (Left Banner Slot) */}
       {adLeft ? (
         <div className="h-[58px] relative overflow-hidden flex items-center justify-center">
@@ -198,11 +207,12 @@ export function SideBanners() {
                   <p className="text-xs font-black uppercase tracking-tight text-foreground truncate">
                     {tAd('banner_title')}
                   </p>
-                  <p className="text-[10px] text-muted-foreground truncate">{tAd('partner_label')} (300x50px)</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{tAd('banner_sub')}</p>
                 </div>
               </div>
-              <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] font-bold font-mono shrink-0">
-                {tAd('advertise_btn')}
+              <span className="px-2.5 py-1 rounded-full bg-amber-500 text-black font-bold text-[10px] font-mono shrink-0 flex items-center gap-1">
+                <span>{tAd('announce')}</span>
+                <ExternalLink className="w-3 h-3" />
               </span>
             </div>
           }
@@ -210,14 +220,14 @@ export function SideBanners() {
       )}
 
       {/* Slot 2 (Right Banner Slot) */}
-      {adRight && (adRight.id !== adLeft?.id || adRight.posicao === 'ambos' || (leftAds.length === 1 && rightAds.length === 1)) ? (
+      {adRight ? (
         <div className="h-[58px] relative overflow-hidden flex items-center justify-center">
           <AnimatePresence mode="wait">
             <motion.div
               key={adRight.id + '-' + indexSlot2}
-              initial={{ opacity: 0, x: 15 }}
+              initial={{ opacity: 0, x: -15 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -15 }}
+              exit={{ opacity: 0, x: 15 }}
               transition={{ duration: 0.4, ease: 'easeInOut' }}
               className="h-full flex items-center justify-center"
             >
@@ -228,20 +238,21 @@ export function SideBanners() {
       ) : (
         <AdvertiseModal
           trigger={
-            <div className="w-full sm:w-[340px] h-[58px] px-4 rounded-2xl bg-card/90 border border-sky-500/30 shadow-md backdrop-blur-xl flex items-center justify-between text-card-foreground">
+            <div className="w-full sm:w-[320px] h-[54px] px-4 rounded-2xl bg-card/90 border border-amber-500/30 shadow-md backdrop-blur-xl flex items-center justify-between text-card-foreground">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="p-2 rounded-xl bg-sky-500/10 text-sky-500 border border-sky-500/20 shrink-0">
+                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">
                   <Globe2 className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs font-black uppercase tracking-tight text-foreground truncate">
-                    {tAd('brand_history')}
+                    {tAd('partner_title')}
                   </p>
-                  <p className="text-[10px] text-muted-foreground truncate">{tAd('edition_label')} (300x50px)</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{tAd('partner_sub')}</p>
                 </div>
               </div>
-              <span className="px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-[10px] font-bold font-mono shrink-0">
-                {tAd('know_more_btn')}
+              <span className="px-2.5 py-1 rounded-full bg-amber-500 text-black font-bold text-[10px] font-mono shrink-0 flex items-center gap-1">
+                <span>{tAd('announce')}</span>
+                <ExternalLink className="w-3 h-3" />
               </span>
             </div>
           }

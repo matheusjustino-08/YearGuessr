@@ -22,7 +22,6 @@ function SingleTopAdItem({ topAd, tAd, handleAdClick }: { topAd: any; tAd: any; 
         onClick={() => handleAdClick(topAd)}
         className="relative inline-flex items-center justify-center cursor-pointer max-w-full h-full"
       >
-        {/* PURE IMAGE ONLY - NO CARD BACKGROUND, NO BORDER, NO SHADOW, NO HOVER SCALE */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imageUrl}
@@ -40,7 +39,6 @@ function SingleTopAdItem({ topAd, tAd, handleAdClick }: { topAd: any; tAd: any; 
     );
   }
 
-  // Fallback text layout if no image is uploaded
   return (
     <a
       href={topAd.link_destino || 'https://wa.me/5511999999999'}
@@ -76,6 +74,8 @@ export function TopLeaderboardAd() {
   const supabase = createClient();
   const [topAds, setTopAds] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const trackedSessionRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchTopAds = async () => {
@@ -98,43 +98,58 @@ export function TopLeaderboardAd() {
     fetchTopAds();
   }, [supabase]);
 
+  // Rotate banner visually (without spamming view count)
   useEffect(() => {
     if (topAds.length <= 1) return;
 
     const timer = setInterval(() => {
       setCurrentIndex(prev => (prev + 1) % topAds.length);
-    }, 5500);
+    }, 7000);
 
     return () => clearInterval(timer);
   }, [topAds]);
 
-  const trackedViewsRef = useRef<Map<string, number>>(new Map());
-
-  const trackView = async (ad: any) => {
-    if (!ad || !ad.id) return;
-    const now = Date.now();
-    const lastTracked = trackedViewsRef.current.get(ad.id) || 0;
-
-    if (now - lastTracked < 10000) return;
-    trackedViewsRef.current.set(ad.id, now);
-
-    try {
-      await fetch('/api/anuncios/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adId: ad.id, action: 'view' }),
-      });
-    } catch {
-      // Fallback
-    }
-  };
-
   const currentAd = topAds.length > 0 ? topAds[currentIndex % topAds.length] : null;
 
+  // Track view ONLY when ad container is visible in viewport and ONLY ONCE per session per ad ID
   useEffect(() => {
-    if (currentAd) {
-      trackView(currentAd);
+    if (!currentAd || !currentAd.id) return;
+    const adId = currentAd.id;
+
+    // Check if already tracked in this session
+    if (trackedSessionRef.current.has(adId)) return;
+    try {
+      if (sessionStorage.getItem(`ad_view_${adId}`)) {
+        trackedSessionRef.current.add(adId);
+        return;
+      }
+    } catch {}
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          trackedSessionRef.current.add(adId);
+          try {
+            sessionStorage.setItem(`ad_view_${adId}`, '1');
+          } catch {}
+
+          fetch('/api/anuncios/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ adId, action: 'view' }),
+          }).catch(() => {});
+
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
     }
+
+    return () => observer.disconnect();
   }, [currentAd]);
 
   const handleAdClick = async (ad: any) => {
@@ -150,21 +165,20 @@ export function TopLeaderboardAd() {
     }
   };
 
-  // Render rotating 728x90 top ads
   if (topAds.length > 0) {
     const currentAd = topAds[currentIndex % topAds.length];
 
     return (
-      <div className="w-full max-w-4xl mx-auto mb-4 flex items-center justify-center">
+      <div ref={containerRef} className="w-full max-w-4xl mx-auto mb-4 flex items-center justify-center">
         <div className="h-16 sm:h-20 relative overflow-hidden flex items-center justify-center">
           <AnimatePresence mode="wait">
             <motion.div
-              key={currentAd.id + '-' + currentIndex}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.45, ease: 'easeInOut' }}
-              className="h-full flex items-center justify-center"
+              key={currentAd.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="w-full h-full flex items-center justify-center"
             >
               <SingleTopAdItem topAd={currentAd} tAd={tAd} handleAdClick={handleAdClick} />
             </motion.div>
@@ -174,34 +188,28 @@ export function TopLeaderboardAd() {
     );
   }
 
-  // Fallback default Leaderboard Topo banner (728x90)
   return (
-    <div className="w-full max-w-4xl mx-auto mb-4">
-      <AdvertiseModal
-        trigger={
-          <div className="w-full h-14 sm:h-16 px-4 rounded-2xl bg-card/90 border border-border/70 hover:border-primary/50 shadow-md backdrop-blur-xl flex items-center justify-between transition-all duration-300 group cursor-pointer hover:scale-[1.01] text-card-foreground">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="p-2.5 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 group-hover:scale-110 transition-transform">
-                <Megaphone className="w-5 h-5" />
-              </div>
-              <div className="min-w-0 text-left">
-                <div className="flex items-center gap-2">
-                  <span className="text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20">{tAd('top_leaderboard_tag')}</span>
-                  <p className="text-xs sm:text-sm font-black uppercase tracking-tight text-foreground truncate group-hover:text-primary transition-colors">
-                    {tAd('master_ad_title')}
-                  </p>
-                </div>
-                <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{tAd('master_ad_desc')}</p>
-              </div>
-            </div>
-
-            <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/30 font-bold text-xs font-mono shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>{tAd('ad_here_btn')}</span>
-            </span>
+    <div className="w-full max-w-4xl mx-auto mb-4 flex items-center justify-center">
+      <div className="w-full h-14 sm:h-16 px-4 rounded-2xl bg-card/70 border border-border/60 backdrop-blur-xl flex items-center justify-between text-card-foreground">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-primary/10 text-primary">
+            <Megaphone className="w-4 h-4" />
           </div>
-        }
-      />
+          <div>
+            <p className="text-xs sm:text-sm font-bold text-foreground">{tAd('sponsor_banner')}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">{tAd('sponsor_sub')}</p>
+          </div>
+        </div>
+
+        <AdvertiseModal
+          trigger={
+            <button className="px-3 py-1.5 rounded-full bg-primary text-primary-foreground font-bold text-xs hover:bg-primary/90 transition-all flex items-center gap-1 cursor-pointer">
+              <span>{tAd('announce_now')}</span>
+              <Sparkles className="w-3 h-3" />
+            </button>
+          }
+        />
+      </div>
     </div>
   );
 }
