@@ -212,44 +212,58 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       const todayKey = new Date().toISOString().split('T')[0];
 
-      // In practice mode: strictly select past challenges (data_publicacao < todayKey)
-      // so today's daily challenge is EXCLUSIVE to daily mode and only joins practice pool tomorrow!
-      let query = supabase
+      // In practice mode: fetch pool of past challenges and apply resilient filtering
+      let { data, error } = await supabase
         .from('desafios')
         .select('*')
         .lt('data_publicacao', todayKey)
-        .order('data_publicacao', { ascending: false });
+        .order('data_publicacao', { ascending: false })
+        .limit(100);
 
-      if (selectedCategory !== 'all') {
-        query = query.contains('categorias', [selectedCategory]);
-      }
-
-      if (selectedDifficulty !== 'all') {
-        query = query.eq('dificuldade', selectedDifficulty);
-      }
-
-      let { data, error } = await query.limit(20);
-
-      // If practice mode query yields no results, attempt fallback query
       if (!data || data.length === 0) {
-        const fallbackQuery = await supabase
+        const fallbackRes = await supabase
           .from('desafios')
           .select('*')
           .lte('data_publicacao', todayKey)
           .order('data_publicacao', { ascending: false })
-          .limit(20);
+          .limit(100);
+        data = fallbackRes.data || [];
+        error = fallbackRes.error;
+      }
 
-        if (fallbackQuery.data && fallbackQuery.data.length > 0) {
-          const pastOnly = fallbackQuery.data.filter((item: any) => item.data_publicacao < todayKey);
-          data = pastOnly.length > 0 ? pastOnly : fallbackQuery.data;
-          error = null;
+      let candidatePool = data || [];
+
+      // Filter by Category
+      if (selectedCategory !== 'all' && candidatePool.length > 0) {
+        const catMatch = candidatePool.filter((item: any) => {
+          if (!item.categorias) return false;
+          if (Array.isArray(item.categorias)) {
+            return item.categorias.some((c: string) => c.toLowerCase() === selectedCategory.toLowerCase());
+          }
+          if (typeof item.categorias === 'string') {
+            return item.categorias.toLowerCase().includes(selectedCategory.toLowerCase());
+          }
+          return false;
+        });
+        if (catMatch.length > 0) {
+          candidatePool = catMatch;
         }
       }
 
-      if (data && data.length > 0 && !error) {
+      // Filter by Difficulty
+      if (selectedDifficulty !== 'all' && candidatePool.length > 0) {
+        const diffMatch = candidatePool.filter((item: any) => 
+          (item.dificuldade || 'normal').toLowerCase() === selectedDifficulty.toLowerCase()
+        );
+        if (diffMatch.length > 0) {
+          candidatePool = diffMatch;
+        }
+      }
+
+      if (candidatePool.length > 0 && !error) {
         // Select random challenge from filtered candidates (practice mode)
-        const randomIndex = Math.floor(Math.random() * data.length);
-        const item = data[randomIndex];
+        const randomIndex = Math.floor(Math.random() * candidatePool.length);
+        const item = candidatePool[randomIndex];
         const organicRuler = generateOrganicRulerRange(item.ano_correto, item.dificuldade || 'normal');
         const minYear = item.janela_anos ? item.janela_anos[0] : organicRuler.minYear;
         const maxYear = item.janela_anos ? item.janela_anos[1] : organicRuler.maxYear;

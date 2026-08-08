@@ -74,19 +74,22 @@ export async function POST(request: Request) {
     }
   }
 
-  // 2. Calculate score based on proximity and attempt multiplier
+  // 2. Continuous Gaussian Exponential Decay Score Calculation
   const errorEmAnos = Math.abs(guessYear - anoCorreto);
-  const attemptMultiplier = attemptNumber === 1 ? 1.0 : attemptNumber === 2 ? 0.70 : 0.45;
-  let pontos = 0;
+  
+  // Exponential decay curve: 5000 * e^(-0.018 * distance)
+  const baseDistanceScore = 5000 * Math.exp(-0.018 * errorEmAnos);
+  const timePenalty = Math.min(300, timeInSeconds * 3);
+  const cluePenalty = cluesUsed * 400;
 
-  if (errorEmAnos === 0) {
-    pontos = Math.round(5000 * attemptMultiplier);
-  } else if (errorEmAnos <= 1) {
-    pontos = Math.round(4800 * attemptMultiplier);
-  } else {
-    const rawScore = 5000 - (errorEmAnos * 150) - (cluesUsed * 500) - (timeInSeconds * 2);
-    pontos = Math.max(0, Math.round(rawScore * attemptMultiplier));
-  }
+  const rawScore = Math.max(0, baseDistanceScore - timePenalty - cluePenalty);
+
+  // Attempt Multipliers: Attempt 1 = 1.0x (100%), Attempt 2 = 0.72x (72%), Attempt 3 = 0.50x (50%)
+  const attemptMultiplier = attemptNumber === 1 ? 1.0 : attemptNumber === 2 ? 0.72 : 0.50;
+
+  const pontos = errorEmAnos === 0 && attemptNumber === 1
+    ? 5000
+    : Math.max(0, Math.round(rawScore * attemptMultiplier));
 
   const acertou = errorEmAnos === 0;
 
