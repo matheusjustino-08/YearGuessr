@@ -171,8 +171,21 @@
     "player": "Jogador",
     "time": "Tempo",
     "anonymous_player": "Jogador Anônimo",
-    "empty_title": "Nenhuma pontuação registrada ainda.",
-    "empty_desc": "Seja o primeiro a jogar e entrar no Top 10!"
+    "empty_title": "Nenhuma pontuação registrada neste período.",
+    "empty_desc": "Seja o primeiro a jogar neste período para liderar o Ranking!",
+    "filter_period_label": "Período de Tempo",
+    "filter_metric_label": "Critério de Classificação",
+    "period_24h": "Hoje (24h)",
+    "period_7d": "1 Semana",
+    "period_30d": "1 Mês",
+    "period_1y": "1 Ano",
+    "period_all": "Todo o Período",
+    "metric_average": "Média de Pontos",
+    "metric_max": "Maior Pontuação",
+    "avg_label": "média",
+    "max_label": "máximo",
+    "matches_suffix": "partidas",
+    "match_singular": "partida"
   },
   "kofi": {
     "support_btn": "Apoiar no Ko-fi",

@@ -171,8 +171,21 @@
     "player": "Player",
     "time": "Time",
     "anonymous_player": "Anonymous Player",
-    "empty_title": "No scores recorded yet.",
-    "empty_desc": "Be the first to play and enter the Top 10!"
+    "empty_title": "No scores recorded for this timeframe.",
+    "empty_desc": "Be the first to play in this timeframe to lead the Leaderboard!",
+    "filter_period_label": "Timeframe",
+    "filter_metric_label": "Ranking Criterion",
+    "period_24h": "Today (24h)",
+    "period_7d": "1 Week",
+    "period_30d": "1 Month",
+    "period_1y": "1 Year",
+    "period_all": "All Time",
+    "metric_average": "Best Average",
+    "metric_max": "Highest Score",
+    "avg_label": "avg",
+    "max_label": "max",
+    "matches_suffix": "matches",
+    "match_singular": "match"
   },
   "kofi": {
     "support_btn": "Support on Ko-fi",
