@@ -29,13 +29,14 @@ export function AdvertiseModal({ trigger }: { trigger?: React.ReactNode }) {
       email: formData.email,
       mensagem: formData.message,
       pacote: 'Contato Geral (Modal)',
-      lida: false,
-      created_at: new Date().toISOString()
     };
 
     try {
-      const supabase = createClient();
-      await supabase.from('anuncios_propostas').insert([proposalObj]);
+      await fetch('/api/propostas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(proposalObj),
+      });
     } catch {
       // Ignore
     }

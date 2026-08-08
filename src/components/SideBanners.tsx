@@ -139,25 +139,28 @@ export function SideBanners() {
   }, [rightAds]);
 
   const trackView = async (ad: any) => {
-    if (!ad) return;
+    if (!ad || !ad.id) return;
     try {
-      await supabase
-        .from('anuncios')
-        .update({ visualizacoes: (ad.visualizacoes || 0) + 1 })
-        .eq('id', ad.id);
+      await fetch('/api/anuncios/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adId: ad.id, action: 'view' }),
+      });
     } catch {
-      // Ignore
+      // Fallback
     }
   };
 
   const handleAdClick = async (ad: any) => {
+    if (!ad || !ad.id) return;
     try {
-      await supabase
-        .from('anuncios')
-        .update({ cliques: (ad.cliques || 0) + 1 })
-        .eq('id', ad.id);
+      fetch('/api/anuncios/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adId: ad.id, action: 'click' }),
+      });
     } catch {
-      // Ignore
+      // Fallback
     }
   };
 

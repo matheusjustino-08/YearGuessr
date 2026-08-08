@@ -256,16 +256,26 @@ export function AdManagerSection({ supabase }: Props) {
   const loadProposals = async () => {
     let list: Proposal[] = [];
     try {
-      const { data } = await supabase.from('anuncios_propostas').select('*').order('created_at', { ascending: false });
-      if (data && data.length > 0) list = data;
+      const res = await fetch('/api/propostas');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.proposals && json.proposals.length > 0) {
+          list = json.proposals;
+        }
+      }
     } catch {
-      // Ignore if table missing
+      // Fallback to direct supabase query
+      try {
+        const { data } = await supabase.from('anuncios_propostas').select('*').order('created_at', { ascending: false });
+        if (data && data.length > 0) list = data;
+      } catch {
+        // Ignore
+      }
     }
 
     if (typeof window !== 'undefined') {
       try {
         const localProposals: Proposal[] = JSON.parse(localStorage.getItem('yearguessr_advertiser_proposals') || '[]');
-        // Merge without duplicates by id or timestamp
         const combined = [...list];
         for (const lp of localProposals) {
           if (!combined.some(item => item.id === lp.id || item.created_at === lp.created_at)) {

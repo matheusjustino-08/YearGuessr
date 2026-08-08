@@ -301,7 +301,7 @@ export function ChallengeListSection({ supabase }: Props) {
               </div>
 
               {/* Timeline Range (Régua min/max) */}
-              <div className="space-y-2">
+              <div className="space-y-2 p-3.5 rounded-2xl bg-muted/30 border border-border/50">
                 <div className="flex items-center justify-between">
                   <label className={labelCls}>{tAdmin('form_ruler_start')} & {tAdmin('form_ruler_end')}</label>
                   <button
@@ -315,14 +315,15 @@ export function ChallengeListSection({ supabase }: Props) {
                         maxYear: range.maxYear,
                       });
                     }}
-                    className="py-1 px-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-mono text-[11px] font-bold hover:bg-amber-500/20 transition-all flex items-center gap-1 cursor-pointer"
+                    className="py-1.5 px-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-mono text-[11px] font-bold hover:bg-amber-500/20 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                     <span>{tAdmin('auto_ruler_btn')}</span>
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 pt-1">
                   <div>
+                    <span className="text-[10px] font-mono text-muted-foreground block mb-1">{tAdmin('form_ruler_start')}</span>
                     <input
                       type="number"
                       required
@@ -332,6 +333,7 @@ export function ChallengeListSection({ supabase }: Props) {
                     />
                   </div>
                   <div>
+                    <span className="text-[10px] font-mono text-muted-foreground block mb-1">{tAdmin('form_ruler_end')}</span>
                     <input
                       type="number"
                       required

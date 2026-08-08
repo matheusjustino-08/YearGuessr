@@ -72,14 +72,16 @@ export default function AdvertiseSalesPage() {
       mensagem: contactMessage,
       data_desejada: selectedDate || null,
       tema_pretendido: themeTopic || null,
-      lida: false,
-      created_at: new Date().toISOString()
     };
 
     try {
-      await supabase.from('anuncios_propostas').insert([proposalObj]);
+      await fetch('/api/propostas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(proposalObj),
+      });
     } catch {
-      // Ignore if table not present
+      // Ignore
     }
 
     if (typeof window !== 'undefined') {
