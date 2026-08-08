@@ -195,7 +195,8 @@
     "avg_label": "avg",
     "max_label": "max",
     "matches_suffix": "matches",
-    "match_singular": "match"
+    "match_singular": "match",
+    "consistent_badge": "Consistent"
   },
   "kofi": {
     "support_btn": "Support on Ko-fi",

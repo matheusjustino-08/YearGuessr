@@ -195,7 +195,8 @@
     "avg_label": "média",
     "max_label": "máximo",
     "matches_suffix": "partidas",
-    "match_singular": "partida"
+    "match_singular": "partida",
+    "consistent_badge": "Consistente"
   },
   "kofi": {
     "support_btn": "Apoiar no Ko-fi",

@@ -195,7 +195,8 @@
     "avg_label": "promed",
     "max_label": "máx",
     "matches_suffix": "partidas",
-    "match_singular": "partida"
+    "match_singular": "partida",
+    "consistent_badge": "Consistente"
   },
   "kofi": {
     "support_btn": "Apoyar en Ko-fi",

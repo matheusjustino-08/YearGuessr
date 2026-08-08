@@ -32,6 +32,7 @@ interface RankedPlayer {
   matchCount: number;
   avgScore: number;
   maxScore: number;
+  weightedScore: number;
   bestTime: number;
 }
 
@@ -117,12 +118,21 @@ export function LeaderboardViewer() {
     });
 
     const ranked: RankedPlayer[] = [];
+    const globalTotal = matches.reduce((acc, m) => acc + (m.pontos || 0), 0);
+    const globalBaseline = matches.length > 0 ? globalTotal / matches.length : 2500;
+    const confidenceWeight = 5;
+
     playerMap.forEach((val, key) => {
       const matchCount = val.scores.length;
       const totalScore = val.scores.reduce((a, b) => a + b, 0);
       const avgScore = Math.round(totalScore / matchCount);
       const maxScore = Math.max(...val.scores);
       const bestTime = Math.min(...val.times);
+
+      // Bayesian Weighted Rating (Confidence-Adjusted Average Score)
+      const weightedScore = Math.round(
+        (matchCount * avgScore + confidenceWeight * globalBaseline) / (matchCount + confidenceWeight)
+      );
 
       ranked.push({
         key,
@@ -133,6 +143,7 @@ export function LeaderboardViewer() {
         matchCount,
         avgScore,
         maxScore,
+        weightedScore,
         bestTime,
       });
     });
@@ -140,7 +151,8 @@ export function LeaderboardViewer() {
     // Sort players according to metric
     ranked.sort((a, b) => {
       if (metric === 'average') {
-        if (b.avgScore !== a.avgScore) return b.avgScore - a.avgScore;
+        // Bayesian Weighted Rating: rewards consistency and sample size
+        if (b.weightedScore !== a.weightedScore) return b.weightedScore - a.weightedScore;
         if (b.matchCount !== a.matchCount) return b.matchCount - a.matchCount;
         return a.bestTime - b.bestTime;
       } else {
@@ -294,8 +306,13 @@ export function LeaderboardViewer() {
                             </div>
                             <div className="min-w-0">
                               <p className="font-semibold text-foreground truncate max-w-[100px] sm:max-w-xs">{player.username}</p>
-                              <p className="text-[10px] font-mono text-muted-foreground">
-                                {player.matchCount} {player.matchCount === 1 ? tLb('match_singular') : tLb('matches_suffix')}
+                              <p className="text-[10px] font-mono text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                                <span>{player.matchCount} {player.matchCount === 1 ? tLb('match_singular') : tLb('matches_suffix')}</span>
+                                {player.matchCount >= 5 && (
+                                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                                    ✓ {tLb('consistent_badge')}
+                                  </span>
+                                )}
                               </p>
                             </div>
                           </div>
@@ -311,8 +328,13 @@ export function LeaderboardViewer() {
                             )}
                             <div className="min-w-0">
                               <p className="font-semibold text-foreground group-hover:text-primary transition-colors truncate max-w-[100px] sm:max-w-xs">{player.username}</p>
-                              <p className="text-[10px] font-mono text-muted-foreground">
-                                {player.matchCount} {player.matchCount === 1 ? tLb('match_singular') : tLb('matches_suffix')}
+                              <p className="text-[10px] font-mono text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                                <span>{player.matchCount} {player.matchCount === 1 ? tLb('match_singular') : tLb('matches_suffix')}</span>
+                                {player.matchCount >= 5 && (
+                                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                                    ✓ {tLb('consistent_badge')}
+                                  </span>
+                                )}
                               </p>
                             </div>
                           </Link>
