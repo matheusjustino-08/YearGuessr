@@ -18,7 +18,7 @@ export function Navbar() {
         <Link href="/" className="flex items-center group">
           <span className="text-xl sm:text-2xl font-black tracking-tighter uppercase font-mono drop-shadow-xs">
             <span className="text-foreground">YEAR</span>
-            <span className="text-amber-500 dark:text-amber-400">GUESSR</span>
+            <span className="text-primary">GUESSR</span>
           </span>
         </Link>
 

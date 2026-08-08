@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { AdvertiseModal } from './AdvertiseModal';
 import { Megaphone, Sparkles, ExternalLink, Award } from 'lucide-react';
@@ -113,8 +113,17 @@ export function TopLeaderboardAd() {
     return () => clearInterval(timer);
   }, [topAds]);
 
+  const trackedViewsRef = useRef<Map<string, number>>(new Map());
+
   const trackView = async (ad: any) => {
     if (!ad || !ad.id) return;
+    const now = Date.now();
+    const lastTracked = trackedViewsRef.current.get(ad.id) || 0;
+
+    // Cooldown guard: prevent double counting ad impression within 10s
+    if (now - lastTracked < 10000) return;
+    trackedViewsRef.current.set(ad.id, now);
+
     try {
       await fetch('/api/anuncios/track', {
         method: 'POST',
