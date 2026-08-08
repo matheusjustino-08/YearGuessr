@@ -5,16 +5,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 // In-memory fallback proposals array to prevent losing proposals if DB table is missing
-let memoryProposals: any[] = [
-  {
-    id: 'demo_prop_1',
-    nome: 'TechCorp Brasil',
-    email: 'contato@techcorp.com.br',
-    pacote: 'Leaderboard Topo (728x90)',
-    mensagem: 'Gostaríamos de patrocinar a próxima temporada do YearGuessr com banner no topo.',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  }
-];
+let memoryProposals: any[] = [];
 
 export async function GET() {
   try {

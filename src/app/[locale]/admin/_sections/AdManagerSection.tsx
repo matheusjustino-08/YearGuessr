@@ -244,8 +244,29 @@ export function AdManagerSection({ supabase }: Props) {
         .from('anuncios')
         .select('*')
         .order('created_at', { ascending: false });
-      if (error) throw error;
-      setAds(data || []);
+      
+      let list: Ad[] = data || [];
+
+      try {
+        const statsRes = await fetch('/api/anuncios/track');
+        if (statsRes.ok) {
+          const { stats } = await statsRes.json();
+          if (stats) {
+            list = list.map(a => {
+              const s = stats[a.id];
+              return s ? {
+                ...a,
+                visualizacoes: Math.max(a.visualizacoes || 0, s.views || 0),
+                cliques: Math.max(a.cliques || 0, s.clicks || 0),
+              } : a;
+            });
+          }
+        }
+      } catch {
+        // Fallback
+      }
+
+      setAds(list);
     } catch (err: unknown) {
       showMsg(`Erro ao carregar anúncios: ${err instanceof Error ? err.message : String(err)}`);
     } finally {

@@ -2,6 +2,7 @@
 
 import { useGameStore } from '@/store/useGameStore';
 import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { FloatingEraElements } from './FloatingEraElements';
 
 function getEraTheme(year: number) {
@@ -42,16 +43,30 @@ export function ThemeEngine({ children }: { children: React.ReactNode }) {
   const gameState = useGameStore((state) => state.gameState);
   const themeOverride = useGameStore((state) => state.themeOverride);
   const colorMode = useGameStore((state) => state.colorMode);
+  const pathname = usePathname();
+  const isAdmin = pathname?.includes('/admin');
 
   const [activeEra, setActiveEra] = useState<string>('era-modern');
   const previousEra = useRef<string>('era-modern');
 
   // Handle Era Themes
   useEffect(() => {
-    const yearToUse = (gameState === 'won' || gameState === 'finished') && targetYear ? targetYear : currentYear;
-    const era = themeOverride && themeOverride !== 'auto' ? themeOverride : getEraTheme(yearToUse);
     const root = document.documentElement;
     const body = document.body;
+
+    if (isAdmin) {
+      ERAS.forEach(e => {
+        root.classList.remove(e, ERA_BACKGROUND_CLASSES[e]);
+        body?.classList.remove(ERA_BACKGROUND_CLASSES[e]);
+      });
+      root.classList.add('era-neutral', ERA_BACKGROUND_CLASSES['era-neutral']);
+      body?.classList.add(ERA_BACKGROUND_CLASSES['era-neutral']);
+      setActiveEra('era-neutral');
+      return;
+    }
+
+    const yearToUse = (gameState === 'won' || gameState === 'finished') && targetYear ? targetYear : currentYear;
+    const era = themeOverride && themeOverride !== 'auto' ? themeOverride : getEraTheme(yearToUse);
     
     ERAS.forEach(e => {
       root.classList.remove(e, ERA_BACKGROUND_CLASSES[e]);
@@ -62,7 +77,7 @@ export function ThemeEngine({ children }: { children: React.ReactNode }) {
     body?.classList.add(ERA_BACKGROUND_CLASSES[era]);
     setActiveEra(era);
     previousEra.current = era;
-  }, [currentYear, targetYear, gameState, themeOverride]);
+  }, [currentYear, targetYear, gameState, themeOverride, isAdmin]);
 
   // Handle Light / Dark / System Mode
   useEffect(() => {
