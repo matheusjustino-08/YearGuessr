@@ -116,12 +116,21 @@
     "current_streak": "Streak Atual",
     "best_streak": "Maior Recorde",
     "days": "dias",
+    "day_singular": "dia",
     "pts": "pts",
     "save_btn": "Salvar Preferências",
     "saving": "Salvando...",
     "saved_success": "Preferências salvas com sucesso!",
     "cms_panel": "Painel de Administração CMS",
-    "back_to_game": "Voltar ao Jogo"
+    "back_to_game": "Voltar ao Jogo",
+    "view_public_profile": "Ver Meu Perfil Público",
+    "matches_label": "Partidas",
+    "best_score_label": "Melhor Pontuação",
+    "recent_history_label": "Histórico Recente",
+    "no_recent_matches": "Nenhuma partida recente registrada.",
+    "role_admin": "Administrador",
+    "role_player": "Jogador YearGuessr",
+    "profile_subtitle": "Confira as estatísticas de {username} no YearGuessr!"
   },
   "footer": {
     "tagline": "Descubra o ano exato de momentos marcantes da história em fotos.",

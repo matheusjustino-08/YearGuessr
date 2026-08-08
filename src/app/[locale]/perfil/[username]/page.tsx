@@ -3,13 +3,16 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/routing';
 import { User as UserIcon, ArrowLeft, Flame, Trophy, Calendar, Target } from 'lucide-react';
 import { notFound } from 'next/navigation';
+import { updateAndFetchUserStreak } from '@/lib/streak-calculator';
 
 export async function generateMetadata({ params }: { params: Promise<{ username: string; locale: string }> }) {
-  const { username } = await params;
+  const { username, locale } = await params;
   const decodedUsername = decodeURIComponent(username);
+  const tSettings = await getTranslations({ locale, namespace: 'settings' });
+
   return {
     title: `${decodedUsername} — YearGuessr Profile`,
-    description: `Confira as estatísticas de ${decodedUsername} no YearGuessr!`,
+    description: tSettings('profile_subtitle', { username: decodedUsername }),
   };
 }
 
@@ -18,7 +21,7 @@ export default async function ProfilePage({
 }: {
   params: Promise<{ username: string; locale: string }>;
 }) {
-  const { username } = await params;
+  const { username, locale } = await params;
   const decodedUsername = decodeURIComponent(username);
   const supabase = await createClient();
   const tLb = await getTranslations('leaderboard');
@@ -36,6 +39,9 @@ export default async function ProfilePage({
     notFound();
   }
 
+  // Recalculate streak dynamically from match history
+  const streaks = await updateAndFetchUserStreak(supabase, profile.id);
+
   // Fetch user matches
   const { data: matches } = await supabase
     .from('partidas')
@@ -45,7 +51,6 @@ export default async function ProfilePage({
     .limit(10);
 
   const totalMatches = matches?.length || 0;
-  const totalScore = matches?.reduce((acc, m) => acc + (m.pontos || 0), 0) || 0;
   const bestMatch = matches?.reduce((max, m) => (m.pontos > max ? m.pontos : max), 0) || 0;
 
   return (
@@ -82,7 +87,7 @@ export default async function ProfilePage({
               {profile.e_anonimo ? tLb('anonymous_player') : profile.username}
             </h1>
             <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
-              {profile.role === 'admin' ? 'Administrador' : 'Jogador YearGuessr'}
+              {profile.role === 'admin' ? tSettings('role_admin') : tSettings('role_player')}
             </p>
           </div>
         </div>
@@ -94,7 +99,9 @@ export default async function ProfilePage({
               <Flame className="w-4 h-4" />
               <span className="text-[10px] font-mono font-bold uppercase">{tSettings('current_streak')}</span>
             </div>
-            <p className="text-2xl font-black font-mono text-foreground">{profile.streak_atual || 0}</p>
+            <p className="text-2xl font-black font-mono text-foreground">
+              {streaks.streak_atual} <span className="text-xs font-normal text-muted-foreground">{streaks.streak_atual === 1 ? tSettings('day_singular') : tSettings('days')}</span>
+            </p>
           </div>
 
           <div className="p-4 rounded-2xl bg-background/60 border border-border/50 text-center space-y-1">
@@ -102,13 +109,15 @@ export default async function ProfilePage({
               <Trophy className="w-4 h-4" />
               <span className="text-[10px] font-mono font-bold uppercase">{tSettings('best_streak')}</span>
             </div>
-            <p className="text-2xl font-black font-mono text-foreground">{profile.maior_streak || 0}</p>
+            <p className="text-2xl font-black font-mono text-foreground">
+              {streaks.maior_streak} <span className="text-xs font-normal text-muted-foreground">{streaks.maior_streak === 1 ? tSettings('day_singular') : tSettings('days')}</span>
+            </p>
           </div>
 
           <div className="p-4 rounded-2xl bg-background/60 border border-border/50 text-center space-y-1">
             <div className="flex items-center justify-center gap-1 text-primary">
               <Target className="w-4 h-4" />
-              <span className="text-[10px] font-mono font-bold uppercase">Partidas</span>
+              <span className="text-[10px] font-mono font-bold uppercase">{tSettings('matches_label')}</span>
             </div>
             <p className="text-2xl font-black font-mono text-foreground">{totalMatches}</p>
           </div>
@@ -116,7 +125,7 @@ export default async function ProfilePage({
           <div className="p-4 rounded-2xl bg-background/60 border border-border/50 text-center space-y-1">
             <div className="flex items-center justify-center gap-1 text-emerald-500">
               <Trophy className="w-4 h-4" />
-              <span className="text-[10px] font-mono font-bold uppercase">Melhor Pontuação</span>
+              <span className="text-[10px] font-mono font-bold uppercase">{tSettings('best_score_label')}</span>
             </div>
             <p className="text-2xl font-black font-mono text-emerald-500">{bestMatch} pts</p>
           </div>
@@ -126,7 +135,7 @@ export default async function ProfilePage({
         <div className="space-y-3 pt-2">
           <h2 className="text-sm font-bold uppercase font-mono tracking-wider text-muted-foreground flex items-center gap-2">
             <Calendar className="w-4 h-4 text-primary" />
-            Histórico Recente
+            {tSettings('recent_history_label')}
           </h2>
 
           <div className="overflow-x-auto rounded-2xl border border-border/50 bg-background/40">
@@ -144,7 +153,7 @@ export default async function ProfilePage({
                   matches.map((m) => (
                     <tr key={m.id} className="hover:bg-muted/20">
                       <td className="px-4 py-2.5 text-muted-foreground">
-                        {new Date(m.created_at).toLocaleDateString()}
+                        {new Date(m.created_at).toLocaleDateString(locale)}
                       </td>
                       <td className="px-4 py-2.5 font-bold text-foreground">
                         {m.desafios?.ano_correto || '-'}
@@ -160,7 +169,7 @@ export default async function ProfilePage({
                 ) : (
                   <tr>
                     <td colSpan={4} className="px-4 py-6 text-center text-muted-foreground">
-                      Nenhuma partida recente registrada.
+                      {tSettings('no_recent_matches')}
                     </td>
                   </tr>
                 )}

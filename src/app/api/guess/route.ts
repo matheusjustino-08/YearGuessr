@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import type { User, SupabaseClient } from '@supabase/supabase-js';
+import { updateAndFetchUserStreak } from '@/lib/streak-calculator';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
@@ -95,6 +96,8 @@ export async function POST(request: Request) {
         pontos,
         tempo_segundos: Math.max(1, timeInSeconds)
       });
+      // Recalculate streak automatically
+      await updateAndFetchUserStreak(supabase, user.id);
     } catch (dbErr) {
       console.warn('Could not record match in Supabase:', dbErr);
     }

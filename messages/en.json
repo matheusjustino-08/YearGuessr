@@ -116,12 +116,21 @@
     "current_streak": "Current Streak",
     "best_streak": "Best Record",
     "days": "days",
+    "day_singular": "day",
     "pts": "pts",
     "save_btn": "Save Preferences",
     "saving": "Saving...",
     "saved_success": "Preferences saved successfully!",
     "cms_panel": "CMS Admin Panel",
-    "back_to_game": "Back to Game"
+    "back_to_game": "Back to Game",
+    "view_public_profile": "View My Public Profile",
+    "matches_label": "Matches",
+    "best_score_label": "Best Score",
+    "recent_history_label": "Recent History",
+    "no_recent_matches": "No recent matches recorded.",
+    "role_admin": "Administrator",
+    "role_player": "YearGuessr Player",
+    "profile_subtitle": "Check out {username}'s stats on YearGuessr!"
   },
   "footer": {
     "tagline": "Discover the exact year of landmark historical moments in photos.",

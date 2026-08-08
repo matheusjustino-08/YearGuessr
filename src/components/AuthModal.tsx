@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/routing';
+import { updateAndFetchUserStreak } from '@/lib/streak-calculator';
 import { useGameStore } from '@/store/useGameStore';
 import { CustomSelect } from './CustomSelect';
 
@@ -53,9 +54,11 @@ export function AuthModal() {
     const loadUserData = async (currentUser: User | null) => {
       setUser(currentUser);
       if (currentUser) {
+        const streaks = await updateAndFetchUserStreak(supabase, currentUser.id);
+
         const { data: profile } = await supabase
           .from('perfis')
-          .select('username, role, e_anonimo, streak_atual, maior_streak')
+          .select('username, role, e_anonimo')
           .eq('id', currentUser.id)
           .single();
         
@@ -63,8 +66,8 @@ export function AuthModal() {
           setUsername(profile.username || currentUser.user_metadata?.full_name || '');
           setProfileRole(profile.role || 'user');
           setIsAnonimo(profile.e_anonimo ?? false);
-          setStreakAtual(profile.streak_atual || 0);
-          setMaiorStreak(profile.maior_streak || 0);
+          setStreakAtual(streaks.streak_atual);
+          setMaiorStreak(streaks.maior_streak);
         }
       }
     };
