@@ -198,6 +198,18 @@
     "match_singular": "match",
     "consistent_badge": "Consistent"
   },
+  "onboarding": {
+    "step_1_title": "1. Look at the Image & Pick the Year",
+    "step_1_desc": "Observe the historical photograph and slide the timeline ruler at the bottom to mark the year the event took place.",
+    "step_2_title": "2. Proximity Clues & Direction",
+    "step_2_desc": "On every guess, the game hints if the real year is MORE RECENT ⬆️ or OLDER ⬇️ with proximity badges: Very Close (🟩 <=3 yrs), Close (🟧 4-15 yrs), or Far (🟥 >15 yrs).",
+    "step_3_title": "3. Up to 3 Attempts & Score",
+    "step_3_desc": "You get 3 tries per challenge. Hit the exact year on your first try to score up to 5,000 points and top the Global Leaderboard!",
+    "next": "Next",
+    "prev": "Previous",
+    "finish": "Start Playing!",
+    "skip": "Skip Tutorial"
+  },
   "kofi": {
     "support_btn": "Support on Ko-fi",
     "support_desc": "Help keep YearGuessr running online ad-free!"

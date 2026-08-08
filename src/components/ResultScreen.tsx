@@ -84,7 +84,7 @@ export function ResultScreen() {
       };
 
       const blob = await generateScoreCardBlob(
-        targetYear,
+        targetYear || 1969,
         lastScore || 0,
         lastDistance || 0,
         challengeTitle,

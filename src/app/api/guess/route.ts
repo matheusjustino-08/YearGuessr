@@ -91,20 +91,22 @@ export async function POST(request: Request) {
     ? 5000
     : Math.max(0, Math.round(rawScore * attemptMultiplier));
 
-  const acertou = errorEmAnos === 0;
+  const win = errorEmAnos === 0;
+  const gameOver = win || attemptNumber >= 3;
+  const direcao = guessYear < anoCorreto ? 'MAIS_RECENTE' : guessYear > anoCorreto ? 'MAIS_ANTIGO' : 'EXATO';
+  const badge = errorEmAnos === 0 ? 'NA_MOSCA' : errorEmAnos <= 3 ? 'SUPER_PERTO' : errorEmAnos <= 15 ? 'PERTO' : 'LONGE';
 
-  // 3. Store result in Supabase (if user logged in)
-  if (supabase && user?.id) {
+  // 3. Store result in Supabase (if user logged in & game over)
+  if (supabase && user?.id && gameOver) {
     try {
       await supabase.from('partidas').insert({
         user_id: user.id,
         desafio_id: challengeId !== 'demo-1969' ? challengeId : null,
-        tentativas: 1,
-        acertou,
+        tentativas: attemptNumber,
+        acertou: win,
         pontos,
         tempo_segundos: Math.max(1, timeInSeconds)
       });
-      // Recalculate streak automatically
       await updateAndFetchUserStreak(supabase, user.id);
     } catch (dbErr) {
       console.warn('Could not record match in Supabase:', dbErr);
@@ -113,9 +115,13 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     success: true,
-    correctYear: anoCorreto,
-    distanceOff: errorEmAnos,
-    score: pontos,
-    isCorrect: acertou,
+    acertou: win,
+    gameOver,
+    pontos,
+    distancia: errorEmAnos,
+    direcao,
+    badge,
+    // Anti-cheat: correctYear is ONLY revealed when game is over!
+    correctYear: gameOver ? anoCorreto : undefined,
   });
 }

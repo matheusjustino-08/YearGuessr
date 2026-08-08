@@ -10,6 +10,7 @@ import { useEffect } from 'react';
  
 import { CategoryFilter } from '@/components/CategoryFilter';
 import { SideBanners } from '@/components/SideBanners';
+import { OnboardingModal } from '@/components/OnboardingModal';
 
 export default function HomePage() {
   const t = useTranslations('game');
@@ -28,6 +29,7 @@ export default function HomePage() {
 
   return (
     <main className="flex-grow flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 space-y-6 pb-12 w-full max-w-6xl mx-auto my-auto">
+      <OnboardingModal />
       {/* Main Game Container */}
       <div className="w-full space-y-6">
         

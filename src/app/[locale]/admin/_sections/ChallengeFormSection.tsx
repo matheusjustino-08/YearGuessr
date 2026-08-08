@@ -7,6 +7,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { useCategories } from './useCategories';
 import { resolveImageUrl, isConvertibleUrl } from '@/lib/resolveImageUrl';
 import { generateOrganicRulerRange } from '@/lib/ruler-calculator';
+import { compressImageToWebP } from '@/lib/image-compressor';
 import { useTranslations } from 'next-intl';
 
 interface Props { supabase: SupabaseClient }
@@ -52,6 +53,39 @@ export function ChallengeFormSection({ supabase }: Props) {
         ? prev.categorias.filter(c => c !== catId)
         : [...prev.categorias, catId],
     }));
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsLoading(true);
+      setMessage('Comprimindo imagem para WebP...');
+      const compressedFile = await compressImageToWebP(file, 1200, 0.82);
+      const filePath = `desafios/${Date.now()}_${Math.random().toString(36).substring(7)}.webp`;
+
+      const { error: uploadErr } = await supabase.storage
+        .from('desafios')
+        .upload(filePath, compressedFile, {
+          contentType: 'image/webp',
+          cacheControl: '31536000',
+          upsert: true,
+        });
+
+      if (uploadErr) throw uploadErr;
+
+      const { data: publicUrlData } = supabase.storage.from('desafios').getPublicUrl(filePath);
+      if (publicUrlData?.publicUrl) {
+        setFormData(prev => ({ ...prev, imagem_principal_url: publicUrlData.publicUrl }));
+        setMessage('✓ Imagem comprimida para WebP e enviada com sucesso ao CDN!');
+      }
+    } catch (err: any) {
+      console.warn('Storage upload warning:', err);
+      setMessage('Aviso: Certifique-se de criar o bucket public "desafios" no Supabase Storage. Você também pode colar a URL direta.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -230,7 +264,14 @@ export function ChallengeFormSection({ supabase }: Props) {
           value={formData.imagem_principal_url}
           onChange={e => setFormData(p => ({...p, imagem_principal_url: e.target.value}))}
         />
-        <p className="text-[11px] text-muted-foreground">{tAdmin('form_image_hint')}</p>
+        <div className="pt-1.5 flex flex-wrap items-center gap-2">
+          <label className="cursor-pointer px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/30 text-xs font-bold text-primary transition-all flex items-center gap-1.5 active:scale-95">
+            <span>📷 Fazer Upload & Comprimir WebP (Max 1200px)</span>
+            <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+          </label>
+          <span className="text-[10px] text-muted-foreground font-mono">(Cache-Control: max-age=31536000)</span>
+        </div>
+        <p className="text-[11px] text-muted-foreground pt-1">{tAdmin('form_image_hint')}</p>
         {formData.imagem_principal_url && isConvertibleUrl(formData.imagem_principal_url) && (
           <p className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5">
             <RefreshCw className="w-3 h-3" />

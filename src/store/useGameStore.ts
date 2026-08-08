@@ -6,7 +6,7 @@ type GameState = 'playing' | 'won' | 'finished';
 
 export interface Challenge {
   id: string;
-  ano_correto: number;
+  ano_correto?: number;
   minYear: number;
   maxYear: number;
   imagem_principal: string;
@@ -29,7 +29,7 @@ export interface GuessFeedback {
 
 interface GameStore {
   currentYear: number;
-  targetYear: number;
+  targetYear: number | null;
   guesses: number[];
   guessHistory: GuessFeedback[];
   gameState: GameState;
@@ -189,7 +189,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
           set({
             currentChallenge: {
               id: item.id,
-              ano_correto: item.ano_correto,
               minYear: item.janela_anos ? item.janela_anos[0] : 1800,
               maxYear: item.janela_anos ? item.janela_anos[1] : 2026,
               imagem_principal: item.imagem_principal,
@@ -197,11 +196,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
               dificuldade: item.dificuldade || 'normal',
               conteudo_i18n: item.conteudo_i18n,
             },
-            targetYear: item.ano_correto,
-            currentYear: item.janela_anos ? Math.floor((item.janela_anos[0] + item.janela_anos[1]) / 2) : 1950,
+            targetYear: null,
+            currentYear: 1950,
             guesses: [],
+            guessHistory: [],
             gameState: 'playing',
-            dailyCompleted: false,
             challengeStartTime: Date.now(),
           });
           return;
@@ -212,7 +211,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       const todayKey = new Date().toISOString().split('T')[0];
 
-      // In practice mode: fetch pool of past challenges and apply resilient filtering
       let { data, error } = await supabase
         .from('desafios')
         .select('*')
@@ -233,7 +231,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       let candidatePool = data || [];
 
-      // Filter by Category
       if (selectedCategory !== 'all' && candidatePool.length > 0) {
         const catMatch = candidatePool.filter((item: any) => {
           if (!item.categorias) return false;
@@ -250,7 +247,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
       }
 
-      // Filter by Difficulty
       if (selectedDifficulty !== 'all' && candidatePool.length > 0) {
         const diffMatch = candidatePool.filter((item: any) => 
           (item.dificuldade || 'normal').toLowerCase() === selectedDifficulty.toLowerCase()
@@ -261,7 +257,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
 
       if (candidatePool.length > 0 && !error) {
-        // Select random challenge from filtered candidates (practice mode)
         const randomIndex = Math.floor(Math.random() * candidatePool.length);
         const item = candidatePool[randomIndex];
         const organicRuler = generateOrganicRulerRange(item.ano_correto, item.dificuldade || 'normal');
@@ -271,7 +266,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
         set({
           currentChallenge: {
             id: item.id,
-            ano_correto: item.ano_correto,
             minYear,
             maxYear,
             imagem_principal: item.imagem_principal,
@@ -279,18 +273,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
             dificuldade: item.dificuldade || 'normal',
             conteudo_i18n: item.conteudo_i18n,
           },
-          targetYear: item.ano_correto,
+          targetYear: null,
           currentYear: Math.floor((minYear + maxYear) / 2),
           guesses: [],
+          guessHistory: [],
           gameState: 'playing',
           challengeStartTime: Date.now(),
         });
       } else {
-        // Fallback demo challenge if DB has no challenges yet or query fails
         set({
           currentChallenge: {
             id: 'demo-1969',
-            ano_correto: 1969,
             minYear: 1900,
             maxYear: 2000,
             imagem_principal: 'https://images.unsplash.com/photo-1517976487492-5750f3195933?q=80&w=1200&auto=format&fit=crop',
@@ -299,9 +292,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
               en: { titulo: 'Apollo 11 Moon Landing', dica: 'Occurred during the peak of the Cold War and Space Race.' }
             }
           },
-          targetYear: 1969,
+          targetYear: null,
           currentYear: 1950,
           guesses: [],
+          guessHistory: [],
           gameState: 'playing',
           challengeStartTime: Date.now(),
         });
@@ -316,7 +310,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!currentChallenge) return;
 
     const newGuesses = [...guesses, currentYear];
-    // Calculate real time elapsed since challenge loaded (cap at 300 seconds)
     const timeInSeconds = challengeStartTime
       ? Math.min(Math.round((Date.now() - challengeStartTime) / 1000), 300)
       : 30;
@@ -340,67 +333,62 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
 
       const data = await response.json();
+      const score = typeof data.pontos === 'number' ? data.pontos : (data.score || 0);
+      const distanceOff = typeof data.distancia === 'number' ? data.distancia : (data.distanceOff || 0);
+      const isWin = data.acertou === true || data.isCorrect === true || distanceOff === 0;
+      const isGameOver = data.gameOver === true || isWin || newGuesses.length >= 3;
+      const directionStr = data.direcao === 'MAIS_RECENTE' ? 'higher' : data.direcao === 'MAIS_ANTIGO' ? 'lower' : 'exact';
 
-      if (gameMode === 'daily' && typeof window !== 'undefined') {
+      const feedback: GuessFeedback = { 
+        guessedYear: currentYear, 
+        distanceOff, 
+        direction: directionStr, 
+        score 
+      };
+
+      const updatedHistory = [...get().guessHistory, feedback];
+
+      if (gameMode === 'daily' && isGameOver && typeof window !== 'undefined') {
         const todayKey = new Date().toISOString().split('T')[0];
         localStorage.setItem('yearguessr_daily_completed_date', todayKey);
-        localStorage.setItem('yearguessr_daily_score', String(data.score));
-        localStorage.setItem('yearguessr_daily_distance', String(data.distanceOff));
-        localStorage.setItem('yearguessr_daily_target', String(data.correctYear));
+        localStorage.setItem('yearguessr_daily_score', String(score));
+        localStorage.setItem('yearguessr_daily_distance', String(distanceOff));
+        if (data.correctYear) {
+          localStorage.setItem('yearguessr_daily_target', String(data.correctYear));
+        }
         set({ dailyCompleted: true });
       }
 
-      if (data.isCorrect || data.distanceOff === 0) {
-        const direction = 'exact';
-        const feedback: GuessFeedback = { guessedYear: currentYear, distanceOff: 0, direction, score: data.score };
+      if (isWin) {
         set({ 
           guesses: newGuesses, 
-          guessHistory: [...get().guessHistory, feedback],
+          guessHistory: updatedHistory,
           gameState: 'won', 
-          targetYear: data.correctYear,
-          lastScore: data.score,
+          targetYear: data.correctYear || currentYear,
+          lastScore: score,
           lastDistance: 0
         });
-      } else if (newGuesses.length >= 3) {
-        const direction = currentYear < data.correctYear ? 'higher' : 'lower';
-        const feedback: GuessFeedback = { guessedYear: currentYear, distanceOff: data.distanceOff, direction, score: data.score };
+      } else if (isGameOver) {
         set({ 
           guesses: newGuesses, 
-          guessHistory: [...get().guessHistory, feedback],
+          guessHistory: updatedHistory,
           gameState: 'finished', 
-          targetYear: data.correctYear,
-          lastScore: data.score,
-          lastDistance: data.distanceOff
+          targetYear: data.correctYear || null,
+          lastScore: score,
+          lastDistance: distanceOff
         });
       } else {
-        // Attempt 1 or 2 failed, record feedback and stay in playing state for next attempt
-        const direction = currentYear < data.correctYear ? 'higher' : 'lower';
-        const feedback: GuessFeedback = { guessedYear: currentYear, distanceOff: data.distanceOff, direction, score: data.score };
+        // Attempt 1 or 2 failed: stay in playing state for next attempt
         set({ 
           guesses: newGuesses, 
-          guessHistory: [...get().guessHistory, feedback],
-          gameState: 'playing', 
-          targetYear: data.correctYear,
-          lastScore: data.score,
-          lastDistance: data.distanceOff
+          guessHistory: updatedHistory,
+          gameState: 'playing',
+          lastScore: 0,
+          lastDistance: distanceOff
         });
       }
-    } catch (error) {
-      console.error('Failed to submit guess:', error);
-      const fallbackYear = currentChallenge?.ano_correto ?? currentYear;
-      const fallbackDist = Math.abs(currentYear - fallbackYear);
-      const direction = currentYear < fallbackYear ? 'higher' : 'lower';
-      const feedback: GuessFeedback = { guessedYear: currentYear, distanceOff: fallbackDist, direction, score: 0 };
-      const newHist = [...get().guessHistory, feedback];
-
-      set({ 
-        guesses: newGuesses,
-        guessHistory: newHist,
-        gameState: newGuesses.length >= 3 ? 'finished' : 'playing',
-        targetYear: fallbackYear,
-        lastScore: 0,
-        lastDistance: fallbackDist
-      });
+    } catch (err) {
+      console.error('Submit guess error:', err);
     }
   },
   

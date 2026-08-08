@@ -198,6 +198,18 @@
     "match_singular": "partida",
     "consistent_badge": "Consistente"
   },
+  "onboarding": {
+    "step_1_title": "1. Olhe a Imagem & Aponte o Ano",
+    "step_1_desc": "Observe a fotografia histórica e deslize a régua temporal na parte inferior para marcar o ano em que o evento ocorreu.",
+    "step_2_title": "2. Dicas de Proximidade & Direção",
+    "step_2_desc": "A cada palpite, o jogo indica se o ano real é MAIS RECENTE ⬆️ ou MAIS ANTIGO ⬇️ com cores de proximidade: Super Perto (🟩 <=3 anos), Perto (🟧 4-15 anos) ou Longe (🟥 >15 anos).",
+    "step_3_title": "3. Até 3 Tentativas & Pontuação",
+    "step_3_desc": "Você tem 3 chances por desafio. Acerte de primeira para conquistar até 5.000 pontos e subir no Ranking Global!",
+    "next": "Próximo",
+    "prev": "Anterior",
+    "finish": "Começar a Jogar!",
+    "skip": "Pular Tutorial"
+  },
   "kofi": {
     "support_btn": "Apoiar no Ko-fi",
     "support_desc": "Ajude a manter o YearGuessr no ar e sem anúncios intrusivos!"

@@ -12,128 +12,117 @@ O projeto combina uma estética retrô e moderna, ajustando as cores, fundos e e
 
 ---
 
-## 🎮 2. Modos de Jogo e Regras
+## 🛡️ 2. Arquitetura de Segurança & Anti-Cheat (Server-Driven Guessing)
+
+Para blindar o jogo contra usuários que inspecionam o código-fonte, DevTools ou estado React no navegador:
+
+- **Payload Limpo no Cliente**: O endpoint e a store Zustand omitem completamente o campo `ano_correto` durante a jogabilidade. O cliente recebe apenas `id`, `imagem_principal`, `categorias`, `dificuldade`, `conteudo_i18n` e os limites `minYear` / `maxYear`.
+- **Processamento 100% no Servidor (`/api/guess/route.ts`)**:
+  - O cliente envia: `{ challengeId, guessYear, timeInSeconds, attemptNumber }`.
+  - O servidor consulta o ano real no Supabase DB, calcula a diferença ($\Delta = |\text{palpite} - \text{ano}|$), aplica a curva de pontuação e gera a direção (⬆️ MAIS RECENTE / ⬇️ MAIS ANTIGO) e a badge (`Super Perto`, `Perto`, `Longe`).
+  - **Revelação Protegida**: O `correctYear` só é enviado de volta no JSON de resposta quando `gameOver === true` (quando o jogador acerta ou atinge a 3ª tentativa).
+
+---
+
+## 🎓 3. Onboarding Fluido e Tutorial Interativo (`OnboardingModal.tsx`)
+
+Um modal interativo em 3 passos orienta novos visitantes de forma visual sem poluir a tela:
+
+1. **Passo 1: Olhe a Imagem & Aponte o Ano**: Explica a observação da foto e o uso da régua temporal.
+2. **Passo 2: Feedback de Proximidade & Direção**: Apresenta as badges de distância (🟩 Super Perto $\le 3$ anos, 🟧 Perto 4-15 anos, 🟥 Longe $>15$ anos) e as setas direcionais.
+3. **Passo 3: 3 Tentativas & Pontuação**: Explica os multiplicadores por tentativa ($1,0\times$, $0,72\times$, $0,50\times$).
+- Persistência no navegador via `localStorage.getItem('yearguessr_has_seen_onboarding')`.
+
+---
+
+## 🖼️ 4. Otimização de Imagens & Custos de CDN Storage
+
+Para garantir alta velocidade e evitar custos excessivos com transferência de dados:
+
+- **Otimização Nativa `next/image`**: Configurado em `next.config.ts` com formatos de última geração: `formats: ['image/avif', 'image/webp']`.
+- **Compressão Client-Side WebP no CMS (`image-compressor.ts`)**:
+  - No painel `/admin`, antes de enviar arquivos para o Supabase Storage, a imagem é processada via HTML5 Canvas client-side.
+  - É redimensionada para largura máxima de 1200px e convertida para o formato **WebP (qualidade 0.82)**.
+- **Cabeçalhos de Cache Agressivos**: Envio com `cacheControl: '31536000'` (`public, max-age=31536000, immutable`), permitindo que a CDN armazene em cache por 1 ano.
+
+---
+
+## 🏆 5. Ranking Global Ponderado (Média Bayesiana Ajustada)
+
+Para evitar que contas que jogaram apenas 1 partida e obtiveram 5.000 pontos fiquem acima de jogadores dedicados que acumulam alta média em dezenas de partidas, o ranking por **Média de Pontos** utiliza a **Fórmula Ponderada Bayesiana**:
+
+$$\text{Weighted Score} = \frac{(v \cdot m) + (k \cdot C)}{v + k}$$
+
+- **\(v\)**: Partidas jogadas pelo usuário.
+- **\(m\)**: Média simples de pontos do usuário.
+- **\(k = 5\)**: Fator de peso e amostra mínima.
+- **\(C = 2500\)**: Média global da plataforma.
+- **Selo `✓ Consistente`**: Exibido no ranking para jogadores com $\ge 5$ partidas concluídas.
+
+---
+
+## 🎮 6. Modos de Jogo e Regras
 
 ### 📅 A. Desafio Diário (`daily`)
-- **Frequência**: 1 desafio inédito por dia, liberado exatamente à meia-noite (`data_publicacao = YYYY-MM-DD`).
-- **Integridade Competitiva**: O desafio do dia é exclusivo do modo diário. Ele só entra na reserva do Modo Treino a partir do dia seguinte.
-- **Bloqueio de Replay**: Quando concluído, o progresso é registrado localmente e no Supabase. O jogador visualiza uma tela avisando que já concluiu a rodada do dia e pode prosseguir para o Modo Treino.
+- **Frequência**: 1 desafio inédito por dia (`data_publicacao = YYYY-MM-DD`).
+- **Bloqueio de Replay**: Progresso salvo localmente e no Supabase.
 
 ### 🎯 B. Modo Treino (`practice`)
-- **Jogabilidade Ilimitada**: Carrega desafios ilimitados sorteados aleatoriamente do banco de dados.
-- **Filtros por Categoria**: O jogador pode filtrar desafios por **Guerra & Conflitos**, **Ciência & Tecnologia**, **Arte & Cultura**, **Cinema & Música**, **Esportes**, **Política & História**.
-- **Filtros por Dificuldade**: Permite escolher entre nível **Fácil**, **Normal** ou **Difícil**.
+- **Jogabilidade Ilimitada**: Desafios sorteados aleatoriamente do acervo.
+- **Filtros por Categoria**: Guerra & Conflitos, Ciência & Tecnologia, Arte & Cultura, Cinema & Música, Esportes, Política & História.
+- **Filtros por Dificuldade**: Fácil, Normal, Difícil.
 
 ---
 
-## 🎯 3. Sistema de Jogabilidade (3 Tentativas e Dicas)
+## 🧮 7. Algoritmo de Pontuação (Curva Exponencial Gaussiana)
 
-Cada desafio concede ao jogador **3 tentativas consecutivas** para acertar o ano correto:
-
-1. **Indicador de Tentativas**: Exibe o contador visual `Tentativa X de 3`.
-2. **Dicas Direcionais por Cor**:
-   - ⬆️ **MAIS RECENTE** (Azul): O ano correto é maior que o palpite atual.
-   - ⬇️ **MAIS ANTIGO** (Laranja): O ano correto é menor que o palpite atual.
-3. **Badges de Proximidade Sem Spoilers**:
-   - 🟩 **Super Perto**: Diferença de $\le 3$ anos.
-   - 🟧 **Perto**: Diferença de $4 \text{ a } 15$ anos.
-   - 🟥 **Longe**: Diferença $> 15$ anos.
-4. **Histórico de Palpites**: Exibe os palpites anteriores da rodada para auxiliar no raciocínio.
-
----
-
-## 🧮 4. Algoritmo de Pontuação (Curva Exponencial Gaussiana)
-
-A pontuação é calculada de forma matemática e contínua via API (`/api/guess/route.ts`), sem números estáticos genéricos:
+Calculado via `/api/guess/route.ts`:
 
 $$S_{\text{base}} = 5000 \cdot e^{-0,018 \cdot d}$$
 
-- **\(d\)**: Diferença em anos entre o palpite e o ano correto ($|\text{palpite} - \text{ano}|$).
-- **Penalidade de Tempo**: $- (\text{tempo em segundos} \times 3)$ (máx. 300 pts).
-- **Penalidade de Dicas**: $- (\text{dicas utilizadas} \times 400)$.
-
-### Multiplicadores por Tentativa:
-- **1ª Tentativa**: $1,0\times$ ($100\%$ do valor máximo - até 5000 pts).
-- **2ª Tentativa**: $0,72\times$ ($72\%$ do valor máximo - até 3600 pts).
-- **3ª Tentativa**: $0,50\times$ ($50\%$ do valor máximo - até 2500 pts).
+- **\(d\)**: $|\text{palpite} - \text{ano}|$.
+- **Penalidade de Tempo**: $- (\text{tempo em segundos} \times 3)$.
+- **Multiplicadores por Tentativa**: 1ª ($1,0\times$), 2ª ($0,72\times$), 3ª ($0,50\times$).
 
 ---
 
-## 📐 5. Motor de Régua Orgânica (IA / Calculador de Escala)
+## 📐 8. Motor de Régua Orgânica (IA / Calculador de Escala)
 
-Localizado em `src/lib/ruler-calculator.ts`, o algoritmo calcula a régua temporal de forma orgânica e imprevisível a cada desafio, evitando que o jogador deduza o ano central pelo tamanho fixo da régua:
-
-- **Fácil**: Alcance amplo ($\sim 240$ anos de span).
-- **Normal**: Alcance intermediário ($\sim 150$ anos de span).
-- **Difícil**: Alcance estreito e desafiador ($\sim 70$ anos de span).
-- **Deslocamento Randômico**: O ano correto nunca fica exatamente no centro da régua.
+Localizado em `src/lib/ruler-calculator.ts`:
+- **Fácil**: Alcance amplo ($\sim 240$ anos).
+- **Normal**: Alcance intermediário ($\sim 150$ anos).
+- **Difícil**: Alcance estreito ($\sim 70$ anos).
 
 ---
 
-## 🎨 6. Motor de Temas Imersivos por Época (`ThemeEngine.tsx`)
+## 🎨 9. Temas Imersivos por Época (`ThemeEngine.tsx`)
 
-A interface do YearGuessr se transforma visualmente de acordo com a época do ano exibido:
-
-| Época | Intervalo de Anos | Estilo Visual |
-| :--- | :--- | :--- |
-| **Idade Média** | Anos $< 1500$ | Tons pergaminho, brasões e brilho de brasas de tocha. |
-| **Renascentista** | $1500 - 1799$ | Tons âmbar veneziano e detalhes dourados. |
-| **Era Industrial** | $1800 - 1899$ | Tons ferro sepia, vapor e estética vitoriana. |
-| **Início Século XX** | $1900 - 1949$ | Tons preto e branco / sepia clássico de jornal. |
-| **Anos de Ouro** | $1950 - 1979$ | Tons quentes de TV a cores retro e vinil. |
-| **Retrô 80s e 90s** | $1980 - 1999$ | Neon ciano e magenta com visual synthwave. |
-| **Era Digital / Moderna**| $\ge 2000$ | Azul cibernético ultra-moderno e limpo. |
-| **Tema Neutro Admin** | Rotas `/admin` | Visual neutral profissional de dashboard, sem sobreposição de temas de jogo. |
+- **Idade Média** ($< 1500$)
+- **Renascentista** ($1500 - 1799$)
+- **Era Industrial** ($1800 - 1899$)
+- **Início Século XX** ($1900 - 1949$)
+- **Anos de Ouro** ($1950 - 1979$)
+- **Retrô 80s e 90s** ($1980 - 1999$)
+- **Era Digital / Moderna** ($\ge 2000$)
+- **Tema Neutro Admin**: Rotas `/admin` em estilo dashboard profissional.
 
 ---
 
-## 🌍 7. Sistema de Internacionalização (i18n)
+## 🌍 10. Internacionalização (i18n)
 
-O projeto é 100% bilíngue/trilíngue através do `next-intl`:
-- 🇧🇷 **Português (`pt`)**
-- 🇺🇸 **Inglês (`en`)**
-- 🇪🇸 **Espanhol (`es`)**
-
-Todas as telas, modais, mensagens de erro, botões, diretrizes e notificações seguem as chaves centralizadas em `messages/*.json`.
+Suporte a 3 idiomas: **Português (`pt`)**, **Inglês (`en`)**, **Espanhol (`es`)** centralizados em `messages/*.json`.
 
 ---
 
-## 🛠️ 8. Painel de Administração e CMS (`/admin`)
+## 🛠️ 11. Painel de Administração e CMS (`/admin`)
 
-Acessível em `/[locale]/admin`, o painel é dividido em seções funcionais:
-
-1. **Gerenciador de Desafios (`ChallengeListSection.tsx` & `ChallengeFormSection.tsx`)**:
-   - Cadastro e edição de desafios com imagem, ano correto, i18n, categorias e dificuldade.
-   - Botão **"Gerar Régua Orgânica (IA)"** para definir início e fim da régua automaticamente.
-2. **Gerenciador de Categorias (`CategoryManagerSection.tsx`)**:
-   - Edição de rótulos e suporte a ícones SVG e URLs.
-3. **Gerenciador de Anúncios (`AdManagerSection.tsx`)**:
-   - Controle de letreiros (300x50, 728x90), ativação/desativação e chave do botão de ação CTA (`mostrar_botao`).
-   - Rastreamento de **Visualizações**, **Cliques** e **CTR %** por anúncio.
-   - Gerador de relatórios em formato texto para envio aos anunciantes.
-4. **Caixa de Entrada de Propostas de Anunciantes**:
-   - Recebimento de formulários enviados via `/anuncie` ou modal publicitário.
-   - Links diretos com 1 clique para responder via **WhatsApp**, **E-mail** ou abrir o **LinkedIn da Empresa**.
-5. **Diretrizes de Dificuldade (`DifficultyGuidelinesSection.tsx`)**.
+- **Gerenciador de Desafios**: Criação, edição, gerador de régua orgânica com IA e upload comprimido WebP.
+- **Gerenciador de Categorias**: Edição inline de nomes e ícones SVG.
+- **Gerenciador de Anúncios**: Métricas de Visualizações (deduplicadas de 1 em 1), Cliques, CTR % e controle de botão CTA (`mostrar_botao`).
+- **Caixa de Entrada de Propostas**: Respostas rápidas via WhatsApp, E-mail e LinkedIn.
 
 ---
 
-## 🗄️ 9. Esquema do Banco de Dados Supabase (`schema.sql`)
+## 🗄️ 12. Esquema do Banco de Dados Supabase (`schema.sql`)
 
-Documentado no arquivo `schema.sql` na raiz do projeto:
-
-- `desafios`: Tabela principal de desafios históricos.
-- `categorias`: Categorias ativas.
-- `dificuldades`: Tamanho e regras da régua por nível.
-- `anuncios`: Banners e métricas de anúncios.
-- `anuncios_propostas`: Inbox de propostas recebidas.
-- `partidas`: Histórico de palpites e pontuações dos usuários.
-- `profiles`: Estatísticas do jogador, avatar e contagem de streaks.
-
----
-
-## 👤 10. Autenticação & Perfil de Jogador
-
-- Login via **Google**, **GitHub** e **E-mail / Senha**.
-- Rastreamento de **Streak de Dias Consecutivos Jogados**.
-- Ranking Global (`/leaderboard`) por pontuação.
+Tabelas: `desafios`, `categorias`, `dificuldades`, `anuncios`, `anuncios_propostas`, `partidas`, `profiles`.
