@@ -10,12 +10,23 @@ export default async function LeaderboardPage() {
   const tResult = await getTranslations('result');
   const tLb = await getTranslations('leaderboard');
   
-  const { data: topMatches } = await supabase
+  // Fetch top scores and deduplicate by user so each player only appears once
+  const { data: allMatches } = await supabase
     .from('partidas')
     .select('*, perfis(username, avatar_url, e_anonimo)')
     .order('pontos', { ascending: false })
     .order('tempo_segundos', { ascending: true })
-    .limit(10);
+    .limit(100);
+
+  // Keep only best score per user_id (first occurrence is best due to ordering)
+  const seenUsers = new Set<string>();
+  const topMatches = (allMatches || []).filter((match: any) => {
+    const key = match.user_id || match.id; // anonymous matches have no user_id
+    if (!match.user_id) return true; // keep all anon results (they have unique ids)
+    if (seenUsers.has(key)) return false;
+    seenUsers.add(key);
+    return true;
+  }).slice(0, 10);
 
   return (
     <main className="flex-grow flex flex-col items-center justify-start p-3 sm:p-8 w-full">
@@ -72,15 +83,26 @@ export default async function LeaderboardPage() {
                         )}
                       </td>
                       <td className="px-3 sm:px-6 py-3.5 font-medium flex items-center space-x-2.5 min-w-0">
-                        {avatarUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={avatarUrl} alt="avatar" className="w-7 h-7 rounded-full border border-border shrink-0" />
+                        {isAnon ? (
+                          <>
+                            <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0">
+                              <UserIcon className="w-4 h-4" />
+                            </div>
+                            <span className="font-semibold text-foreground truncate max-w-[100px] sm:max-w-xs">{playerName}</span>
+                          </>
                         ) : (
-                          <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0">
-                            <UserIcon className="w-4 h-4" />
-                          </div>
+                          <Link href={`/perfil/${encodeURIComponent(match.perfis?.username || '')}`} className="flex items-center gap-2.5 hover:underline truncate">
+                            {avatarUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={avatarUrl} alt="avatar" className="w-7 h-7 rounded-full border border-border shrink-0" />
+                            ) : (
+                              <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0">
+                                <UserIcon className="w-4 h-4" />
+                              </div>
+                            )}
+                            <span className="font-semibold text-foreground truncate max-w-[100px] sm:max-w-xs">{playerName}</span>
+                          </Link>
                         )}
-                        <span className="font-semibold text-foreground truncate max-w-[100px] sm:max-w-xs">{playerName}</span>
                       </td>
                       <td className="px-3 sm:px-6 py-3.5 text-right font-mono font-black text-primary text-sm sm:text-base whitespace-nowrap">
                         {match.pontos} pts

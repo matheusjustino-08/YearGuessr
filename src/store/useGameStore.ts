@@ -33,10 +33,13 @@ interface GameStore {
   selectedDifficulty: string;
   gameMode: 'daily' | 'practice';
   dailyCompleted: boolean;
+  challengeStartTime: number | null;
+  soundEnabled: boolean;
   setCurrentYear: (year: number) => void;
   setTargetYear: (year: number) => void;
   setThemeOverride: (theme: string) => void;
   setColorMode: (mode: string) => void;
+  setSoundEnabled: (enabled: boolean) => void;
   setSelectedCategory: (category: string) => void;
   setSelectedDifficulty: (difficulty: string) => void;
   setGameMode: (mode: 'daily' | 'practice') => void;
@@ -59,6 +62,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
   selectedDifficulty: 'all',
   gameMode: 'daily',
   dailyCompleted: false,
+  challengeStartTime: null,
+  soundEnabled: typeof window !== 'undefined' ? localStorage.getItem('yearguessr_sound') !== 'false' : true,
+
+  setSoundEnabled: (enabled) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('yearguessr_sound', String(enabled));
+    }
+    set({ soundEnabled: enabled });
+  },
   
   setGameMode: (mode) => {
     set({ gameMode: mode, gameState: 'playing', guesses: [], lastScore: null, lastDistance: null });
@@ -145,6 +157,45 @@ export const useGameStore = create<GameStore>((set, get) => ({
             return;
           }
         }
+
+        // 3. For daily mode: attempt to get challenge published today (deterministic)
+        let dailyQuery = supabase
+          .from('desafios')
+          .select('*')
+          .eq('data_publicacao', todayKey)
+          .limit(1);
+
+        if (selectedCategory !== 'all') {
+          dailyQuery = dailyQuery.contains('categorias', [selectedCategory]);
+        }
+        if (selectedDifficulty !== 'all') {
+          dailyQuery = dailyQuery.eq('dificuldade', selectedDifficulty);
+        }
+
+        const { data: dailyData, error: dailyError } = await dailyQuery;
+
+        if (dailyData && dailyData.length > 0 && !dailyError) {
+          const item = dailyData[0];
+          set({
+            currentChallenge: {
+              id: item.id,
+              ano_correto: item.ano_correto,
+              minYear: item.janela_anos ? item.janela_anos[0] : 1800,
+              maxYear: item.janela_anos ? item.janela_anos[1] : 2026,
+              imagem_principal: item.imagem_principal,
+              categorias: item.categorias || ['historia'],
+              dificuldade: item.dificuldade || 'normal',
+              conteudo_i18n: item.conteudo_i18n,
+            },
+            targetYear: item.ano_correto,
+            currentYear: item.janela_anos ? Math.floor((item.janela_anos[0] + item.janela_anos[1]) / 2) : 1950,
+            guesses: [],
+            gameState: 'playing',
+            dailyCompleted: false,
+            challengeStartTime: Date.now(),
+          });
+          return;
+        }
       }
 
       set({ dailyCompleted: false });
@@ -178,7 +229,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
 
       if (data && data.length > 0 && !error) {
-        // Select random challenge from filtered candidates
+        // Select random challenge from filtered candidates (practice mode)
         const randomIndex = Math.floor(Math.random() * data.length);
         const item = data[randomIndex];
         set({
@@ -196,6 +247,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           currentYear: item.janela_anos ? Math.floor((item.janela_anos[0] + item.janela_anos[1]) / 2) : 1950,
           guesses: [],
           gameState: 'playing',
+          challengeStartTime: Date.now(),
         });
       } else {
         // Fallback demo challenge if DB has no challenges yet or query fails
@@ -215,6 +267,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           currentYear: 1950,
           guesses: [],
           gameState: 'playing',
+          challengeStartTime: Date.now(),
         });
       }
     } catch (err) {
@@ -223,10 +276,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   
   submitGuess: async () => {
-    const { currentYear, guesses, currentChallenge, gameMode } = get();
+    const { currentYear, guesses, currentChallenge, gameMode, challengeStartTime } = get();
     if (!currentChallenge) return;
 
     const newGuesses = [...guesses, currentYear];
+    // Calculate real time elapsed since challenge loaded (cap at 300 seconds)
+    const timeInSeconds = challengeStartTime
+      ? Math.min(Math.round((Date.now() - challengeStartTime) / 1000), 300)
+      : 30;
     
     try {
       const response = await fetch('/api/guess', {
@@ -235,7 +292,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         body: JSON.stringify({
           guessYear: currentYear,
           challengeId: currentChallenge.id,
-          timeInSeconds: 10,
+          timeInSeconds,
           cluesUsed: 0,
           gameMode
         })

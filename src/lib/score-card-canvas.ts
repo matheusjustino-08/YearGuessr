@@ -3,13 +3,48 @@
  * Renders a crisp 1200x630 Retina HD share card natively on HTML5 Canvas.
  * Supports Light / Dark theme mode dynamically and displays the challenge theme/title.
  */
+export interface ScorecardStrings {
+  perfect: string;
+  excellent: string;
+  very_close: string;
+  good_guess: string;
+  keep_trying: string;
+  correct_year_label: string;
+  score_label: string;
+  distance_label: string;
+  game_mode_label: string;
+  game_mode_value: string;
+  subtitle: string;
+  domain: string;
+  year_unit: string;
+  years_unit: string;
+}
+
+const DEFAULT_STRINGS: ScorecardStrings = {
+  perfect: 'BULLSEYE!',
+  excellent: 'EXCELLENT',
+  very_close: 'VERY CLOSE',
+  good_guess: 'GOOD GUESS',
+  keep_trying: 'KEEP TRYING',
+  correct_year_label: 'CORRECT YEAR',
+  score_label: 'SCORE',
+  distance_label: 'DISTANCE',
+  game_mode_label: 'GAME MODE',
+  game_mode_value: '1-GUESS',
+  subtitle: 'HISTORICAL TIME TRAVEL GUESS',
+  domain: 'YEARGUESSR.VERCEL.APP',
+  year_unit: 'year',
+  years_unit: 'years',
+};
+
 export function generateScoreCardBlob(
   year: number,
   score: number,
   distance: number,
   challengeTitle?: string,
   categoryLabel?: string,
-  isDark: boolean = true
+  isDark: boolean = true,
+  strings: ScorecardStrings = DEFAULT_STRINGS
 ): Promise<Blob | null> {
   return new Promise((resolve) => {
     const canvas = document.createElement('canvas');
@@ -30,14 +65,14 @@ export function generateScoreCardBlob(
     const distanceColor = isPerfect ? '#F59E0B' : isGreat ? '#10B981' : isGood ? '#3B82F6' : '#EF4444';
 
     const perfBadgeText = isPerfect
-      ? 'NA MOSCA!'
+      ? strings.perfect
       : distance <= 2
-      ? 'EXCELENTE'
+      ? strings.excellent
       : distance <= 10
-      ? 'MUITO PERTO'
+      ? strings.very_close
       : distance <= 30
-      ? 'BOM PALPITE'
-      : 'CONTINUE TENTANDO';
+      ? strings.good_guess
+      : strings.keep_trying;
 
     // Theme Color Tokens
     const bgFill = isDark ? '#080C14' : '#F8FAFC';
@@ -82,7 +117,7 @@ export function generateScoreCardBlob(
     // Subtitle
     ctx.font = '800 11px monospace, "Courier New", Courier';
     ctx.fillStyle = textSecondary;
-    ctx.fillText('HISTORICAL TIME TRAVEL GUESS', 50, 92);
+    ctx.fillText(strings.subtitle, 50, 92);
 
     // Right Performance Badge
     ctx.fillStyle = 'rgba(245, 158, 11, 0.14)';
@@ -157,7 +192,7 @@ export function generateScoreCardBlob(
     ctx.font = '800 14px monospace, "Courier New", Courier';
     ctx.fillStyle = textSecondary;
     ctx.textAlign = 'center';
-    ctx.fillText('ANO CORRETO • TARGET YEAR', 330, heroTop + 45);
+    ctx.fillText(`${strings.correct_year_label.toUpperCase()}`, 330, heroTop + 45);
 
     ctx.font = `900 ${challengeTitle ? '100px' : '120px'} system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
     ctx.fillStyle = textPrimary;
@@ -174,7 +209,7 @@ export function generateScoreCardBlob(
     // Right Column: Score
     ctx.font = '800 14px monospace, "Courier New", Courier';
     ctx.fillStyle = textSecondary;
-    ctx.fillText('PONTUAÇÃO • SCORE', 905, heroTop + 45);
+    ctx.fillText(strings.score_label.toUpperCase(), 905, heroTop + 45);
 
     ctx.font = `900 ${challengeTitle ? '85px' : '100px'} system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
     ctx.fillStyle = scoreColor;
@@ -196,11 +231,11 @@ export function generateScoreCardBlob(
     ctx.font = '800 12.5px monospace, "Courier New", Courier';
     ctx.fillStyle = textSecondary;
     ctx.textAlign = 'center';
-    ctx.fillText('DISTÂNCIA • DISTANCE OFF', 317, footerPanelsTop + 32);
+    ctx.fillText(strings.distance_label.toUpperCase(), 317, footerPanelsTop + 32);
 
     ctx.font = '900 32px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
     ctx.fillStyle = distanceColor;
-    ctx.fillText(`${distance} ${distance === 1 ? 'ano' : 'anos'}`, 317, footerPanelsTop + 68);
+    ctx.fillText(`${distance} ${distance === 1 ? strings.year_unit : strings.years_unit}`, 317, footerPanelsTop + 68);
 
     // Right Panel: Game Mode
     ctx.beginPath();
@@ -210,17 +245,17 @@ export function generateScoreCardBlob(
 
     ctx.font = '800 12.5px monospace, "Courier New", Courier';
     ctx.fillStyle = textSecondary;
-    ctx.fillText('MODO DE JOGO • GAME MODE', 883, footerPanelsTop + 32);
+    ctx.fillText(strings.game_mode_label.toUpperCase(), 883, footerPanelsTop + 32);
 
     ctx.font = '900 32px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
     ctx.fillStyle = '#3B82F6';
-    ctx.fillText('1-GUESS MODE', 883, footerPanelsTop + 68);
+    ctx.fillText(strings.game_mode_value.toUpperCase(), 883, footerPanelsTop + 68);
 
     // 6. FOOTER WATERMARK
     ctx.font = '800 14px monospace, "Courier New", Courier';
     ctx.fillStyle = textSecondary;
     ctx.textAlign = 'center';
-    ctx.fillText('YEARGUESSR.PLAY', 600, 614);
+    ctx.fillText(strings.domain.toUpperCase(), 600, 614);
 
     // Convert canvas to PNG Blob
     canvas.toBlob((blob) => {

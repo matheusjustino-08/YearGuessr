@@ -32,7 +32,7 @@ export function ChallengeViewer() {
   const themeOverride = useGameStore((state) => state.themeOverride);
   const [imageError, setImageError] = useState(false);
   
-  const locale = useLocale() as 'en' | 'pt';
+  const locale = useLocale() as 'en' | 'pt' | 'es';
   const tGame = useTranslations('game');
   const tEras = useTranslations('eras');
 

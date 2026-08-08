@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
-import {getMessages} from 'next-intl/server';
+import {getMessages, getTranslations} from 'next-intl/server';
 import {notFound} from 'next/navigation';
 import {routing} from '@/i18n/routing';
 import {IntlProviderWrapper} from '@/components/IntlProviderWrapper';
@@ -19,21 +19,44 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "YearGuessr - Adivinhe o Ano da História",
-  description: "O jogo definitivo de adivinhação de anos históricos e imagens clássicas.",
-  manifest: "/site.webmanifest",
-  icons: {
-    icon: [
-      { url: '/favicon.ico?v=100', sizes: 'any' },
-      { url: '/favicon-32x32.png?v=100', type: 'image/png', sizes: '32x32' },
-      { url: '/favicon-16x16.png?v=100', type: 'image/png', sizes: '16x16' },
-      { url: '/android-chrome-192x192.png?v=100', type: 'image/png', sizes: '192x192' },
-      { url: '/android-chrome-512x512.png?v=100', type: 'image/png', sizes: '512x512' },
-    ],
-    apple: '/apple-touch-icon.png?v=100',
-  },
-};
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{locale: string}>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'metadata' });
+
+  return {
+    title: t('title'),
+    description: t('description'),
+    manifest: '/site.webmanifest',
+    metadataBase: new URL('https://yearguessr.vercel.app'),
+    openGraph: {
+      title: t('title'),
+      description: t('description'),
+      url: `https://yearguessr.vercel.app/${locale}`,
+      siteName: 'YearGuessr',
+      locale: locale,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: t('title'),
+      description: t('description'),
+    },
+    icons: {
+      icon: [
+        { url: '/favicon.ico?v=100', sizes: 'any' },
+        { url: '/favicon-32x32.png?v=100', type: 'image/png', sizes: '32x32' },
+        { url: '/favicon-16x16.png?v=100', type: 'image/png', sizes: '16x16' },
+        { url: '/android-chrome-192x192.png?v=100', type: 'image/png', sizes: '192x192' },
+        { url: '/android-chrome-512x512.png?v=100', type: 'image/png', sizes: '512x512' },
+      ],
+      apple: '/apple-touch-icon.png?v=100',
+    },
+  };
+}
 
 export default async function RootLayout({
   children,

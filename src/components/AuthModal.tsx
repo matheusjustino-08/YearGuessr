@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { createClient } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -39,20 +39,12 @@ export function AuthModal() {
   const colorMode = useGameStore((state) => state.colorMode);
   const setColorMode = useGameStore((state) => state.setColorMode);
 
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const locale = useLocale();
   const tAuth = useTranslations('auth');
   const tNav = useTranslations('nav');
   const tSettings = useTranslations('settings');
   const tEras = useTranslations('eras');
-
-  const getTranslation = (key: string, fallback: string) => {
-    try {
-      const val = tAuth(key);
-      if (val && !val.startsWith('auth.')) return val;
-    } catch {}
-    return fallback;
-  };
 
   useEffect(() => {
     setMounted(true);
@@ -117,7 +109,7 @@ export function AuthModal() {
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!emailInput || !passwordInput) {
-      setAuthError(locale === 'en' ? 'Please fill in all fields.' : 'Por favor, preencha todos os campos.');
+      setAuthError(tAuth('err_fill_fields'));
       return;
     }
 
@@ -134,7 +126,7 @@ export function AuthModal() {
       if (error) throw error;
       setIsOpen(false);
     } catch (err: any) {
-      setAuthError(err.message || (locale === 'en' ? 'Invalid email or password.' : 'E-mail ou senha incorretos.'));
+      setAuthError(err.message || tAuth('err_invalid_login'));
     } finally {
       setAuthLoading(false);
     }
@@ -143,11 +135,11 @@ export function AuthModal() {
   const handleEmailRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!emailInput || !passwordInput) {
-      setAuthError(locale === 'en' ? 'Please fill in all fields.' : 'Por favor, preencha todos os campos.');
+      setAuthError(tAuth('err_fill_fields'));
       return;
     }
     if (passwordInput.length < 6) {
-      setAuthError(locale === 'en' ? 'Password must be at least 6 characters.' : 'A senha deve ter pelo menos 6 caracteres.');
+      setAuthError(tAuth('err_password_short'));
       return;
     }
 
@@ -177,13 +169,9 @@ export function AuthModal() {
         });
       }
 
-      setAuthSuccess(
-        locale === 'en' 
-          ? 'Account created! If confirmation is required, please check your inbox.' 
-          : 'Conta criada com sucesso! Se necessário, verifique sua caixa de entrada.'
-      );
+      setAuthSuccess(tAuth('success_account_created'));
     } catch (err: any) {
-      setAuthError(err.message || (locale === 'en' ? 'Failed to create account.' : 'Erro ao criar conta.'));
+      setAuthError(err.message || tAuth('err_register_failed'));
     } finally {
       setAuthLoading(false);
     }
@@ -192,7 +180,7 @@ export function AuthModal() {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!emailInput) {
-      setAuthError(locale === 'en' ? 'Please enter your email.' : 'Por favor, digite seu e-mail.');
+      setAuthError(tAuth('err_email_required'));
       return;
     }
 
@@ -206,13 +194,9 @@ export function AuthModal() {
       });
 
       if (error) throw error;
-      setAuthSuccess(
-        locale === 'en' 
-          ? 'Password recovery email sent! Please check your inbox.' 
-          : 'E-mail de recuperação enviado! Verifique sua caixa de entrada.'
-      );
+      setAuthSuccess(tAuth('success_reset_sent'));
     } catch (err: any) {
-      setAuthError(err.message || (locale === 'en' ? 'Error sending recovery email.' : 'Erro ao enviar e-mail de recuperação.'));
+      setAuthError(err.message || tAuth('err_reset_failed'));
     } finally {
       setAuthLoading(false);
     }
@@ -490,7 +474,7 @@ export function AuthModal() {
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  {getTranslation('tab_login', 'Entrar')}
+                  {tAuth('tab_login')}
                 </button>
                 <button
                   type="button"
@@ -505,7 +489,7 @@ export function AuthModal() {
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  {getTranslation('tab_register', 'Criar Conta')}
+                  {tAuth('tab_register')}
                 </button>
               </div>
             )}
@@ -541,7 +525,7 @@ export function AuthModal() {
                     required
                     value={emailInput}
                     onChange={(e) => setEmailInput(e.target.value)}
-                    placeholder={getTranslation('email_label', 'E-mail')}
+                    placeholder={tAuth('email_label')}
                     className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
                   />
                 </div>
@@ -551,7 +535,7 @@ export function AuthModal() {
                   disabled={authLoading}
                   className="w-full py-3 bg-primary text-primary-foreground font-bold text-xs rounded-xl hover:bg-primary/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-xs"
                 >
-                  {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : getTranslation('btn_send_reset', 'Enviar E-mail de Recuperação')}
+                  {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : tAuth('btn_send_reset')}
                 </button>
 
                 <button
@@ -564,7 +548,7 @@ export function AuthModal() {
                   className="w-full py-2 text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 transition-colors"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>{getTranslation('back_to_login', 'Voltar para o Login')}</span>
+                  <span>{tAuth('back_to_login')}</span>
                 </button>
               </form>
             ) : (
@@ -592,7 +576,7 @@ export function AuthModal() {
                     required
                     value={emailInput}
                     onChange={(e) => setEmailInput(e.target.value)}
-                    placeholder={getTranslation('email_label', 'E-mail')}
+                    placeholder={tAuth('email_label')}
                     className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
                   />
                 </div>
@@ -605,7 +589,7 @@ export function AuthModal() {
                     required
                     value={passwordInput}
                     onChange={(e) => setPasswordInput(e.target.value)}
-                    placeholder={getTranslation('password_label', 'Senha')}
+                    placeholder={tAuth('password_label')}
                     className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
                   />
                 </div>
@@ -622,7 +606,7 @@ export function AuthModal() {
                       }}
                       className="text-xs font-semibold text-primary hover:underline"
                     >
-                      {getTranslation('forgot_password', 'Esqueceu sua senha?')}
+                      {tAuth('forgot_password')}
                     </button>
                   </div>
                 )}
@@ -636,9 +620,9 @@ export function AuthModal() {
                   {authLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : authMode === 'login' ? (
-                    getTranslation('btn_email_login', 'Entrar com E-mail')
+                    tAuth('btn_email_login')
                   ) : (
-                    getTranslation('btn_email_register', 'Criar Conta')
+                    tAuth('btn_email_register')
                   )}
                 </button>
               </form>
@@ -653,7 +637,7 @@ export function AuthModal() {
                   </div>
                   <div className="relative flex justify-center text-[10px] uppercase font-mono tracking-wider">
                     <span className="bg-card px-2 text-muted-foreground">
-                      {getTranslation('or_continue_with', 'ou continue com')}
+                      {tAuth('or_continue_with')}
                     </span>
                   </div>
                 </div>

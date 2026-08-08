@@ -1,5 +1,7 @@
 'use client';
 
+import { useMemo } from 'react';
+
 import { useGameStore } from '@/store/useGameStore';
 import { 
   Sparkles, 
@@ -38,7 +40,7 @@ function stripEmojis(str: string): string {
 }
 
 export function CategoryFilter() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const { categories: fetchedCategories } = useCategories(supabase);
 
   const selectedCategory = useGameStore((state) => state.selectedCategory);

@@ -3,11 +3,10 @@
 import { useGameStore } from '@/store/useGameStore';
 import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
-import { useState, useEffect } from 'react';
-import { generateScoreCardBlob } from '@/lib/score-card-canvas';
+import { useState, useEffect, useMemo } from 'react';
+import { generateScoreCardBlob, type ScorecardStrings } from '@/lib/score-card-canvas';
 import { createClient } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
-import Image from 'next/image';
 import { Share2, RefreshCw, Trophy, Target, CheckCircle2, Flame, ArrowRight, Sparkles } from 'lucide-react';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 
@@ -19,10 +18,11 @@ export function ResultScreen() {
   const tResult = useTranslations('result');
   const tAuth = useTranslations('auth');
   const tGame = useTranslations('game');
+  const tScorecard = useTranslations('scorecard');
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const { playWin, playLose } = useAudioEngine();
 
   const isWin = gameState === 'won' || lastDistance === 0 || (lastScore !== null && lastScore >= 950);
@@ -66,13 +66,31 @@ export function ResultScreen() {
       const categoryName = currentChallenge?.categorias?.[0] || 'HISTÓRIA';
       const isDark = typeof document !== 'undefined' ? document.documentElement.classList.contains('dark') : true;
 
+      const scorecardStrings: ScorecardStrings = {
+        perfect: tScorecard('perfect'),
+        excellent: tScorecard('excellent'),
+        very_close: tScorecard('very_close'),
+        good_guess: tScorecard('good_guess'),
+        keep_trying: tScorecard('keep_trying'),
+        correct_year_label: tScorecard('correct_year_label'),
+        score_label: tScorecard('score_label'),
+        distance_label: tScorecard('distance_label'),
+        game_mode_label: tScorecard('game_mode_label'),
+        game_mode_value: tScorecard('game_mode_value'),
+        subtitle: tScorecard('subtitle'),
+        domain: tScorecard('domain'),
+        year_unit: tResult('year_unit'),
+        years_unit: tResult('years_unit'),
+      };
+
       const blob = await generateScoreCardBlob(
         targetYear,
         lastScore || 0,
         lastDistance || 0,
         challengeTitle,
         categoryName,
-        isDark
+        isDark,
+        scorecardStrings
       );
       if (!blob) {
         setIsProcessing(false);
@@ -121,11 +139,7 @@ export function ResultScreen() {
   const dailyNoticeTitle = tGame('daily_completed_notice');
   const dailyNoticeDesc = tGame('daily_completed_desc');
   const switchToPracticeText = tGame('switch_to_practice');
-  const yearUnitLabel = activeLocale === 'es' 
-    ? (lastDistance === 1 ? 'año' : 'años') 
-    : activeLocale === 'en' 
-    ? (lastDistance === 1 ? 'year' : 'years') 
-    : (lastDistance === 1 ? 'ano' : 'anos');
+  const yearUnitLabel = lastDistance === 1 ? tResult('year_unit') : tResult('years_unit');
 
   return (
     <motion.div 

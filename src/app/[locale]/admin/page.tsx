@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
 import { createClient } from '@/lib/supabase/client';
 import { 
   ChevronDown, 
@@ -142,12 +143,20 @@ export default function AdminPage() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4 max-w-sm px-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center space-y-4 max-w-sm px-6 py-8 rounded-3xl bg-card border border-border/60 shadow-xl">
           <div className="w-14 h-14 rounded-2xl bg-destructive/10 border border-destructive/20 flex items-center justify-center mx-auto">
             <Lock className="w-6 h-6 text-destructive" />
           </div>
-          <h1 className="text-xl font-bold">{tAdmin('no_permission')}</h1>
+          <h1 className="text-lg font-bold">{tAdmin('no_permission')}</h1>
+          <div className="flex flex-col gap-2 pt-2">
+            <Link
+              href="/"
+              className="w-full py-2.5 bg-primary text-primary-foreground font-bold text-xs rounded-xl hover:bg-primary/90 transition-all text-center"
+            >
+              {tAdmin('back_to_game')}
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -171,19 +180,19 @@ export default function AdminPage() {
       {/* Realtime KPI Analytics Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-4 rounded-2xl bg-card border border-border/60 shadow-xs space-y-1">
-          <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Partidas Jogadas</p>
+          <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">{tAdmin('kpi_matches')}</p>
           <p className="text-2xl font-black font-mono text-primary">{stats.totalPartidas}</p>
         </div>
         <div className="p-4 rounded-2xl bg-card border border-border/60 shadow-xs space-y-1">
-          <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Jogadores Registrados</p>
+          <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">{tAdmin('kpi_players')}</p>
           <p className="text-2xl font-black font-mono text-amber-500">{stats.totalPerfis}</p>
         </div>
         <div className="p-4 rounded-2xl bg-card border border-border/60 shadow-xs space-y-1">
-          <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Views de Anúncios</p>
+          <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">{tAdmin('kpi_ad_views')}</p>
           <p className="text-2xl font-black font-mono text-sky-500">{stats.totalViews} <span className="text-xs font-normal text-muted-foreground">({ctr}% CTR)</span></p>
         </div>
         <div className="p-4 rounded-2xl bg-card border border-border/60 shadow-xs space-y-1">
-          <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Propostas Recebidas</p>
+          <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">{tAdmin('kpi_proposals')}</p>
           <p className="text-2xl font-black font-mono text-emerald-500">{stats.totalPropostas}</p>
         </div>
       </div>

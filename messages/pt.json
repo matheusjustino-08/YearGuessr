@@ -21,7 +21,15 @@
     "btn_email_register": "Criar Conta",
     "btn_send_reset": "Enviar E-mail de Recuperação",
     "back_to_login": "Voltar para o Login",
-    "or_continue_with": "ou continue com"
+    "or_continue_with": "ou continue com",
+    "err_fill_fields": "Por favor, preencha todos os campos.",
+    "err_password_short": "A senha deve ter pelo menos 6 caracteres.",
+    "err_invalid_login": "E-mail ou senha incorretos.",
+    "err_register_failed": "Erro ao criar conta.",
+    "err_reset_failed": "Erro ao enviar e-mail de recuperação.",
+    "err_email_required": "Por favor, digite seu e-mail.",
+    "success_account_created": "Conta criada! Se necessário, verifique sua caixa de entrada.",
+    "success_reset_sent": "E-mail de recuperação enviado! Verifique sua caixa de entrada."
   },
   "game": {
     "title": "YearGuessr",
@@ -244,6 +252,46 @@
     "sec_ads": "Anúncios e Letreiros",
     "sec_ads_desc": "Letreiros publicitários exibidos no jogo (300x50 e 728x90)",
     "sec_guidelines": "Diretrizes de Dificuldade",
-    "sec_guidelines_desc": "Critérios objetivos para classificar cada desafio"
+    "sec_guidelines_desc": "Critérios objetivos para classificar cada desafio",
+    "kpi_matches": "Partidas Jogadas",
+    "kpi_players": "Jogadores Registrados",
+    "kpi_ad_views": "Views de Anúncios",
+    "kpi_proposals": "Propostas Recebidas",
+    "form_pub_date": "Data de Publicação",
+    "form_correct_year": "Ano Correto",
+    "form_ruler_start": "Início da Régua",
+    "form_ruler_end": "Fim da Régua",
+    "form_difficulty": "Dificuldade",
+    "form_categories": "Categorias",
+    "form_image_url": "URL da Imagem",
+    "form_image_hint": "Suporta Unsplash, Imgur, Wikimedia e Google Drive (o link será convertido automaticamente).",
+    "form_drive_detected": "Link do Google Drive detectado — será convertido automaticamente ao publicar.",
+    "form_title_label": "Título",
+    "form_hint_label": "Dica Histórica",
+    "form_fallback_hint": "— deixe em branco para usar PT como fallback",
+    "form_publish_btn": "Publicar Desafio",
+    "form_saving": "Salvando...",
+    "form_success": "Desafio criado com sucesso!",
+    "diff_easy_desc": "Evento icônico e mundialmente conhecido",
+    "diff_normal_desc": "Exige raciocínio e contexto histórico",
+    "diff_hard_desc": "Evento obscuro, imagem ambígua"
+  },
+  "scorecard": {
+    "perfect": "NA MOSCA!",
+    "excellent": "EXCELENTE",
+    "very_close": "MUITO PERTO",
+    "good_guess": "BOM PALPITE",
+    "keep_trying": "CONTINUE TENTANDO",
+    "correct_year_label": "ANO CORRETO",
+    "score_label": "PONTUAÇÃO",
+    "distance_label": "DISTÂNCIA",
+    "game_mode_label": "MODO DE JOGO",
+    "game_mode_value": "1-PALPITE",
+    "subtitle": "VIAGEM NO TEMPO HISTÓRICA",
+    "domain": "YEARGUESSR.VERCEL.APP"
+  },
+  "metadata": {
+    "title": "YearGuessr — Adivinhe o Ano da História",
+    "description": "O jogo definitivo de adivinhação de anos históricos. Descubra o ano exato de momentos marcantes da história em fotos."
   }
 }

@@ -21,7 +21,15 @@
     "btn_email_register": "Create Account",
     "btn_send_reset": "Send Recovery Email",
     "back_to_login": "Back to Log In",
-    "or_continue_with": "or continue with"
+    "or_continue_with": "or continue with",
+    "err_fill_fields": "Please fill in all fields.",
+    "err_password_short": "Password must be at least 6 characters.",
+    "err_invalid_login": "Invalid email or password.",
+    "err_register_failed": "Failed to create account.",
+    "err_reset_failed": "Error sending recovery email.",
+    "err_email_required": "Please enter your email.",
+    "success_account_created": "Account created! If confirmation is required, please check your inbox.",
+    "success_reset_sent": "Password recovery email sent! Please check your inbox."
   },
   "game": {
     "title": "YearGuessr",
@@ -244,6 +252,46 @@
     "sec_ads": "Ads & Banners",
     "sec_ads_desc": "Ad banners displayed in game (300x50 and 728x90)",
     "sec_guidelines": "Difficulty Guidelines",
-    "sec_guidelines_desc": "Objective criteria to classify each challenge"
+    "sec_guidelines_desc": "Objective criteria to classify each challenge",
+    "kpi_matches": "Games Played",
+    "kpi_players": "Registered Players",
+    "kpi_ad_views": "Ad Views",
+    "kpi_proposals": "Proposals Received",
+    "form_pub_date": "Publish Date",
+    "form_correct_year": "Correct Year",
+    "form_ruler_start": "Ruler Start",
+    "form_ruler_end": "Ruler End",
+    "form_difficulty": "Difficulty",
+    "form_categories": "Categories",
+    "form_image_url": "Image URL",
+    "form_image_hint": "Supports Unsplash, Imgur, Wikimedia and Google Drive (link will be converted automatically).",
+    "form_drive_detected": "Google Drive link detected — will be converted automatically on publish.",
+    "form_title_label": "Title",
+    "form_hint_label": "Historical Clue",
+    "form_fallback_hint": "— leave blank to use PT as fallback",
+    "form_publish_btn": "Publish Challenge",
+    "form_saving": "Saving...",
+    "form_success": "Challenge created successfully!",
+    "diff_easy_desc": "Iconic and globally known event",
+    "diff_normal_desc": "Requires reasoning and historical context",
+    "diff_hard_desc": "Obscure event, ambiguous image"
+  },
+  "scorecard": {
+    "perfect": "BULLSEYE!",
+    "excellent": "EXCELLENT",
+    "very_close": "VERY CLOSE",
+    "good_guess": "GOOD GUESS",
+    "keep_trying": "KEEP TRYING",
+    "correct_year_label": "CORRECT YEAR",
+    "score_label": "SCORE",
+    "distance_label": "DISTANCE",
+    "game_mode_label": "GAME MODE",
+    "game_mode_value": "1-GUESS",
+    "subtitle": "HISTORICAL TIME TRAVEL GUESS",
+    "domain": "YEARGUESSR.VERCEL.APP"
+  },
+  "metadata": {
+    "title": "YearGuessr — Guess the Year in History",
+    "description": "The ultimate historical year guessing game. Discover the exact year of landmark historical moments in photos."
   }
 }

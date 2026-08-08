@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
+import { useGameStore } from '@/store/useGameStore';
 
 // Module-level singleton to avoid exhausting the browser's AudioContext limit
 let _ctx: AudioContext | null = null;
@@ -19,6 +20,9 @@ function getAudioContext(): AudioContext | null {
 }
 
 function createSynthSound(type: 'tick' | 'win' | 'lose') {
+  const isSoundEnabled = useGameStore.getState().soundEnabled;
+  if (!isSoundEnabled) return;
+
   const ctx = getAudioContext();
   if (!ctx) return;
 

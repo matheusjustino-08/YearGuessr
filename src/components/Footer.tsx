@@ -40,7 +40,7 @@ export function Footer() {
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
             {/* Ko-Fi Support */}
             <a
-              href="https://ko-fi.com"
+              href="https://ko-fi.com/yearguessr"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold font-mono bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-600 dark:text-rose-400 transition-all duration-200 active:scale-95 shadow-xs cursor-pointer"

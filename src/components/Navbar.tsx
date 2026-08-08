@@ -2,7 +2,7 @@
 
 import { Link, usePathname } from '@/i18n/routing';
 import { useLocale, useTranslations } from 'next-intl';
-import { Trophy, Globe, Clock } from 'lucide-react';
+import { Trophy, Globe } from 'lucide-react';
 import { AuthModal } from './AuthModal';
 
 export function Navbar() {
