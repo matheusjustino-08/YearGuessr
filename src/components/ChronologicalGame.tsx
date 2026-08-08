@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { useLocale, useTranslations } from 'next-intl';
 import { ArrowUp, ArrowDown, CheckCircle2, RefreshCw, Trophy, Sparkles } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 
 interface Item {
   id: string;
@@ -10,13 +11,6 @@ interface Item {
   year: number;
   imageUrl: string;
 }
-
-const DEMO_ITEMS: Item[] = [
-  { id: '1', title: 'Construção da Torre Eiffel (Paris)', year: 1887, imageUrl: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?q=80&w=800&auto=format&fit=crop' },
-  { id: '2', title: 'Primeiro Voo do 14-Bis (Santos Dumont)', year: 1906, imageUrl: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop' },
-  { id: '3', title: 'Queda do Muro de Berlim', year: 1989, imageUrl: 'https://images.unsplash.com/photo-1517976487492-5750f3195933?q=80&w=800&auto=format&fit=crop' },
-  { id: '4', title: 'Lançamento do Primeiro iPhone', year: 2007, imageUrl: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?q=80&w=800&auto=format&fit=crop' },
-];
 
 function shuffleArray<T>(arr: T[]): T[] {
   const newArr = [...arr];
@@ -28,22 +22,59 @@ function shuffleArray<T>(arr: T[]): T[] {
 }
 
 export function ChronologicalGame() {
+  const supabase = useMemo(() => createClient(), []);
+  const activeLocale = useLocale() as 'pt' | 'en' | 'es';
   const tGame = useTranslations('game');
+
   const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(true);
   const [submitted, setSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [score, setScore] = useState(0);
 
-  const initGame = () => {
-    setItems(shuffleArray(DEMO_ITEMS));
-    setSubmitted(false);
-    setIsCorrect(false);
-    setScore(0);
-  };
+  const fetchRealChallenges = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data } = await supabase
+        .from('desafios')
+        .select('*')
+        .limit(20);
+
+      if (data && data.length >= 4) {
+        // Shuffle and pick 4 items
+        const shuffled = [...data].sort(() => Math.random() - 0.5).slice(0, 4);
+        const mapped: Item[] = shuffled.map((item) => {
+          const content = item.conteudo_i18n?.[activeLocale] || item.conteudo_i18n?.pt || item.conteudo_i18n?.en;
+          return {
+            id: item.id,
+            title: content?.titulo || 'Evento Histórico',
+            year: item.ano_correto,
+            imageUrl: item.imagem_principal,
+          };
+        });
+        setItems(mapped);
+      } else {
+        // Demo items fallback if DB has fewer than 4 items
+        setItems(shuffleArray([
+          { id: '1', title: 'Construção da Torre Eiffel (Paris)', year: 1887, imageUrl: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?q=80&w=800&auto=format&fit=crop' },
+          { id: '2', title: 'Primeiro Voo do 14-Bis (Santos Dumont)', year: 1906, imageUrl: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop' },
+          { id: '3', title: 'Queda do Muro de Berlim', year: 1989, imageUrl: 'https://images.unsplash.com/photo-1517976487492-5750f3195933?q=80&w=800&auto=format&fit=crop' },
+          { id: '4', title: 'Lançamento do Primeiro iPhone', year: 2007, imageUrl: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?q=80&w=800&auto=format&fit=crop' },
+        ]));
+      }
+    } catch {
+      // Fallback
+    } finally {
+      setLoading(false);
+      setSubmitted(false);
+      setIsCorrect(false);
+      setScore(0);
+    }
+  }, [supabase, activeLocale]);
 
   useEffect(() => {
-    initGame();
-  }, []);
+    fetchRealChallenges();
+  }, [fetchRealChallenges]);
 
   const moveUp = (index: number) => {
     if (index === 0 || submitted) return;
@@ -73,14 +104,23 @@ export function ChronologicalGame() {
     setSubmitted(true);
   };
 
+  if (loading) {
+    return (
+      <div className="w-full max-w-xl mx-auto text-center p-12 rounded-3xl bg-card/80 border border-border/70 backdrop-blur-2xl space-y-4">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-xs font-mono font-bold text-muted-foreground uppercase">Carregando Desafios Reais do Banco...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-2xl sm:text-3xl font-black text-foreground uppercase tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-black text-foreground uppercase tracking-tight font-mono">
           LINHA DO TEMPO EM ORDEM
         </h2>
         <p className="text-xs text-muted-foreground font-mono">
-          Organize os 4 eventos históricos do MAIS ANTIGO (topo) ao MAIS RECENTE (base)
+          Organize os 4 eventos históricos reais do MAIS ANTIGO (topo) ao MAIS RECENTE (base)
         </p>
       </div>
 
@@ -88,7 +128,7 @@ export function ChronologicalGame() {
       <div className="space-y-3">
         {items.map((item, idx) => (
           <div
-            key={item.id}
+            key={item.id + '-' + idx}
             className={`p-4 rounded-2xl border transition-all flex items-center justify-between gap-4 backdrop-blur-md shadow-sm ${
               submitted
                 ? isCorrect
@@ -113,7 +153,7 @@ export function ChronologicalGame() {
                 </p>
                 {submitted && (
                   <p className="text-xs font-mono font-bold text-amber-500 mt-0.5">
-                    Ano: {item.year}
+                    Ano Correto: {item.year}
                   </p>
                 )}
               </div>
@@ -149,16 +189,16 @@ export function ChronologicalGame() {
           <button
             type="button"
             onClick={handleConfirm}
-            className="w-full py-4 bg-primary text-primary-foreground font-black text-xs uppercase tracking-wider rounded-2xl hover:bg-primary/90 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-4 bg-primary text-primary-foreground font-black text-xs uppercase tracking-wider rounded-2xl hover:bg-primary/90 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2 cursor-pointer font-mono"
           >
             <CheckCircle2 className="w-5 h-5" />
-            <span>Confirmar Sequência Cronológica</span>
+            <span>CONFIRMAR SEQUÊNCIA CRONOLÓGICA</span>
           </button>
         ) : (
           <div className="p-6 rounded-3xl bg-card/90 border border-border/70 backdrop-blur-2xl space-y-4 shadow-xl">
             <div className="space-y-1">
               <h3 className="text-xl font-black text-foreground">
-                {isCorrect ? 'Ordem Perfeita! Sensacional!' : 'Sequência Incompleta'}
+                {isCorrect ? 'Ordem Perfeita! Sensacional!' : 'Sequência Incorreta'}
               </h3>
               <p className="text-3xl font-mono font-black text-primary">
                 +{score} pts
@@ -167,11 +207,11 @@ export function ChronologicalGame() {
 
             <button
               type="button"
-              onClick={initGame}
-              className="px-6 py-3 bg-secondary text-secondary-foreground font-bold text-xs uppercase tracking-wider rounded-2xl hover:bg-secondary/80 transition-all border border-border/60 inline-flex items-center gap-2 cursor-pointer"
+              onClick={fetchRealChallenges}
+              className="px-6 py-3 bg-secondary text-secondary-foreground font-bold text-xs uppercase tracking-wider rounded-2xl hover:bg-secondary/80 transition-all border border-border/60 inline-flex items-center gap-2 cursor-pointer font-mono"
             >
               <RefreshCw className="w-4 h-4" />
-              <span>Jogar Novamente</span>
+              <span>CARREGAR NOVOS DESAFIOS REAIS</span>
             </button>
           </div>
         )}

@@ -12,6 +12,7 @@ import { CategoryFilter } from '@/components/CategoryFilter';
 import { SideBanners } from '@/components/SideBanners';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { ChronologicalGame } from '@/components/ChronologicalGame';
+import { TimeAttackGame } from '@/components/TimeAttackGame';
 import { Swords } from 'lucide-react';
 
 export default function HomePage() {
@@ -109,6 +110,8 @@ export default function HomePage() {
 
         {gameMode === 'chronological' ? (
           <ChronologicalGame />
+        ) : gameMode === 'timeattack' ? (
+          <TimeAttackGame />
         ) : gameState === 'playing' ? (
           <div className="space-y-6">
             {/* Category Filter ONLY in Practice Mode */}
