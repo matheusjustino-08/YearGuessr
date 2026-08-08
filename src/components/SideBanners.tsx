@@ -113,11 +113,7 @@ export function SideBanners() {
     if (leftAds.length <= 1) return;
 
     const timer = setInterval(() => {
-      setIndexSlot1(prev => {
-        const next = (prev + 1) % leftAds.length;
-        trackView(leftAds[next]);
-        return next;
-      });
+      setIndexSlot1(prev => (prev + 1) % leftAds.length);
     }, 5500);
 
     return () => clearInterval(timer);
@@ -128,11 +124,7 @@ export function SideBanners() {
     if (rightAds.length <= 1) return;
 
     const timer = setInterval(() => {
-      setIndexSlot2(prev => {
-        const next = (prev + 1) % rightAds.length;
-        trackView(rightAds[next]);
-        return next;
-      });
+      setIndexSlot2(prev => (prev + 1) % rightAds.length);
     }, 5500);
 
     return () => clearInterval(timer);

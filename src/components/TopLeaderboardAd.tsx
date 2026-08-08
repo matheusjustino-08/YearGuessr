@@ -103,11 +103,7 @@ export function TopLeaderboardAd() {
     if (topAds.length <= 1) return;
 
     const timer = setInterval(() => {
-      setCurrentIndex(prev => {
-        const next = (prev + 1) % topAds.length;
-        trackView(topAds[next]);
-        return next;
-      });
+      setCurrentIndex(prev => (prev + 1) % topAds.length);
     }, 5500);
 
     return () => clearInterval(timer);
