@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Globe, Plus, Minus, RefreshCw } from 'lucide-react';
+import { Globe, Plus, Minus, RefreshCw, Sparkles } from 'lucide-react';
 import { CustomDatePicker } from '@/components/CustomDatePicker';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { useCategories } from './useCategories';
 import { resolveImageUrl, isConvertibleUrl } from '@/lib/resolveImageUrl';
+import { generateOrganicRulerRange } from '@/lib/ruler-calculator';
 import { useTranslations } from 'next-intl';
 
 interface Props { supabase: SupabaseClient }
@@ -34,6 +35,15 @@ export function ChallengeFormSection({ supabase }: Props) {
     dificuldade: 'normal',
     categorias: ['guerra'] as string[],
   });
+
+  const handleAutoGenerateRuler = () => {
+    const range = generateOrganicRulerRange(formData.ano_correto, formData.dificuldade as any);
+    setFormData(prev => ({
+      ...prev,
+      minYear: range.minYear,
+      maxYear: range.maxYear,
+    }));
+  };
 
   const toggleCategory = (catId: string) => {
     setFormData(prev => ({
@@ -102,14 +112,25 @@ export function ChallengeFormSection({ supabase }: Props) {
       </div>
 
       {/* Timeline Range */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <label className={labelCls}>{tAdmin('form_ruler_start')}</label>
-          <input type="number" required className={inputCls} value={formData.minYear} onChange={e => setFormData(p => ({...p, minYear: +e.target.value}))} />
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label className={labelCls}>{tAdmin('form_ruler_start')} & {tAdmin('form_ruler_end')}</label>
+          <button
+            type="button"
+            onClick={handleAutoGenerateRuler}
+            className="py-1 px-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-mono text-[11px] font-bold hover:bg-amber-500/20 transition-all flex items-center gap-1 cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span>{tAdmin('auto_ruler_btn')}</span>
+          </button>
         </div>
-        <div className="space-y-1">
-          <label className={labelCls}>{tAdmin('form_ruler_end')}</label>
-          <input type="number" required className={inputCls} value={formData.maxYear} onChange={e => setFormData(p => ({...p, maxYear: +e.target.value}))} />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <input type="number" required className={inputCls} value={formData.minYear} onChange={e => setFormData(p => ({...p, minYear: +e.target.value}))} />
+          </div>
+          <div className="space-y-1">
+            <input type="number" required className={inputCls} value={formData.maxYear} onChange={e => setFormData(p => ({...p, maxYear: +e.target.value}))} />
+          </div>
         </div>
       </div>
 

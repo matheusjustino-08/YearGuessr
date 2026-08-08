@@ -292,6 +292,7 @@
     "form_hint_label": "Dica Histórica",
     "form_fallback_hint": "— deixe em branco para usar PT como fallback",
     "form_publish_btn": "Publicar Desafio",
+    "auto_ruler_btn": "Gerar Régua Orgânica (IA)",
     "form_saving": "Salvando...",
     "form_success": "Desafio criado com sucesso!",
     "diff_easy_desc": "Evento icônico e mundialmente conhecido",

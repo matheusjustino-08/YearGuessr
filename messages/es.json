@@ -292,6 +292,7 @@
     "form_hint_label": "Pista Histórica",
     "form_fallback_hint": "— deja en blanco para usar PT como alternativa",
     "form_publish_btn": "Publicar Desafío",
+    "auto_ruler_btn": "Auto-Generar Regla Orgánica",
     "form_saving": "Guardando...",
     "form_success": "¡Desafío creado con éxito!",
     "diff_easy_desc": "Evento icónico y conocido mundialmente",

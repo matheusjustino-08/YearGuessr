@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createClient } from '@/lib/supabase/client';
+import { generateOrganicRulerRange } from '@/lib/ruler-calculator';
 
 type GameState = 'playing' | 'won' | 'finished';
 
@@ -200,9 +201,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       set({ dailyCompleted: false });
 
+      const todayKey = new Date().toISOString().split('T')[0];
+
+      // In practice mode: strictly select past challenges (data_publicacao < todayKey)
+      // so today's daily challenge is EXCLUSIVE to daily mode and only joins practice pool tomorrow!
       let query = supabase
         .from('desafios')
         .select('*')
+        .lt('data_publicacao', todayKey)
         .order('data_publicacao', { ascending: false });
 
       if (selectedCategory !== 'all') {
@@ -213,17 +219,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
         query = query.eq('dificuldade', selectedDifficulty);
       }
 
-      let { data, error } = await query.limit(10);
+      let { data, error } = await query.limit(20);
 
-      // If filtered query yields no results, attempt unfiltered query
-      if ((!data || data.length === 0) && (selectedCategory !== 'all' || selectedDifficulty !== 'all')) {
+      // If practice mode query yields no results, attempt fallback query
+      if (!data || data.length === 0) {
         const fallbackQuery = await supabase
           .from('desafios')
           .select('*')
+          .lte('data_publicacao', todayKey)
           .order('data_publicacao', { ascending: false })
-          .limit(10);
+          .limit(20);
+
         if (fallbackQuery.data && fallbackQuery.data.length > 0) {
-          data = fallbackQuery.data;
+          const pastOnly = fallbackQuery.data.filter((item: any) => item.data_publicacao < todayKey);
+          data = pastOnly.length > 0 ? pastOnly : fallbackQuery.data;
           error = null;
         }
       }
@@ -232,19 +241,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
         // Select random challenge from filtered candidates (practice mode)
         const randomIndex = Math.floor(Math.random() * data.length);
         const item = data[randomIndex];
+        const organicRuler = generateOrganicRulerRange(item.ano_correto, item.dificuldade || 'normal');
+        const minYear = item.janela_anos ? item.janela_anos[0] : organicRuler.minYear;
+        const maxYear = item.janela_anos ? item.janela_anos[1] : organicRuler.maxYear;
+
         set({
           currentChallenge: {
             id: item.id,
             ano_correto: item.ano_correto,
-            minYear: item.janela_anos ? item.janela_anos[0] : 1800,
-            maxYear: item.janela_anos ? item.janela_anos[1] : 2026,
+            minYear,
+            maxYear,
             imagem_principal: item.imagem_principal,
             categorias: item.categorias || ['historia'],
             dificuldade: item.dificuldade || 'normal',
             conteudo_i18n: item.conteudo_i18n,
           },
           targetYear: item.ano_correto,
-          currentYear: item.janela_anos ? Math.floor((item.janela_anos[0] + item.janela_anos[1]) / 2) : 1950,
+          currentYear: Math.floor((minYear + maxYear) / 2),
           guesses: [],
           gameState: 'playing',
           challengeStartTime: Date.now(),

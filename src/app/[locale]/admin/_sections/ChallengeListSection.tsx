@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Pencil, Check, X, Trash2, RefreshCw, Globe, AlertTriangle } from 'lucide-react';
+import { Pencil, Check, X, Trash2, RefreshCw, Globe, AlertTriangle, Sparkles } from 'lucide-react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { useCategories } from './useCategories';
 import { resolveImageUrl, isConvertibleUrl } from '@/lib/resolveImageUrl';
+import { generateOrganicRulerRange } from '@/lib/ruler-calculator';
 import { useTranslations } from 'next-intl';
 
 interface Props { supabase: SupabaseClient }
@@ -300,26 +301,45 @@ export function ChallengeListSection({ supabase }: Props) {
               </div>
 
               {/* Timeline Range (Régua min/max) */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={labelCls}>{tAdmin('form_ruler_start')}</label>
-                  <input
-                    type="number"
-                    required
-                    value={editingChallenge.minYear ?? 1800}
-                    onChange={e => setEditingChallenge({ ...editingChallenge, minYear: +e.target.value })}
-                    className={inputCls}
-                  />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className={labelCls}>{tAdmin('form_ruler_start')} & {tAdmin('form_ruler_end')}</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!editingChallenge) return;
+                      const range = generateOrganicRulerRange(editingChallenge.ano_correto || 1950, editingChallenge.dificuldade || 'normal');
+                      setEditingChallenge({
+                        ...editingChallenge,
+                        minYear: range.minYear,
+                        maxYear: range.maxYear,
+                      });
+                    }}
+                    className="py-1 px-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-mono text-[11px] font-bold hover:bg-amber-500/20 transition-all flex items-center gap-1 cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <span>{tAdmin('auto_ruler_btn')}</span>
+                  </button>
                 </div>
-                <div>
-                  <label className={labelCls}>{tAdmin('form_ruler_end')}</label>
-                  <input
-                    type="number"
-                    required
-                    value={editingChallenge.maxYear ?? 2026}
-                    onChange={e => setEditingChallenge({ ...editingChallenge, maxYear: +e.target.value })}
-                    className={inputCls}
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <input
+                      type="number"
+                      required
+                      value={editingChallenge.minYear ?? 1800}
+                      onChange={e => setEditingChallenge({ ...editingChallenge, minYear: +e.target.value })}
+                      className={inputCls}
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="number"
+                      required
+                      value={editingChallenge.maxYear ?? 2026}
+                      onChange={e => setEditingChallenge({ ...editingChallenge, maxYear: +e.target.value })}
+                      className={inputCls}
+                    />
+                  </div>
                 </div>
               </div>
 

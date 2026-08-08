@@ -292,6 +292,7 @@
     "form_hint_label": "Historical Clue",
     "form_fallback_hint": "— leave blank to use PT as fallback",
     "form_publish_btn": "Publish Challenge",
+    "auto_ruler_btn": "Auto-Generate Organic Ruler",
     "form_saving": "Saving...",
     "form_success": "Challenge created successfully!",
     "diff_easy_desc": "Iconic and globally known event",
