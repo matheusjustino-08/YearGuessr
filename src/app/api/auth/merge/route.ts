@@ -1,43 +1,53 @@
 import { NextResponse } from 'next/server';
+import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 
 function getSupabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
   return createClient(url, key);
 }
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
-    const { guestId, newUserId } = body;
-    
-    if (!guestId || !newUserId) {
-      return NextResponse.json({ error: 'Missing IDs' }, { status: 400 });
+    const { guestId } = body;
+
+    if (!guestId) {
+      return NextResponse.json({ error: 'Missing guestId' }, { status: 400 });
     }
 
     const supabaseAdmin = getSupabaseAdmin();
-
-    // Update all matches from the guest to the new authenticated user
-    const { data, error } = await supabaseAdmin
-      .from('partidas')
-      .update({ user_id: newUserId })
-      .eq('user_id', guestId);
-      
-    if (error) {
-      console.error('Merge Error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
-    // Optional: Delete the guest profile if it exists in 'perfis'
+    // Merge guest matches safely to current authenticated user
+    const { error } = await supabaseAdmin
+      .from('partidas')
+      .update({ user_id: user.id })
+      .eq('user_id', guestId);
+
+    if (error) {
+      return NextResponse.json({ error: 'Failed to merge matches' }, { status: 500 });
+    }
+
+    // Delete temporary guest profile if present
     await supabaseAdmin
       .from('perfis')
       .delete()
       .eq('id', guestId);
 
     return NextResponse.json({ success: true, merged: true });
-    
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

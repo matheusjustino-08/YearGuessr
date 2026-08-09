@@ -107,8 +107,8 @@ export function ResultScreen() {
             title: tResult('share_title'),
             text: tResult('share_text')
           });
-        } catch (e) {
-          console.log('Share canceled or failed', e);
+        } catch {
+          // Share canceled or fallback
         }
       } else {
         const url = URL.createObjectURL(blob);

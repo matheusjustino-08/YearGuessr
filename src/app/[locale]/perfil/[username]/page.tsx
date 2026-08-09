@@ -43,13 +43,13 @@ export default async function ProfilePage({
   // Recalculate streak dynamically from match history
   const streaks = await updateAndFetchUserStreak(supabase, profile.id);
 
-  // Fetch user matches
+  // Fetch user matches (fetching up to 100 for proper stats and badge calculations)
   const { data: matches } = await supabase
     .from('partidas')
-    .select('*, desafios(ano_correto)')
+    .select('*, desafios(ano_correto, categorias)')
     .eq('user_id', profile.id)
     .order('created_at', { ascending: false })
-    .limit(10);
+    .limit(100);
 
   const totalMatches = matches?.length || 0;
   const avgScore = totalMatches > 0 ? Math.round((matches || []).reduce((sum, m) => sum + (m.pontos || 0), 0) / totalMatches) : 0;
@@ -162,7 +162,7 @@ export default async function ProfilePage({
               </thead>
               <tbody className="divide-y divide-border/30 font-mono">
                 {matches && matches.length > 0 ? (
-                  matches.map((m) => (
+                  matches.slice(0, 10).map((m) => (
                     <tr key={m.id} className="hover:bg-muted/20">
                       <td className="px-4 py-2.5 text-muted-foreground">
                         {new Date(m.created_at).toLocaleDateString(locale)}

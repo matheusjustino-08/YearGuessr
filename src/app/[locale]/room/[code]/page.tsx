@@ -7,7 +7,7 @@ import { ChallengeViewer } from '@/components/ChallengeViewer';
 import { Timeline } from '@/components/Timeline';
 import { ResultScreen } from '@/components/ResultScreen';
 import { useGameStore } from '@/store/useGameStore';
-import { Users, Copy, Check, ArrowLeft, Trophy, Sparkles, Shield } from 'lucide-react';
+import { Users, Copy, Check, ArrowLeft } from 'lucide-react';
 
 interface Props {
   params: Promise<{ code: string; locale: string }>;
@@ -35,9 +35,22 @@ export default function RoomPage({ params }: Props) {
 
   const copyRoomLink = () => {
     if (typeof window === 'undefined') return;
-    navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(window.location.href);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = window.location.href;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      // Fallback
+    }
   };
 
   return (
@@ -67,7 +80,7 @@ export default function RoomPage({ params }: Props) {
         <button
           type="button"
           onClick={copyRoomLink}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 text-primary font-bold text-xs hover:bg-primary/20 transition-all cursor-pointer active:scale-95"
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 text-primary font-bold text-xs hover:bg-primary/20 transition-all cursor-pointer active:scale-95 font-mono"
         >
           {copied ? (
             <>
