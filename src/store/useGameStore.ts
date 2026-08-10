@@ -451,6 +451,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
       set({ gameState: 'finished' });
       return;
     }
+    if (gameMode === 'practice') {
+      set({
+        guesses: [],
+        guessHistory: [],
+        gameState: 'playing',
+        lastScore: null,
+        lastDistance: null,
+      });
+      get().fetchDailyChallenge();
+      return;
+    }
     set({
       guesses: [],
       guessHistory: [],

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useLocale, useTranslations } from 'next-intl';
-import { ArrowUp, ArrowDown, CheckCircle2, RefreshCw, AlertCircle, Layers, Sparkles } from 'lucide-react';
+import { ArrowUp, ArrowDown, CheckCircle2, RefreshCw, AlertCircle, Layers } from 'lucide-react';
 
 interface Item {
   id: string;
@@ -31,10 +31,10 @@ export function ChronologicalGame() {
   const [isCorrect, setIsCorrect] = useState(false);
   const [score, setScore] = useState(0);
 
-  const fetchMinigamesAndChallenges = useCallback(async () => {
+  const fetchMinigames = useCallback(async () => {
     setLoading(true);
     try {
-      // 1. Fetch admin created minigames
+      // Strictly fetch admin-created minigames from 'desafios_linha_tempo'
       const { data: mgData } = await supabase
         .from('desafios_linha_tempo')
         .select('*')
@@ -43,46 +43,28 @@ export function ChronologicalGame() {
 
       if (mgData && mgData.length > 0) {
         setMinigames(mgData);
-        loadMinigameItems(mgData[0]);
-        return;
-      }
-
-      // 2. Fallback if no specific minigame created: pick 4 random challenges from database
-      const { data: rawChallenges } = await supabase
-        .from('desafios')
-        .select('*')
-        .limit(50);
-
-      if (rawChallenges && rawChallenges.length >= 2) {
-        const countToPick = Math.min(4, rawChallenges.length);
-        const shuffled = [...rawChallenges].sort(() => Math.random() - 0.5).slice(0, countToPick);
-        const mapped: Item[] = shuffled.map((item) => {
-          const content = item.conteudo_i18n?.[activeLocale] || item.conteudo_i18n?.pt || item.conteudo_i18n?.en;
-          return {
-            id: item.id,
-            title: content?.titulo || 'Evento Histórico',
-            year: item.ano_correto,
-            imageUrl: item.imagem_principal,
-          };
-        });
-        setItems(mapped);
+        await loadMinigameItems(mgData[0]);
       } else {
+        setMinigames([]);
         setItems([]);
       }
     } catch {
+      setMinigames([]);
       setItems([]);
     } finally {
       setLoading(false);
-      setSubmitted(false);
-      setIsCorrect(false);
-      setScore(0);
     }
-  }, [supabase, activeLocale]);
+  }, [supabase]);
 
   const loadMinigameItems = async (mg: Minigame) => {
     setLoading(true);
     setSelectedMinigame(mg);
     try {
+      if (!mg.desafio_ids || mg.desafio_ids.length === 0) {
+        setItems([]);
+        return;
+      }
+
       const { data } = await supabase
         .from('desafios')
         .select('*')
@@ -98,11 +80,13 @@ export function ChronologicalGame() {
             imageUrl: item.imagem_principal,
           };
         });
-        // Shuffle current round order so player has to re-order them
+        // Shuffle order for current play session so player has to arrange them
         setItems([...mapped].sort(() => Math.random() - 0.5));
+      } else {
+        setItems([]);
       }
     } catch {
-      // Fallback
+      setItems([]);
     } finally {
       setLoading(false);
       setSubmitted(false);
@@ -112,8 +96,8 @@ export function ChronologicalGame() {
   };
 
   useEffect(() => {
-    fetchMinigamesAndChallenges();
-  }, [fetchMinigamesAndChallenges]);
+    fetchMinigames();
+  }, [fetchMinigames]);
 
   const moveUp = (index: number) => {
     if (index === 0 || submitted) return;
@@ -153,22 +137,22 @@ export function ChronologicalGame() {
     );
   }
 
-  if (items.length < 2) {
+  if (minigames.length === 0 || items.length < 2) {
     return (
-      <div className="w-full max-w-xl mx-auto text-center p-8 rounded-3xl bg-card/80 border border-border/70 backdrop-blur-2xl space-y-4">
+      <div className="w-full max-w-xl mx-auto text-center p-8 rounded-3xl bg-card/80 border border-border/70 backdrop-blur-2xl space-y-4 shadow-xl">
         <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/30 w-12 h-12 mx-auto flex items-center justify-center">
           <AlertCircle className="w-6 h-6" />
         </div>
-        <h3 className="text-lg font-bold text-foreground">Nenhum Minigame Criado no Banco</h3>
+        <h3 className="text-lg font-bold text-foreground">Nenhum Minigame Criado pelo Admin</h3>
         <p className="text-xs text-muted-foreground font-mono leading-relaxed max-w-md mx-auto">
-          Crie minigames e selecione os 4 eventos no Painel Admin na seção "Gerenciador da Linha do Tempo & Modos de Jogo"!
+          Para jogar a Linha do Tempo, crie um minigame temático selecionando os eventos no Painel Admin na aba "Gerenciador da Linha do Tempo & Modos de Jogo"!
         </p>
         <button
           type="button"
-          onClick={fetchMinigamesAndChallenges}
+          onClick={fetchMinigames}
           className="px-6 py-2.5 bg-primary text-primary-foreground font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-primary/90 transition-all cursor-pointer font-mono"
         >
-          Tentar Novamente
+          Atualizar Minigames
         </button>
       </div>
     );
@@ -177,15 +161,15 @@ export function ChronologicalGame() {
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6">
       {/* Admin Minigames Selector Pills */}
-      {minigames.length > 0 && (
-        <div className="flex flex-wrap items-center justify-center gap-2 p-2 rounded-2xl bg-card/80 border border-border/60 backdrop-blur-xl">
-          <span className="text-[10px] font-mono font-bold uppercase text-muted-foreground px-2">Minigames do Admin:</span>
+      {minigames.length > 1 && (
+        <div className="flex flex-wrap items-center justify-center gap-2 p-2 rounded-2xl bg-card/80 border border-border/60 backdrop-blur-xl shadow-xs">
+          <span className="text-[10px] font-mono font-bold uppercase text-muted-foreground px-2">Minigames:</span>
           {minigames.map((mg) => (
             <button
               key={mg.id}
               type="button"
               onClick={() => loadMinigameItems(mg)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
                 selectedMinigame?.id === mg.id
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-muted/40 text-muted-foreground hover:text-foreground'
@@ -202,7 +186,7 @@ export function ChronologicalGame() {
           {selectedMinigame ? selectedMinigame.titulo : 'LINHA DO TEMPO EM ORDEM'}
         </h2>
         <p className="text-xs text-muted-foreground font-mono">
-          Organize os {items.length} eventos históricos reais do MAIS ANTIGO (topo) ao MAIS RECENTE (base)
+          Organize os {items.length} eventos históricos do MAIS ANTIGO (topo) ao MAIS RECENTE (base)
         </p>
       </div>
 
@@ -289,11 +273,11 @@ export function ChronologicalGame() {
 
             <button
               type="button"
-              onClick={fetchMinigamesAndChallenges}
+              onClick={() => selectedMinigame && loadMinigameItems(selectedMinigame)}
               className="px-6 py-3 bg-secondary text-secondary-foreground font-bold text-xs uppercase tracking-wider rounded-2xl hover:bg-secondary/80 transition-all border border-border/60 inline-flex items-center gap-2 cursor-pointer font-mono"
             >
               <RefreshCw className="w-4 h-4" />
-              <span>JOGAR OUTRO MINIGAME</span>
+              <span>JOGAR NOVAMENTE ESTE MINIGAME</span>
             </button>
           </div>
         )}

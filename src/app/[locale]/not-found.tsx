@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import Image from 'next/image';
 import { Home, Trophy, ArrowRight, History } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -55,8 +55,8 @@ export default function NotFound() {
         {/* CTA Buttons */}
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
-            href="/pt"
-            className="w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+            href="/"
+            className="w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 cursor-pointer font-bold"
           >
             <Home className="w-4 h-4" />
             <span>Voltar ao Jogo</span>
@@ -64,7 +64,7 @@ export default function NotFound() {
           </Link>
 
           <Link
-            href="/pt/ranking"
+            href="/leaderboard"
             className="w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-muted/60 hover:bg-muted border border-border/60 text-foreground font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Trophy className="w-4 h-4 text-amber-500" />
