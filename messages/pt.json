@@ -362,5 +362,42 @@
   "metadata": {
     "title": "YearGuessr — Adivinhe o Ano da História",
     "description": "O jogo definitivo de adivinhação de anos históricos. Descubra o ano exato de momentos marcantes da história em fotos."
+  },
+  "room": {
+    "title": "SALA MULTIPLAYER #{code}",
+    "subtitle": "2 a 10 Jogadores ao Vivo",
+    "copy_link": "Convidar Amigos",
+    "copied_link": "Link Copiado!",
+    "host_label": "Você (Host)",
+    "friend_label": "Amigo #{number}"
+  },
+  "timeattack": {
+    "title": "MODO CONTRATEMPO",
+    "subtitle": "Você tem 60 segundos para acertar o máximo de desafios! Acertos na mosca concedem +5s de bônus!",
+    "start_button": "INICIAR DESAFIO (60s)",
+    "time_left": "Tempo Restante",
+    "total_score": "Pontuação Total",
+    "perfect_hits": "Acertos Na Mosca",
+    "game_over": "TEMPO ESGOTADO!",
+    "play_again": "JOGAR NOVAMENTE",
+    "confirm_guess": "CONFIRMAR PALPITE",
+    "exact_hit": "NA MOSCA! +5s DE BÔNUS!",
+    "miss_msg": "Errou por {diff} {diff, plural, =1 {ano} other {anos}} (+{score} pts)",
+    "no_challenges_title": "Nenhum Desafio no Banco",
+    "no_challenges_desc": "Cadastre novos desafios históricos no Painel Admin para jogar o Modo Contratempo!",
+    "retry": "Tentar Novamente"
+  },
+  "chronological": {
+    "title": "LINHA DO TEMPO EM ORDEM",
+    "subtitle": "Organize os {count} eventos históricos do MAIS ANTIGO (topo) ao MAIS RECENTE (base)",
+    "confirm_sequence": "CONFIRMAR SEQUÊNCIA CRONOLÓGICA",
+    "perfect_order": "Ordem Perfeita! Sensacional!",
+    "incorrect_sequence": "Sequência Incorreta",
+    "play_again_minigame": "JOGAR NOVAMENTE ESTE MINIGAME",
+    "correct_year": "Ano Correto: {year}",
+    "no_minigames_title": "Nenhum Minigame Criado pelo Admin",
+    "no_minigames_desc": "Para jogar a Linha do Tempo, crie um minigame temático selecionando os eventos no Painel Admin na aba 'Gerenciador da Linha do Tempo & Modos de Jogo'!",
+    "refresh_minigames": "Atualizar Minigames",
+    "minigames_label": "Minigames:"
   }
 }

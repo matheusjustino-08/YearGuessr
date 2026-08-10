@@ -362,5 +362,42 @@
   "metadata": {
     "title": "YearGuessr — Adivina el Año de la Historia",
     "description": "El juego definitivo de adivinación de años históricos. Descubre el año exacto de momentos históricos en fotos."
+  },
+  "room": {
+    "title": "SALA MULTIPLAYER #{code}",
+    "subtitle": "2 a 10 Jugadores en Vivo",
+    "copy_link": "Invitar Amigos",
+    "copied_link": "¡Enlace Copiado!",
+    "host_label": "Tú (Anfitrión)",
+    "friend_label": "Amigo #{number}"
+  },
+  "timeattack": {
+    "title": "MODO CONTRARRELOJ",
+    "subtitle": "¡Tienes 60 segundos para acertar la mayor cantidad de desafíos! ¡Los aciertos exactos otorgan +5s de bonificación!",
+    "start_button": "INICIAR DESAFÍO (60s)",
+    "time_left": "Tiempo Restante",
+    "total_score": "Puntuación Total",
+    "perfect_hits": "Aciertos En El Blanco",
+    "game_over": "¡TIEMPO AGOTADO!",
+    "play_again": "JUGAR DE NUEVO",
+    "confirm_guess": "CONFIRMAR ADIVINANZA",
+    "exact_hit": "¡EN EL BLANCO! +5s DE BONIFICACIÓN!",
+    "miss_msg": "Fallaste por {diff} {diff, plural, =1 {año} other {años}} (+{score} pts)",
+    "no_challenges_title": "Sin Desafíos en la Base de Datos",
+    "no_challenges_desc": "¡Añade nuevos desafíos históricos en el Panel de Administración para jugar el Modo Contrarreloj!",
+    "retry": "Intentar De Nuevo"
+  },
+  "chronological": {
+    "title": "LÍNEA DE TIEMPO EN ORDEN",
+    "subtitle": "Organiza los {count} eventos históricos del MÁS ANTIGUO (arriba) al MÁS RECENTE (abajo)",
+    "confirm_sequence": "CONFIRMAR ORDEN CRONOLÓGICO",
+    "perfect_order": "¡Orden Perfecto! ¡Sensacional!",
+    "incorrect_sequence": "Secuencia Incorrecta",
+    "play_again_minigame": "JUGAR ESTE MINIGAME DE NUEVO",
+    "correct_year": "Año Correcto: {year}",
+    "no_minigames_title": "Sin Minijuegos Creados por el Admin",
+    "no_minigames_desc": "Para jugar la Línea de Tiempo, ¡crea un minijuego temático seleccionando eventos en el Panel de Admin bajo 'Gestor de Línea de Tiempo y Modos'!",
+    "refresh_minigames": "Actualizar Minijuegos",
+    "minigames_label": "Minijuegos:"
   }
 }

@@ -362,5 +362,42 @@
   "metadata": {
     "title": "YearGuessr — Guess the Year in History",
     "description": "The ultimate historical year guessing game. Discover the exact year of landmark historical moments in photos."
+  },
+  "room": {
+    "title": "MULTIPLAYER ROOM #{code}",
+    "subtitle": "2 to 10 Live Players",
+    "copy_link": "Invite Friends",
+    "copied_link": "Link Copied!",
+    "host_label": "You (Host)",
+    "friend_label": "Friend #{number}"
+  },
+  "timeattack": {
+    "title": "TIME ATTACK MODE",
+    "subtitle": "You have 60 seconds to guess as many challenges as possible! Bullseye hits grant +5s bonus!",
+    "start_button": "START CHALLENGE (60s)",
+    "time_left": "Time Left",
+    "total_score": "Total Score",
+    "perfect_hits": "Bullseye Hits",
+    "game_over": "TIME IS UP!",
+    "play_again": "PLAY AGAIN",
+    "confirm_guess": "CONFIRM GUESS",
+    "exact_hit": "BULLSEYE! +5s BONUS!",
+    "miss_msg": "Missed by {diff} {diff, plural, =1 {year} other {years}} (+{score} pts)",
+    "no_challenges_title": "No Challenges in Database",
+    "no_challenges_desc": "Add new historical challenges in the Admin Panel to play Time Attack Mode!",
+    "retry": "Try Again"
+  },
+  "chronological": {
+    "title": "TIMELINE IN ORDER",
+    "subtitle": "Arrange the {count} historical events from OLDEST (top) to MOST RECENT (bottom)",
+    "confirm_sequence": "CONFIRM CHRONOLOGICAL ORDER",
+    "perfect_order": "Perfect Order! Sensational!",
+    "incorrect_sequence": "Incorrect Order",
+    "play_again_minigame": "PLAY THIS MINIGAME AGAIN",
+    "correct_year": "Correct Year: {year}",
+    "no_minigames_title": "No Admin Minigame Created",
+    "no_minigames_desc": "To play Timeline, create a thematic minigame by selecting events in the Admin Panel under 'Timeline & Game Modes Manager'!",
+    "refresh_minigames": "Refresh Minigames",
+    "minigames_label": "Minigames:"
   }
 }

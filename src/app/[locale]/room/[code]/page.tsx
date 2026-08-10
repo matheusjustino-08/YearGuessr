@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { ChallengeViewer } from '@/components/ChallengeViewer';
 import { Timeline } from '@/components/Timeline';
@@ -14,9 +14,8 @@ interface Props {
 }
 
 export default function RoomPage({ params }: Props) {
-  const { code, locale } = use(params);
-  const tGame = useTranslations('game');
-  const tLb = useTranslations('leaderboard');
+  const { code } = use(params);
+  const tRoom = useTranslations('room');
   const gameState = useGameStore((state) => state.gameState);
   const fetchDailyChallenge = useGameStore((state) => state.fetchDailyChallenge);
 
@@ -24,9 +23,9 @@ export default function RoomPage({ params }: Props) {
   const [participants, setParticipants] = useState<
     { name: string; score: number; isReady: boolean }[]
   >([
-    { name: 'Você (Host)', score: 0, isReady: true },
-    { name: 'Amigo #1', score: 4850, isReady: true },
-    { name: 'Amigo #2', score: 4200, isReady: true },
+    { name: tRoom('host_label'), score: 0, isReady: true },
+    { name: tRoom('friend_label', { number: 1 }), score: 4850, isReady: true },
+    { name: tRoom('friend_label', { number: 2 }), score: 4200, isReady: true },
   ]);
 
   useEffect(() => {
@@ -68,11 +67,11 @@ export default function RoomPage({ params }: Props) {
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-primary" />
               <h1 className="text-sm font-black font-mono tracking-wider uppercase text-foreground">
-                SALA MULTIPLAYER #{code.toUpperCase()}
+                {tRoom('title', { code: code.toUpperCase() })}
               </h1>
             </div>
             <p className="text-[11px] text-muted-foreground font-mono">
-              2 a 10 Jogadores ao Vivo
+              {tRoom('subtitle')}
             </p>
           </div>
         </div>
@@ -85,12 +84,12 @@ export default function RoomPage({ params }: Props) {
           {copied ? (
             <>
               <Check className="w-3.5 h-3.5 text-emerald-500" />
-              <span className="text-emerald-500">Link Copiado!</span>
+              <span className="text-emerald-500">{tRoom('copied_link')}</span>
             </>
           ) : (
             <>
               <Copy className="w-3.5 h-3.5" />
-              <span>Convidar Amigos</span>
+              <span>{tRoom('copy_link')}</span>
             </>
           )}
         </button>

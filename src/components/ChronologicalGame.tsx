@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useLocale, useTranslations } from 'next-intl';
-import { ArrowUp, ArrowDown, CheckCircle2, RefreshCw, AlertCircle, Layers } from 'lucide-react';
+import { ArrowUp, ArrowDown, CheckCircle2, RefreshCw, AlertCircle } from 'lucide-react';
 
 interface Item {
   id: string;
@@ -21,6 +21,7 @@ interface Minigame {
 export function ChronologicalGame() {
   const supabase = useMemo(() => createClient(), []);
   const activeLocale = useLocale() as 'pt' | 'en' | 'es';
+  const tChrono = useTranslations('chronological');
   const tGame = useTranslations('game');
 
   const [minigames, setMinigames] = useState<Minigame[]>([]);
@@ -34,7 +35,6 @@ export function ChronologicalGame() {
   const fetchMinigames = useCallback(async () => {
     setLoading(true);
     try {
-      // Strictly fetch admin-created minigames from 'desafios_linha_tempo'
       const { data: mgData } = await supabase
         .from('desafios_linha_tempo')
         .select('*')
@@ -75,12 +75,11 @@ export function ChronologicalGame() {
           const content = item.conteudo_i18n?.[activeLocale] || item.conteudo_i18n?.pt || item.conteudo_i18n?.en;
           return {
             id: item.id,
-            title: content?.titulo || 'Evento Histórico',
+            title: content?.titulo || tGame('image_unavailable'),
             year: item.ano_correto,
             imageUrl: item.imagem_principal,
           };
         });
-        // Shuffle order for current play session so player has to arrange them
         setItems([...mapped].sort(() => Math.random() - 0.5));
       } else {
         setItems([]);
@@ -132,7 +131,7 @@ export function ChronologicalGame() {
     return (
       <div className="w-full max-w-xl mx-auto text-center p-12 rounded-3xl bg-card/80 border border-border/70 backdrop-blur-2xl space-y-4">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-xs font-mono font-bold text-muted-foreground uppercase">Carregando Minigame da Linha do Tempo...</p>
+        <p className="text-xs font-mono font-bold text-muted-foreground uppercase">{tGame('loading')}</p>
       </div>
     );
   }
@@ -143,16 +142,16 @@ export function ChronologicalGame() {
         <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/30 w-12 h-12 mx-auto flex items-center justify-center">
           <AlertCircle className="w-6 h-6" />
         </div>
-        <h3 className="text-lg font-bold text-foreground">Nenhum Minigame Criado pelo Admin</h3>
+        <h3 className="text-lg font-bold text-foreground">{tChrono('no_minigames_title')}</h3>
         <p className="text-xs text-muted-foreground font-mono leading-relaxed max-w-md mx-auto">
-          Para jogar a Linha do Tempo, crie um minigame temático selecionando os eventos no Painel Admin na aba "Gerenciador da Linha do Tempo & Modos de Jogo"!
+          {tChrono('no_minigames_desc')}
         </p>
         <button
           type="button"
           onClick={fetchMinigames}
           className="px-6 py-2.5 bg-primary text-primary-foreground font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-primary/90 transition-all cursor-pointer font-mono"
         >
-          Atualizar Minigames
+          {tChrono('refresh_minigames')}
         </button>
       </div>
     );
@@ -163,7 +162,7 @@ export function ChronologicalGame() {
       {/* Admin Minigames Selector Pills */}
       {minigames.length > 1 && (
         <div className="flex flex-wrap items-center justify-center gap-2 p-2 rounded-2xl bg-card/80 border border-border/60 backdrop-blur-xl shadow-xs">
-          <span className="text-[10px] font-mono font-bold uppercase text-muted-foreground px-2">Minigames:</span>
+          <span className="text-[10px] font-mono font-bold uppercase text-muted-foreground px-2">{tChrono('minigames_label')}</span>
           {minigames.map((mg) => (
             <button
               key={mg.id}
@@ -183,10 +182,10 @@ export function ChronologicalGame() {
 
       <div className="text-center space-y-2">
         <h2 className="text-2xl sm:text-3xl font-black text-foreground uppercase tracking-tight font-mono">
-          {selectedMinigame ? selectedMinigame.titulo : 'LINHA DO TEMPO EM ORDEM'}
+          {selectedMinigame ? selectedMinigame.titulo : tChrono('title')}
         </h2>
         <p className="text-xs text-muted-foreground font-mono">
-          Organize os {items.length} eventos históricos do MAIS ANTIGO (topo) ao MAIS RECENTE (base)
+          {tChrono('subtitle', { count: items.length })}
         </p>
       </div>
 
@@ -219,7 +218,7 @@ export function ChronologicalGame() {
                 </p>
                 {submitted && (
                   <p className="text-xs font-mono font-bold text-amber-500 mt-0.5">
-                    Ano Correto: {item.year}
+                    {tChrono('correct_year', { year: item.year })}
                   </p>
                 )}
               </div>
@@ -258,13 +257,13 @@ export function ChronologicalGame() {
             className="w-full py-4 bg-primary text-primary-foreground font-black text-xs uppercase tracking-wider rounded-2xl hover:bg-primary/90 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2 cursor-pointer font-mono"
           >
             <CheckCircle2 className="w-5 h-5" />
-            <span>CONFIRMAR SEQUÊNCIA CRONOLÓGICA</span>
+            <span>{tChrono('confirm_sequence')}</span>
           </button>
         ) : (
           <div className="p-6 rounded-3xl bg-card/90 border border-border/70 backdrop-blur-2xl space-y-4 shadow-xl">
             <div className="space-y-1">
               <h3 className="text-xl font-black text-foreground">
-                {isCorrect ? 'Ordem Perfeita! Sensacional!' : 'Sequência Incorreta'}
+                {isCorrect ? tChrono('perfect_order') : tChrono('incorrect_sequence')}
               </h3>
               <p className="text-3xl font-mono font-black text-primary">
                 +{score} pts
@@ -277,7 +276,7 @@ export function ChronologicalGame() {
               className="px-6 py-3 bg-secondary text-secondary-foreground font-bold text-xs uppercase tracking-wider rounded-2xl hover:bg-secondary/80 transition-all border border-border/60 inline-flex items-center gap-2 cursor-pointer font-mono"
             >
               <RefreshCw className="w-4 h-4" />
-              <span>JOGAR NOVAMENTE ESTE MINIGAME</span>
+              <span>{tChrono('play_again_minigame')}</span>
             </button>
           </div>
         )}

@@ -23,6 +23,7 @@ interface ChallengeItem {
 export function TimeAttackGame() {
   const supabase = useMemo(() => createClient(), []);
   const activeLocale = useLocale() as 'pt' | 'en' | 'es';
+  const tTA = useTranslations('timeattack');
   const tGame = useTranslations('game');
   const { playTick, playSubmit, playWin, playLose } = useAudioEngine();
 
@@ -133,10 +134,10 @@ export function TimeAttackGame() {
       setTimeLeft((prev) => prev + 5);
       setTotalScore((prev) => prev + 5000);
       setStreak((prev) => prev + 1);
-      setFeedback({ msg: 'NA MOSCA! +5s DE BÔNUS!', bonusTime: 5 });
+      setFeedback({ msg: tTA('exact_hit'), bonusTime: 5 });
     } else {
       setTotalScore((prev) => prev + roundScore);
-      setFeedback({ msg: `Errou por ${diff} anos (+${roundScore} pts)` });
+      setFeedback({ msg: tTA('miss_msg', { diff, score: roundScore }) });
     }
 
     setTimeout(() => {
@@ -150,7 +151,7 @@ export function TimeAttackGame() {
     return (
       <div className="w-full max-w-xl mx-auto text-center p-12 rounded-3xl bg-card/80 border border-border/70 backdrop-blur-2xl space-y-4">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-xs font-mono font-bold text-muted-foreground uppercase">Carregando Desafios do Banco de Dados...</p>
+        <p className="text-xs font-mono font-bold text-muted-foreground uppercase">{tGame('loading')}</p>
       </div>
     );
   }
@@ -161,16 +162,16 @@ export function TimeAttackGame() {
         <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/30 w-12 h-12 mx-auto flex items-center justify-center">
           <AlertCircle className="w-6 h-6" />
         </div>
-        <h3 className="text-lg font-bold text-foreground">Nenhum Desafio no Banco</h3>
+        <h3 className="text-lg font-bold text-foreground">{tTA('no_challenges_title')}</h3>
         <p className="text-xs text-muted-foreground font-mono leading-relaxed max-w-md mx-auto">
-          Cadastre novos desafios históricos no Painel Admin para jogar o Modo Contratempo!
+          {tTA('no_challenges_desc')}
         </p>
         <button
           type="button"
           onClick={loadChallenges}
           className="px-6 py-2.5 bg-primary text-primary-foreground font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-primary/90 transition-all cursor-pointer font-mono"
         >
-          Tentar Novamente
+          {tTA('retry')}
         </button>
       </div>
     );
@@ -184,10 +185,10 @@ export function TimeAttackGame() {
         </div>
         <div className="space-y-2">
           <h2 className="text-2xl font-black uppercase tracking-tight text-foreground font-mono">
-            MODO CONTRATEMPO (TIME ATTACK)
+            {tTA('title')}
           </h2>
           <p className="text-xs text-muted-foreground leading-relaxed font-mono">
-            Você tem 60 segundos para acertar o máximo de desafios do banco! A cada acerto exato (Na Mosca), você ganha +5 segundos de tempo bônus!
+            {tTA('subtitle')}
           </p>
         </div>
         <button
@@ -196,7 +197,7 @@ export function TimeAttackGame() {
           className="w-full py-4 bg-primary text-primary-foreground font-black text-xs uppercase tracking-wider rounded-2xl hover:bg-primary/90 transition-all shadow-xl active:scale-95 cursor-pointer flex items-center justify-center gap-2 font-mono"
         >
           <Timer className="w-5 h-5" />
-          <span>INICIAR DESAFIO (60s)</span>
+          <span>{tTA('start_button')}</span>
         </button>
       </div>
     );
@@ -209,10 +210,10 @@ export function TimeAttackGame() {
           <Trophy className="w-8 h-8" />
         </div>
         <div className="space-y-1">
-          <p className="text-xs font-mono font-bold uppercase text-muted-foreground">TEMPO ESGOTADO!</p>
-          <h2 className="text-3xl font-black text-foreground">PONTUAÇÃO TOTAL</h2>
+          <p className="text-xs font-mono font-bold uppercase text-muted-foreground">{tTA('game_over')}</p>
+          <h2 className="text-3xl font-black text-foreground">{tTA('total_score')}</h2>
           <p className="text-5xl font-mono font-black text-primary drop-shadow-xs">{totalScore} pts</p>
-          <p className="text-xs font-mono text-muted-foreground pt-1">Acertos Perfeitos: {streak}</p>
+          <p className="text-xs font-mono text-muted-foreground pt-1">{tTA('perfect_hits')}: {streak}</p>
         </div>
         <button
           type="button"
@@ -220,7 +221,7 @@ export function TimeAttackGame() {
           className="w-full py-4 bg-primary text-primary-foreground font-black text-xs uppercase tracking-wider rounded-2xl hover:bg-primary/90 transition-all shadow-xl active:scale-95 cursor-pointer flex items-center justify-center gap-2 font-mono"
         >
           <RefreshCw className="w-5 h-5" />
-          <span>JOGAR NOVAMENTE</span>
+          <span>{tTA('play_again')}</span>
         </button>
       </div>
     );
@@ -233,15 +234,15 @@ export function TimeAttackGame() {
       {/* Top Bar Stats */}
       <div className="grid grid-cols-3 gap-3">
         <div className={`p-3 rounded-2xl border text-center font-mono ${timeLeft <= 10 ? 'bg-rose-500/20 border-rose-500/40 text-rose-500 animate-pulse' : 'bg-card/80 border-border/60 text-foreground'}`}>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase">Tempo Restante</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase">{tTA('time_left')}</p>
           <p className="text-2xl font-black">{timeLeft}s</p>
         </div>
         <div className="p-3 rounded-2xl bg-card/80 border border-border/60 text-center font-mono">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase">Pontuação Total</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase">{tTA('total_score')}</p>
           <p className="text-2xl font-black text-primary">{totalScore}</p>
         </div>
         <div className="p-3 rounded-2xl bg-card/80 border border-border/60 text-center font-mono">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase">Acertos Na Mosca</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase">{tTA('perfect_hits')}</p>
           <p className="text-2xl font-black text-emerald-500">{streak}</p>
         </div>
       </div>
@@ -281,7 +282,7 @@ export function TimeAttackGame() {
             disabled={isSubmitting}
             className="w-full py-3.5 bg-primary text-primary-foreground font-black text-xs uppercase tracking-wider rounded-2xl hover:bg-primary/90 transition-all shadow-md active:scale-95 cursor-pointer disabled:opacity-50 font-mono"
           >
-            CONFIRMAR PALPITE
+            {tTA('confirm_guess')}
           </button>
         </div>
       </div>
