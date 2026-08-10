@@ -191,7 +191,11 @@ function AdForm({ data, onChange, onSubmit, submitLabel, saving }: {
                 : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/40 font-black'
             }`}
           >
-            {data.mostrar_botao ? '✓ Botão Habilitado' : '✕ Botão Desabilitado (Sem Botão)'}
+            {data.mostrar_botao ? (
+              <span className="flex items-center justify-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-500" /> Botão Habilitado</span>
+            ) : (
+              <span className="flex items-center justify-center gap-1.5"><X className="w-3.5 h-3.5" /> Botão Desabilitado (Sem Botão)</span>
+            )}
           </button>
         </div>
 

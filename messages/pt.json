@@ -343,7 +343,22 @@
     "form_success": "Desafio criado com sucesso!",
     "diff_easy_desc": "Evento icônico e mundialmente conhecido",
     "diff_normal_desc": "Exige raciocínio e contexto histórico",
-    "diff_hard_desc": "Evento obscuro, imagem ambígua"
+    "diff_hard_desc": "Evento obscuro, imagem ambígua",
+    "ai_generator": {
+      "title": "Gerador Inteligente com IA (Gemini API)",
+      "subtitle": "Gere ano, réguas, dificuldade, categorias e textos em PT/EN/ES baseados na escrita do jogo!",
+      "show_panel": "Abrir Painel IA",
+      "hide_panel": "Ocultar Painel",
+      "api_key_label": "Chave API do Gemini",
+      "saved_locally": "Salva localmente",
+      "api_key_placeholder": "Cole sua chave (AIzaSy...)",
+      "topic_label": "Tema do Evento (Opcional)",
+      "topic_placeholder": "Ex: Queda do Muro de Berlim, Invenção da Lâmpada...",
+      "generate_btn": "GERAR DESAFIO COMPLETO COM IA GEMINI",
+      "generating": "Consultando Gemini IA...",
+      "success_msg": "Desafio gerado com sucesso pela IA Gemini! Campos preenchidos (Ano {year}, Dificuldade {difficulty}). Cole a URL da imagem abaixo!",
+      "err_missing_key": "Chave de API do Gemini não configurada. Insira sua chave Gemini no campo do painel admin ou no arquivo .env!"
+    }
   },
   "scorecard": {
     "perfect": "NA MOSCA!",

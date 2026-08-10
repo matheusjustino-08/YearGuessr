@@ -207,8 +207,8 @@ export function ChallengeFormSection({ supabase }: Props) {
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-xs font-black font-mono uppercase text-foreground">Gerador Inteligente com IA (Gemini API)</h3>
-              <p className="text-[11px] text-muted-foreground font-mono">Gere ano, réguas, dificuldade, categorias e textos em PT/EN/ES baseados na escrita do jogo!</p>
+              <h3 className="text-xs font-black font-mono uppercase text-foreground">{tAdmin('ai_generator.title')}</h3>
+              <p className="text-[11px] text-muted-foreground font-mono">{tAdmin('ai_generator.subtitle')}</p>
             </div>
           </div>
           <button
@@ -216,7 +216,7 @@ export function ChallengeFormSection({ supabase }: Props) {
             onClick={() => setShowAiPanel(!showAiPanel)}
             className="text-xs font-mono font-bold text-amber-500 hover:underline cursor-pointer"
           >
-            {showAiPanel ? 'Ocultar Painel' : 'Abrir Painel IA'}
+            {showAiPanel ? tAdmin('ai_generator.hide_panel') : tAdmin('ai_generator.show_panel')}
           </button>
         </div>
 
@@ -226,8 +226,8 @@ export function ChallengeFormSection({ supabase }: Props) {
               {/* Gemini API Key Input */}
               <div className="space-y-1">
                 <label className="text-[10px] font-mono font-bold text-muted-foreground uppercase flex items-center justify-between">
-                  <span>Chave API do Gemini</span>
-                  <span className="text-[9px] text-amber-500 font-normal">Salva localmente</span>
+                  <span>{tAdmin('ai_generator.api_key_label')}</span>
+                  <span className="text-[9px] text-amber-500 font-normal">{tAdmin('ai_generator.saved_locally')}</span>
                 </label>
                 <div className="relative">
                   <input
@@ -237,7 +237,7 @@ export function ChallengeFormSection({ supabase }: Props) {
                       setGeminiApiKey(e.target.value);
                       if (typeof window !== 'undefined') localStorage.setItem('yearguessr_gemini_key', e.target.value);
                     }}
-                    placeholder="Cole sua chave (AIzaSy...)"
+                    placeholder={tAdmin('ai_generator.api_key_placeholder')}
                     className="w-full p-2.5 pr-9 rounded-xl border border-border/70 bg-background text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                   />
                   <button
@@ -253,13 +253,13 @@ export function ChallengeFormSection({ supabase }: Props) {
               {/* Challenge Topic Input */}
               <div className="space-y-1">
                 <label className="text-[10px] font-mono font-bold text-muted-foreground uppercase">
-                  Tema do Evento (Opcional)
+                  {tAdmin('ai_generator.topic_label')}
                 </label>
                 <input
                   type="text"
                   value={aiTopic}
                   onChange={(e) => setAiTopic(e.target.value)}
-                  placeholder="Ex: Queda do Muro de Berlim, Invenção da Lâmpada..."
+                  placeholder={tAdmin('ai_generator.topic_placeholder')}
                   className="w-full p-2.5 rounded-xl border border-border/70 bg-background text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                 />
               </div>
@@ -274,12 +274,12 @@ export function ChallengeFormSection({ supabase }: Props) {
               {isAiGenerating ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Consultando Gemini IA...</span>
+                  <span>{tAdmin('ai_generator.generating')}</span>
                 </>
               ) : (
                 <>
                   <Zap className="w-4 h-4" />
-                  <span>⚡ GERAR DESAFIO COMPLETO COM IA GEMINI</span>
+                  <span>{tAdmin('ai_generator.generate_btn')}</span>
                 </>
               )}
             </button>
