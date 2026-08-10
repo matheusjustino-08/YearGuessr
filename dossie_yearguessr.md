@@ -162,3 +162,22 @@ Tabelas: `desafios`, `categorias`, `dificuldades`, `anuncios`, `anuncios_propost
   - Tradução 100% i18n em Português, Inglês e Espanhol.
 - **Suporte Nativo a PWA (`manifest.ts`)**:
   - Configuração `standalone` que permite a instalação do aplicativo na tela inicial de celulares iOS e Android.
+
+---
+
+## ⚡ 15. Atualizações Finais de Segurança, Minigames do Admin e Proteção de Métricas
+
+- **Criador de Minigames da Linha do Tempo (`desafios_linha_tempo`)**:
+  - Tabela dedicada no Supabase e interface no Admin CMS para criação de minigames/conjuntos temáticos de 4 desafios históricos.
+  - O cliente carrega estritamente os minigames criados pelo Administrador.
+- **Proteção Antifraude em Métricas de Anúncios**:
+  - Rastreamento de impressões (`/api/anuncios/track`) disparado exclusivamente via `IntersectionObserver` (50%+ visível na tela).
+  - Trava de sessão `sessionStorage` que limita a no máximo 1 contagem por sessão de usuário por anúncio, impedindo inflação automática.
+- **Modo Treino Infinito (`useGameStore.ts`)**:
+  - O botão *"Jogar Novamente"* / *"Próximo Desafio"* no Modo Treino sorteia dinamicamente um novo desafio do banco de dados, permitindo jogabilidade ilimitada.
+- **Segurança RBAC e Autenticação de APIs**:
+  - Endpoint `/api/auth/merge` protegido com validação de sessão do usuário logado.
+  - Endpoint `/api/propostas` protegido contra vazamento de dados comerciais de anunciantes com verificação de papel `admin`.
+- **Zero Emojis e Suporte 404 Estilizado (`not-found.tsx`)**:
+  - Substituição de todos os emojis brutos por ícones vetoriais `lucide-react` e badges HSL.
+  - Importação de `globals.css` no 404 raiz para renderização de telas de erro estilizadas.
