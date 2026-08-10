@@ -4,6 +4,7 @@ import { Link, usePathname } from '@/i18n/routing';
 import { useLocale, useTranslations } from 'next-intl';
 import { Trophy, Globe, Volume2, VolumeX } from 'lucide-react';
 import { AuthModal } from './AuthModal';
+import { MultiplayerModal } from './MultiplayerModal';
 import { useGameStore } from '@/store/useGameStore';
 
 export function Navbar() {
@@ -84,6 +85,11 @@ export function Navbar() {
             <Trophy className="w-4 h-4 text-amber-500 shrink-0" />
             <span className="hidden sm:inline">{t('ranking')}</span>
           </Link>
+
+          {/* Multiplayer Button */}
+          <div className="hidden xs:block">
+            <MultiplayerModal />
+          </div>
 
           {/* Login / Auth */}
           <div className="pl-1 sm:pl-2 border-l border-border/50">

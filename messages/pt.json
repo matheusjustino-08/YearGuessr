@@ -399,5 +399,16 @@
     "no_minigames_desc": "Para jogar a Linha do Tempo, crie um minigame temático selecionando os eventos no Painel Admin na aba 'Gerenciador da Linha do Tempo & Modos de Jogo'!",
     "refresh_minigames": "Atualizar Minigames",
     "minigames_label": "Minigames:"
+  },
+  "multiplayer_modal": {
+    "button": "Multiplayer",
+    "title": "SALA MULTIPLAYER",
+    "subtitle": "Jogue ao vivo com até 10 amigos e veja quem é o verdadeiro Mestre do Tempo!",
+    "tab_create": "Criar Sala",
+    "tab_join": "Entrar em Sala",
+    "create_button": "CRIAR NOVA SALA",
+    "join_placeholder": "Digite o Código da Sala (ex: YG-4829)",
+    "join_button": "ENTRAR NA SALA",
+    "invalid_code": "Por favor, digite um código de sala válido."
   }
 }

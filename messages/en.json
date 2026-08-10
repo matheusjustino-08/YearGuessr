@@ -399,5 +399,16 @@
     "no_minigames_desc": "To play Timeline, create a thematic minigame by selecting events in the Admin Panel under 'Timeline & Game Modes Manager'!",
     "refresh_minigames": "Refresh Minigames",
     "minigames_label": "Minigames:"
+  },
+  "multiplayer_modal": {
+    "button": "Multiplayer",
+    "title": "MULTIPLAYER ROOM",
+    "subtitle": "Play live with up to 10 friends and see who is the true Master of Time!",
+    "tab_create": "Create Room",
+    "tab_join": "Join Room",
+    "create_button": "CREATE NEW ROOM",
+    "join_placeholder": "Enter Room Code (e.g. YG-4829)",
+    "join_button": "JOIN ROOM",
+    "invalid_code": "Please enter a valid room code."
   }
 }

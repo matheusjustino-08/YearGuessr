@@ -13,6 +13,7 @@ import { SideBanners } from '@/components/SideBanners';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { ChronologicalGame } from '@/components/ChronologicalGame';
 import { TimeAttackGame } from '@/components/TimeAttackGame';
+import { MultiplayerModal } from '@/components/MultiplayerModal';
 import { Swords } from 'lucide-react';
 
 export default function HomePage() {
@@ -105,6 +106,9 @@ export default function HomePage() {
             >
               {t('chronological_mode')}
             </button>
+            <div className="pl-1 border-l border-border/40">
+              <MultiplayerModal triggerClassName="px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/30 transition-all cursor-pointer flex items-center gap-1.5 shrink-0 shadow-xs" />
+            </div>
           </div>
         </div>
 
