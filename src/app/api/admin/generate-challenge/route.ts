@@ -39,40 +39,45 @@ Formato JSON Obrigatório (retorne APENAS o JSON bruto, sem blocos de código \`
 
 ${topic ? `O desafio DEVE ser sobre este tema específico: "${topic}".` : 'Gere um evento histórico marcante e icônico da história mundial.'}`;
 
-    // Call Gemini API (Try gemini-2.0-flash then gemini-1.5-flash)
-    let geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-    
-    let res = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: systemPrompt }] }],
-        generationConfig: { responseMimeType: 'application/json' },
-      }),
-    });
+    // List of newest Google Gemini models in priority order
+    const modelsToTry = [
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+      'gemini-1.5-flash-latest',
+      'gemini-flash',
+      'gemini-pro',
+    ];
 
-    if (!res.ok) {
-      // Fallback to gemini-1.5-flash
-      geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-      res = await fetch(geminiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: systemPrompt }] }],
-        }),
-      });
+    let lastError = '';
+    let candidateText = '';
+
+    for (const modelName of modelsToTry) {
+      try {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        const res = await fetch(geminiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: systemPrompt }] }],
+            generationConfig: { responseMimeType: 'application/json' },
+          }),
+        });
+
+        if (res.ok) {
+          const geminiData = await res.json();
+          candidateText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (candidateText) break;
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          lastError = errData.error?.message || `Modelo ${modelName} retornou erro ${res.status}`;
+        }
+      } catch (e: any) {
+        lastError = e.message || 'Erro na requisição Gemini';
+      }
     }
-
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.error?.message || `Erro na API Gemini (${res.status})`);
-    }
-
-    const geminiData = await res.json();
-    const candidateText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!candidateText) {
-      throw new Error('Nenhuma resposta gerada pelo modelo Gemini.');
+      throw new Error(`Não foi possível comunicar com a API do Gemini. Detalhe do erro: ${lastError}`);
     }
 
     // Clean JSON response
