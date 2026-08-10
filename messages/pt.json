@@ -358,7 +358,10 @@
       "generating": "Consultando Gemini IA...",
       "success_msg": "Desafio gerado com sucesso pela IA Gemini! Campos preenchidos (Ano {year}, Dificuldade {difficulty}). Cole a URL da imagem abaixo!",
       "err_missing_key": "Chave de API do Gemini não configurada. Insira sua chave Gemini no campo do painel admin ou no arquivo .env!"
-    }
+    },
+    "upload_file_btn": "Fazer Upload de Imagem",
+    "back_to_game": "Voltar ao Jogo",
+    "form_i18n_titles_hints": "Títulos e Dicas por Idioma (i18n)"
   },
   "scorecard": {
     "perfect": "NA MOSCA!",

@@ -358,7 +358,10 @@
       "generating": "Consultando Gemini IA...",
       "success_msg": "¡Desafío generado con éxito por la IA Gemini! Campos completados (Año {year}, Dificultad {difficulty}). ¡Pegue la URL de la imagen abajo!",
       "err_missing_key": "Clave de API de Gemini no configurada. ¡Ingrese su clave Gemini en el panel de admin o en el archivo .env!"
-    }
+    },
+    "upload_file_btn": "Subir Archivo de Imagen",
+    "back_to_game": "Volver al Juego",
+    "form_i18n_titles_hints": "Títulos y Pistas por Idioma (i18n)"
   },
   "scorecard": {
     "perfect": "¡EN EL BLANCO!",
