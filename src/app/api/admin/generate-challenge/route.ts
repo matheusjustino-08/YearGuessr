@@ -39,17 +39,52 @@ Formato JSON Obrigatório (retorne APENAS o JSON bruto, sem blocos de código \`
 
 ${topic ? `O desafio DEVE ser sobre este tema específico: "${topic}".` : 'Gere um evento histórico marcante e icônico da história mundial.'}`;
 
-    // List of newest Google Gemini models in priority order
-    const modelsToTry = [
+    // 1. Dynamically query Google ListModels API to discover exact available models for this API key
+    let dynamicModels: string[] = [];
+    try {
+      const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+      if (listRes.ok) {
+        const listData = await listRes.json();
+        if (Array.isArray(listData.models)) {
+          const valid = listData.models
+            .filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
+            .map((m: any) => m.name.replace(/^models\//, ''));
+
+          // Sort flash / latest models first
+          valid.sort((a: string, b: string) => {
+            if (a.includes('flash') && !b.includes('flash')) return -1;
+            if (!a.includes('flash') && b.includes('flash')) return 1;
+            return b.localeCompare(a);
+          });
+          dynamicModels = valid;
+        }
+      }
+    } catch {
+      // Dynamic list fallback
+    }
+
+    // 2. Comprehensive fallback list including latest Gemini 3.x / 2.x / 1.5 versions
+    const fallbackModels = [
+      'gemini-3.6-flash',
+      'gemini-3.5-flash',
+      'gemini-3.0-flash',
       'gemini-2.5-flash',
       'gemini-2.0-flash',
       'gemini-1.5-flash-latest',
+      'gemini-1.5-flash',
+      'gemini-1.5-flash-002',
+      'gemini-1.5-pro-latest',
       'gemini-flash',
       'gemini-pro',
     ];
 
+    const modelsToTry = dynamicModels.length > 0 
+      ? Array.from(new Set([...dynamicModels, ...fallbackModels])) 
+      : fallbackModels;
+
     let lastError = '';
     let candidateText = '';
+    let usedModel = '';
 
     for (const modelName of modelsToTry) {
       try {
@@ -59,14 +94,16 @@ ${topic ? `O desafio DEVE ser sobre este tema específico: "${topic}".` : 'Gere 
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: systemPrompt }] }],
-            generationConfig: { responseMimeType: 'application/json' },
           }),
         });
 
         if (res.ok) {
           const geminiData = await res.json();
           candidateText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          if (candidateText) break;
+          if (candidateText) {
+            usedModel = modelName;
+            break;
+          }
         } else {
           const errData = await res.json().catch(() => ({}));
           lastError = errData.error?.message || `Modelo ${modelName} retornou erro ${res.status}`;
@@ -95,6 +132,7 @@ ${topic ? `O desafio DEVE ser sobre este tema específico: "${topic}".` : 'Gere 
 
     return NextResponse.json({
       success: true,
+      usedModel,
       data: {
         ano_correto: anoCorreto,
         dificuldade,
