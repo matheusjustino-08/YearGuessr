@@ -54,7 +54,7 @@ export function ChallengeViewer() {
     );
   }
 
-  const content = currentChallenge.conteudo_i18n[locale] || currentChallenge.conteudo_i18n.en || currentChallenge.conteudo_i18n.pt;
+  const content = currentChallenge?.conteudo_i18n?.[locale] || currentChallenge?.conteudo_i18n?.pt || currentChallenge?.conteudo_i18n?.en || { titulo: 'Desafio Histórico', dica: '' };
   const activeEra = getEraKey(currentYear, themeOverride);
 
   // Era-specific custom card styling configuration (light & dark mode compliant)
